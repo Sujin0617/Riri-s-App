@@ -358,10 +358,11 @@ display:block;
   <div class="page-top"><div class="page-title">🎬 연기 활동</div><div class="page-sub">감상 · 지원 · 오디션 · 스케줄 · 노트</div></div>
   <div class="acting-layout">
     <div class="acting-sidebar">
-      <button class="am-btn active" onclick="switchAct('watch',this)"><div class="am-ico">🎞️</div><div class="am-lbl">감상기록</div></button>
+      <button class="am-btn active" onclick="loadCastingManagers();
+      switchAct('watch',this)"><div class="am-ico">🎞️</div><div class="am-lbl">감상기록</div></button>
       <button class="am-btn" onclick="switchAct('apply',this)"><div class="am-ico">📋</div><div class="am-lbl">지원기록</div></button>
       <button class="am-btn" onclick="switchAct('audition',this)"><div class="am-ico">🎤</div><div class="am-lbl">오디션기록</div></button>
-      <button class="am-btn" onclick="switchAct('schedule',this)"><div class="am-ico">🎬</div><div class="am-lbl">촬영</div></button>
+      <button class="am-btn" onclick="switchAct('schedule',this)"><div class="am-ico">🎬</div><div class="am-lbl">촬영기록</div></button>
       <button class="am-btn" onclick="switchAct('appearance',this)"><div class="am-ico">🎥</div><div class="am-lbl">출연기록</div></button>
       <button class="am-btn" onclick="switchAct('casting',this)"><div class="am-ico">📇</div><div class="am-lbl">캐스팅연락처</div></button>
       <button class="am-btn" onclick="switchAct('note',this)"><div class="am-ico">📝</div><div class="am-lbl">연기노트</div></button>
@@ -584,7 +585,9 @@ display:block;
   placeholder="직접 입력"
   style="display:none;margin-top:8px;">
 
-<label class="form-label">작품명 *</label><input id="ap-title" placeholder="작품명">
+<label class="form-label">제작사</label><input id="sc-company" placeholder="제작사명">
+
+  <label class="form-label">작품명 *</label><input id="ap-title" placeholder="작품명">
   <label class="form-label">감독</label><input id="ap-dir" placeholder="감독 이름">
   <label class="form-label">제작사</label><input id="ap-co" placeholder="제작사">
   <label class="form-label">촬영 일자</label><input id="ap-sdate" type="date">
@@ -623,6 +626,35 @@ display:block;
   placeholder="직접 입력"
   style="display:none;margin-top:8px;">
 
+<label class="form-label">제작사</label><input id="apr-company" placeholder="제작사명">
+
+
+
+<label class="form-label">지원날짜</label>
+<input id="ap-apply-date" type="date">
+
+<label class="form-label">지원방법</label>
+
+<select id="ap-apply-method" onchange="toggleApplyMethod()">
+  <option value="">선택해주세요</option>
+  <option>필메</option>
+  <option>플필</option>
+  <option>리플레이</option>
+  <option>캐스트링크</option>
+  <option>OTR</option>
+  <option value="custom">그외 (기타작성)</option>
+</select>
+
+<input
+  id="ap-apply-method-custom"
+  placeholder="직접 입력"
+  style="display:none;margin-top:8px;">
+
+<label class="form-label">담당자 연락처</label>
+<input id="ap-manager-phone" placeholder="010-0000-0000">
+
+<label class="form-label">지원 URL</label>
+<input id="ap-url" placeholder="https://">
 <label class="form-label">작품명 *</label><input id="au-title" placeholder="작품명">
   <label class="form-label">오디션 일자 *</label><input id="au-date" type="date">
   <label class="form-label">오디션 파일 / 준비 자료</label><textarea id="au-file" placeholder="준비 자료, 대본 링크 등"></textarea>
@@ -656,7 +688,27 @@ display:block;
   style="display:none;margin-top:8px;">
 
 <label class="form-label">작품명 *</label><input id="sc-title" placeholder="작품명">
-  <label class="form-label">방송국 (송출)</label><input id="sc-broadcast" placeholder="예) TVN, MBC, TVING">
+  <label class="form-label">방송국 (송출)</label>
+
+  <select id="sc-broadcast" onchange="toggleBroadcastCustom()">
+    <option value="">선택해주세요</option>
+    <option>KBS</option>
+    <option>MBC</option>
+    <option>SBS</option>
+    <option>TVN</option>
+    <option>ENA</option>
+    <option>채널A</option>
+    <option>JTBC</option>
+    <option>Netflix</option>
+    <option>Tving</option>
+    <option>Wavve</option>
+    <option value="custom">기타 (직접작성)</option>
+  </select>
+
+  <input
+    id="sc-broadcast-custom"
+    placeholder="직접 입력"
+    style="display:none;margin-top:8px;">
   <label class="form-label">감독</label><input id="sc-dir" placeholder="감독 이름">
   <label class="form-label">출연화 (회차) *</label><input id="sc-ep" placeholder="예) 3화, 39화">
   <label class="form-label">출연 시간</label><input id="sc-time" placeholder="예) 14:00~18:00, 약 2시간">
