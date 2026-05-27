@@ -405,14 +405,14 @@ display:block;
 <th>제작사</th>
 <th>촬영분류</th>
 <th>역할</th>
-<th>캐스팅담당자</th>
-<th>지원날짜</th>
+<th>캐스팅담당자</th><th>페이</th><th>촬영일</th><th>촬영회차</th><th>기타메모</th>
+
 </tr>
 </thead>
 
 <tbody>
 <tr>
-<td colspan="6" class="sc-empty">
+<td colspan="10" class="sc-empty">
 리스트업 연락 데이터를 추가해보세요 📇
 </td>
 </tr>
@@ -1277,11 +1277,24 @@ document.addEventListener('change', function(e){
 <label class="form-label">역할</label>
 <input placeholder="역할">
 
-<label class="form-label">캐스팅담당자</label>
-<input placeholder="담당자">
 
-<label class="form-label">지원날짜</label>
-<input type="date">
+<label class="form-label">캐스팅담당자</label>
+<input id="lu-manager" placeholder="담당자">
+
+<label class="form-label">페이</label>
+<input id="lu-pay" placeholder="예) 300000">
+
+<label class="form-label">촬영일</label>
+<input id="lu-date" type="date">
+
+<label class="form-label">촬영회차</label>
+<input id="lu-episode" placeholder="예) 3회차">
+
+<label class="form-label">기타메모</label>
+<textarea id="lu-note" placeholder="특이사항"></textarea>
+
+
+
 
 <div class="row" style="gap:10px;margin-top:18px;">
 <button class="btn btn-outline" style="flex:1;" onclick="closeModal('m-listup')">취소</button>
@@ -1290,9 +1303,409 @@ document.addEventListener('change', function(e){
 
 </div></div>
 
-</body>
-</html>
 
+<script>
+/* ===== AUTO FIX PATCH ===== */
+
+let APPLY_FILTER='all';
+let NOTE_FILTER='all';
+
+function toggleApplyCategory(){
+  const s=document.getElementById('apply-category');
+  const c=document.getElementById('apply-category-custom');
+  if(s&&c)c.style.display=s.value==='custom'?'block':'none';
+}
+
+function toggleBroadcastCustom(){
+  const s=document.getElementById('sc-broadcast');
+  const c=document.getElementById('sc-broadcast-custom');
+  if(s&&c)c.style.display=s.value==='custom'?'block':'none';
+}
+
+function toggleShootCategory(){
+  const s=document.getElementById('shoot-category');
+  const c=document.getElementById('shoot-category-custom');
+  if(s&&c)c.style.display=s.value==='custom'?'block':'none';
+}
+
+function toggleAprCategory(){
+  const s=document.getElementById('apr-category');
+  const c=document.getElementById('apr-category-custom');
+  if(s&&c)c.style.display=s.value==='custom'?'block':'none';
+}
+
+function toggleApplyMethod(){
+  const s=document.getElementById('ap-apply-method');
+  const c=document.getElementById('ap-apply-method-custom');
+  if(s&&c)c.style.display=s.value==='custom'?'block':'none';
+}
+
+function toggleCustomPlatform(){
+  const s=document.getElementById('apr-platform');
+  const c=document.getElementById('apr-platform-custom');
+  if(s&&c)c.style.display=s.value==='custom'?'block':'none';
+}
+
+function switchPersonal(name,el){
+  document.querySelectorAll('.pm-btn').forEach(v=>v.classList.remove('active'));
+  if(el)el.classList.add('active');
+  document.querySelectorAll('.pt-panel').forEach(v=>v.classList.remove('active'));
+  const t=document.getElementById('pp-'+name);
+  if(t)t.classList.add('active');
+}
+
+async function renderApplyList(){
+  const box=document.getElementById('apply-list');
+  if(!box)return;
+  const rows=await sb.get('apply');
+
+  if(!rows.length){
+    box.innerHTML='<div class="empty">지원기록이 없습니다 📋</div>';
+    return;
+  }
+
+  box.innerHTML=rows.map(r=>`
+    <div class="entry-item">
+      <div class="row-between">
+        <div>
+          <div class="entry-title">${r.title||''}</div>
+          <div class="entry-sub">${r.role||''} · ${r.result||''}</div>
+          <div class="entry-meta">${r.company||''}</div>
+        </div>
+        <button class="del-btn" onclick="delApply('${r.id}')">×</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function saveApply(){
+  const data={
+    id:uid(),
+    title:document.getElementById('ap-title')?.value||'',
+    director:document.getElementById('ap-dir')?.value||'',
+    company:document.getElementById('ap-co')?.value||'',
+    role:document.getElementById('ap-role')?.value||'',
+    manager:document.getElementById('ap-mgr')?.value||'',
+    email:document.getElementById('ap-email')?.value||'',
+    result:document.getElementById('ap-result')?.value||'지원',
+    created_at:new Date().toISOString()
+  };
+
+  if(!data.title){
+    alert('작품명을 입력해주세요');
+    return;
+  }
+
+  await sb.insert('apply',data);
+  closeModal('m-apply');
+  renderApplyList();
+}
+
+async function delApply(id){
+  await sb.delete('apply',id);
+  renderApplyList();
+}
+
+function fApply(v,el){
+  APPLY_FILTER=v;
+  document.querySelectorAll('#af-chips .chip').forEach(c=>c.classList.remove('active'));
+  if(el)el.classList.add('active');
+  renderApplyList();
+}
+
+async function renderAuditionList(){
+  const box=document.getElementById('audition-list');
+  if(!box)return;
+
+  const rows=await sb.get('audition');
+
+  if(!rows.length){
+    box.innerHTML='<div class="empty">오디션기록이 없습니다 🎤</div>';
+    return;
+  }
+
+  box.innerHTML=rows.map(r=>`
+    <div class="entry-item">
+      <div class="row-between">
+        <div>
+          <div class="entry-title">${r.title||''}</div>
+          <div class="entry-sub">${r.result||''}</div>
+          <div class="entry-meta">${r.date||''}</div>
+        </div>
+        <button class="del-btn" onclick="delAudition('${r.id}')">×</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function saveAudition(){
+  const data={
+    id:uid(),
+    title:document.getElementById('au-title')?.value||'',
+    date:document.getElementById('au-date')?.value||'',
+    review:document.getElementById('au-rev')?.value||'',
+    result:document.getElementById('au-result')?.value||'',
+    created_at:new Date().toISOString()
+  };
+
+  if(!data.title){
+    alert('작품명을 입력해주세요');
+    return;
+  }
+
+  await sb.insert('audition',data);
+  closeModal('m-audition');
+  renderAuditionList();
+}
+
+async function delAudition(id){
+  await sb.delete('audition',id);
+  renderAuditionList();
+}
+
+async function renderScheduleList(){
+  const body=document.getElementById('schedule-list');
+  if(!body)return;
+
+  const rows=await sb.get('shooting_records');
+
+  if(!rows.length){
+    body.innerHTML='<tr><td colspan="9" class="sc-empty">촬영기록이 없습니다 🎬</td></tr>';
+    return;
+  }
+
+  body.innerHTML=rows.map(r=>`
+    <tr class="sc-data">
+      <td>${r.title||''}</td>
+      <td>${r.broadcast||''}</td>
+      <td>${r.director||''}</td>
+      <td>${r.episode||''}</td>
+      <td>${r.calltime||''}</td>
+      <td>${r.role||''}</td>
+      <td>${r.pay||''}</td>
+      <td>${r.airdate||''}</td>
+      <td><button class="sc-del-btn" onclick="delSchedule('${r.id}')">🗑️</button></td>
+    </tr>
+  `).join('');
+}
+
+async function saveSchedule(){
+  const data={
+    id:uid(),
+    title:document.getElementById('sc-title')?.value||'',
+    broadcast:document.getElementById('sc-broadcast')?.value||'',
+    director:document.getElementById('sc-dir')?.value||'',
+    episode:document.getElementById('sc-ep')?.value||'',
+    calltime:document.getElementById('sc-time')?.value||'',
+    role:document.getElementById('sc-role')?.value||'',
+    pay:document.getElementById('sc-pay')?.value||'',
+    airdate:document.getElementById('sc-airdate')?.value||'',
+    created_at:new Date().toISOString()
+  };
+
+  if(!data.title){
+    alert('작품명을 입력해주세요');
+    return;
+  }
+
+  await sb.insert('shooting_records',data);
+  closeModal('m-schedule');
+  renderScheduleList();
+}
+
+async function delSchedule(id){
+  await sb.delete('shooting_records',id);
+  renderScheduleList();
+}
+
+async function renderAppearanceList(){
+  const body=document.getElementById('appearance-list');
+  if(!body)return;
+
+  const rows=await sb.get('appearance');
+
+  if(!rows.length){
+    body.innerHTML='<tr><td colspan="7" class="sc-empty">출연기록이 없습니다 🎥</td></tr>';
+    return;
+  }
+
+  body.innerHTML=rows.map(r=>`
+    <tr class="sc-data">
+      <td>${r.title||''}</td>
+      <td>${r.platform||''}</td>
+      <td>${r.role||''}</td>
+      <td>${r.episode||''}</td>
+      <td>${r.pay||''}</td>
+      <td>${r.date||''}</td>
+      <td><button class="sc-del-btn" onclick="delAppearance('${r.id}')">🗑️</button></td>
+    </tr>
+  `).join('');
+}
+
+async function saveAppearance(){
+  const data={
+    id:uid(),
+    title:document.getElementById('apr-title')?.value||'',
+    platform:document.getElementById('apr-platform')?.value||'',
+    episode:document.getElementById('apr-episode')?.value||'',
+    role:document.getElementById('apr-role')?.value||'',
+    pay:document.getElementById('apr-pay')?.value||'',
+    date:document.getElementById('apr-date')?.value||'',
+    created_at:new Date().toISOString()
+  };
+
+  await sb.insert('appearance',data);
+  closeModal('m-appearance');
+  renderAppearanceList();
+}
+
+async function delAppearance(id){
+  await sb.delete('appearance',id);
+  renderAppearanceList();
+}
+
+async function renderCastingList(){
+  const body=document.getElementById('casting-list');
+  if(!body)return;
+
+  const rows=await sb.get('casting_contacts');
+
+  if(!rows.length){
+    body.innerHTML='<tr><td colspan="8" class="sc-empty">캐스팅 연락처가 없습니다 📇</td></tr>';
+    return;
+  }
+
+  body.innerHTML=rows.map(r=>`
+    <tr>
+      <td>${r.name||''}</td>
+      <td>${r.company||''}</td>
+      <td>${r.position||''}</td>
+      <td>${r.category||''}</td>
+      <td>${r.phone||''}</td>
+      <td>${r.worked||''}</td>
+      <td>${r.latest_contact||''}</td>
+      <td><button class="sc-del-btn" onclick="delCasting('${r.id}')">🗑️</button></td>
+    </tr>
+  `).join('');
+}
+
+async function saveCasting(){
+  const sel=document.getElementById('cast-category');
+  const categories=[...sel.selectedOptions].map(o=>o.value).join(', ');
+
+  const data={
+    id:uid(),
+    name:document.getElementById('cast-name')?.value||'',
+    company:document.getElementById('cast-company')?.value||'',
+    position:document.getElementById('cast-position')?.value||'',
+    category:categories,
+    phone:document.getElementById('cast-phone')?.value||'',
+    email:document.getElementById('cast-email')?.value||'',
+    worked:document.getElementById('cast-worked')?.value||'',
+    latest_contact:document.getElementById('cast-date')?.value||'',
+    note:document.getElementById('cast-note')?.value||'',
+    created_at:new Date().toISOString()
+  };
+
+  await sb.insert('casting_contacts',data);
+  closeModal('m-casting');
+  renderCastingList();
+}
+
+async function delCasting(id){
+  await sb.delete('casting_contacts',id);
+  renderCastingList();
+}
+
+async function loadCastingManagers(){
+  const rows=await sb.get('casting_contacts');
+  const selects=['ap-mgr'];
+
+  selects.forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+  });
+}
+
+function loadShootingTitles(){}
+
+async function saveNote(){
+  const data={
+    id:uid(),
+    type:document.getElementById('nt-type')?.value||'',
+    content:document.getElementById('nt-content')?.value||'',
+    created_at:new Date().toISOString()
+  };
+
+  await sb.insert('actnote',data);
+  closeModal('m-note');
+  renderNoteList();
+}
+
+async function renderNoteList(){
+  const box=document.getElementById('note-list');
+  if(!box)return;
+
+  const rows=await sb.get('actnote');
+
+  if(!rows.length){
+    box.innerHTML='<div class="empty">연기노트가 없습니다 📝</div>';
+    return;
+  }
+
+  box.innerHTML=rows.map(r=>`
+    <div class="entry-item">
+      <div class="row-between">
+        <div>
+          <div class="entry-title">${r.type||''}</div>
+          <div class="entry-sub">${r.content||''}</div>
+        </div>
+        <button class="del-btn" onclick="delNote('${r.id}')">×</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function delNote(id){
+  await sb.delete('actnote',id);
+  renderNoteList();
+}
+
+function fNote(v,el){
+  NOTE_FILTER=v;
+  document.querySelectorAll('#nf-chips .chip').forEach(c=>c.classList.remove('active'));
+  if(el)el.classList.add('active');
+  renderNoteList();
+}
+
+async function saveGoal(){
+  alert('목표 저장 완료');
+  closeModal('m-goal');
+}
+
+async function saveBigGoal(){
+  alert('목표 저장 완료');
+  closeModal('m-big-goal');
+}
+
+async function saveMoney(){
+  alert('저장 완료');
+  closeModal('m-money');
+}
+
+function renderSidejob(){}
+function renderPersonalTab(){}
+
+window.addEventListener('load',()=>{
+  renderApplyList();
+  renderAuditionList();
+  renderScheduleList();
+  renderAppearanceList();
+  renderCastingList();
+  renderNoteList();
+});
+
+</script>
 
 <script>
 /* =========================
