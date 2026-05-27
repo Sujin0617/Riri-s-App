@@ -363,6 +363,7 @@ display:block;
       <button class="am-btn" onclick="switchAct('audition',this)"><div class="am-ico">🎤</div><div class="am-lbl">오디션기록</div></button>
       <button class="am-btn" onclick="switchAct('schedule',this)"><div class="am-ico">🎬</div><div class="am-lbl">촬영</div></button>
       <button class="am-btn" onclick="switchAct('appearance',this)"><div class="am-ico">🎥</div><div class="am-lbl">출연기록</div></button>
+      <button class="am-btn" onclick="switchAct('casting',this)"><div class="am-ico">📇</div><div class="am-lbl">캐스팅연락처</div></button>
       <button class="am-btn" onclick="switchAct('note',this)"><div class="am-ico">📝</div><div class="am-lbl">연기노트</div></button>
     </div>
     <div class="acting-content">
@@ -438,7 +439,43 @@ display:block;
         </div>
       </div>
 
-      <div class="at-panel" id="ap-note">
+      
+<div class="at-panel" id="ap-casting">
+  <div class="sc-wrap">
+    <div class="sc-top">
+      <div class="sc-top-title">📇 캐스팅연락처</div>
+
+      <div class="sc-search-box">
+        <span style="color:var(--text3);font-size:14px;">🔍</span>
+        <input id="casting-search-input" placeholder="성명 검색" oninput="renderCastingList()">
+      </div>
+
+      <button class="btn btn-p btn-sm" onclick="openModal('m-casting')">+ 추가</button>
+    </div>
+
+    <div class="sc-outer">
+      <table class="sc-tbl">
+        <thead>
+          <tr>
+            <th>성명</th>
+            <th>소속</th>
+            <th>직책</th>
+            <th>분야</th>
+            <th>연락처</th>
+            <th>작업유무</th>
+            <th>최신연락일</th>
+            <th></th>
+          </tr>
+        </thead>
+
+        <tbody id="casting-list"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="at-panel" id="ap-note">
+
         <div class="at-ptitle">📝 연기노트</div>
         <button class="btn btn-p" style="width:100%;margin-bottom:12px;" onclick="openModal('m-note')">+ 노트 추가</button>
         <div class="chip-row" id="nf-chips"><div class="chip active" onclick="fNote('all',this)">전체</div><div class="chip" onclick="fNote('연기연습',this)">연기연습</div><div class="chip" onclick="fNote('관찰노트',this)">관찰노트</div></div>
@@ -596,7 +633,29 @@ display:block;
 
 <div class="modal-overlay" id="m-schedule"><div class="modal-box">
   <div class="modal-handle"></div><div class="modal-title">🎬 촬영기록 추가</div>
-  <label class="form-label">작품명 *</label><input id="sc-title" placeholder="작품명">
+  
+<label class="form-label">촬영 분류</label>
+
+<select id="apply-category" onchange="toggleApplyCategory()">
+  <option value="">선택해주세요</option>
+  <option>상업드라마</option>
+  <option>웹드라마</option>
+  <option>숏폼드라마</option>
+  <option>독립영화</option>
+  <option>단편영화</option>
+  <option>상업영화</option>
+  <option>광고영상</option>
+  <option>홍보영상</option>
+  <option>지면촬영</option>
+  <option value="custom">그외촬영 (직접작성)</option>
+</select>
+
+<input
+  id="apply-category-custom"
+  placeholder="직접 입력"
+  style="display:none;margin-top:8px;">
+
+<label class="form-label">작품명 *</label><input id="sc-title" placeholder="작품명">
   <label class="form-label">방송국 (송출)</label><input id="sc-broadcast" placeholder="예) TVN, MBC, TVING">
   <label class="form-label">감독</label><input id="sc-dir" placeholder="감독 이름">
   <label class="form-label">출연화 (회차) *</label><input id="sc-ep" placeholder="예) 3화, 39화">
@@ -698,7 +757,53 @@ display:block;
   </div>
 </div></div>
 
+
+<div class="modal-overlay" id="m-casting"><div class="modal-box">
+  <div class="modal-handle"></div>
+  <div class="modal-title">📇 캐스팅연락처 추가</div>
+
+  <label class="form-label">성명 *</label>
+  <input id="cast-name" placeholder="이름">
+
+  <label class="form-label">소속</label>
+  <input id="cast-company" placeholder="소속">
+
+  <label class="form-label">직책</label>
+  <input id="cast-position" placeholder="예) 캐스팅디렉터">
+
+  <label class="form-label">분야</label>
+  <select id="cast-category">
+    <option>영화</option>
+    <option>드라마</option>
+    <option>광고</option>
+  </select>
+
+  <label class="form-label">연락처</label>
+  <input id="cast-phone" placeholder="010-0000-0000">
+
+  <label class="form-label">이메일</label>
+  <input id="cast-email" type="email" placeholder="example@email.com">
+
+  <label class="form-label">작업유무</label>
+  <select id="cast-worked">
+    <option>O</option>
+    <option>X</option>
+  </select>
+
+  <label class="form-label">최신 연락일</label>
+  <input id="cast-date" type="date">
+
+  <label class="form-label">기타 특이사항</label>
+  <textarea id="cast-note" placeholder="메모"></textarea>
+
+  <div class="row" style="gap:10px;margin-top:18px;">
+    <button class="btn btn-outline" style="flex:1;" onclick="closeModal('m-casting')">취소</button>
+    <button class="btn btn-p" style="flex:2;" onclick="saveCasting()">저장</button>
+  </div>
+</div></div>
+
 <!-- 설정 모달 -->
+
 
 <div class="modal-overlay" id="m-settings"><div class="modal-box">
   <div class="modal-handle"></div>
@@ -856,7 +961,7 @@ function switchAct(tab,el){
   renderActTab(tab);
 }
 function renderActTab(tab){
-  const m={watch:renderWatchList,apply:renderApplyList,audition:renderAuditionList,schedule:renderScheduleList,appearance:renderAppearanceList,note:renderNoteList};
+  const m={watch:renderWatchList,apply:renderApplyList,audition:renderAuditionList,schedule:renderScheduleList,appearance:renderAppearanceList,casting:renderCastingList,note:renderNoteList};
   if(m[tab])m[tab]();
 }
 
