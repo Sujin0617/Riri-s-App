@@ -311,6 +311,109 @@ display:block;
 }
 
 </style>
+
+<style>
+
+/* ===== MOBILE OPTIMIZE ===== */
+
+@media (max-width: 768px){
+
+  body{
+    overflow-x:hidden;
+  }
+
+  .app{
+    width:100% !important;
+    max-width:100% !important;
+    border-radius:0 !important;
+  }
+
+  .sidebar{
+    width:100% !important;
+    position:relative !important;
+    height:auto !important;
+    border-right:none !important;
+    padding-bottom:12px !important;
+  }
+
+  .content{
+    margin-left:0 !important;
+    width:100% !important;
+    padding:14px !important;
+  }
+
+  .grid,
+  .card-grid{
+    grid-template-columns:1fr !important;
+  }
+
+  table{
+    display:block;
+    overflow-x:auto;
+    white-space:nowrap;
+  }
+
+  .sc-top{
+    flex-direction:column;
+    align-items:stretch !important;
+    gap:10px;
+  }
+
+  .sc-search-box{
+    width:100% !important;
+  }
+
+  .modal-box{
+    width:92vw !important;
+    max-height:88vh !important;
+    overflow-y:auto !important;
+    border-radius:22px !important;
+  }
+
+  input,
+  select,
+  textarea,
+  button{
+    font-size:16px !important;
+  }
+
+  .poster-grid{
+    grid-template-columns:repeat(2,1fr) !important;
+    gap:12px !important;
+  }
+
+  .entry-item{
+    padding:14px !important;
+  }
+
+  .row,
+  .row-between{
+    flex-wrap:wrap !important;
+    gap:8px !important;
+  }
+
+  .btn{
+    min-height:44px;
+  }
+
+}
+
+/* tablet */
+
+@media (min-width: 769px) and (max-width: 1100px){
+
+  .sidebar{
+    width:240px !important;
+  }
+
+  .content{
+    margin-left:240px !important;
+  }
+
+}
+
+</style>
+
 </head>
 <body>
 
