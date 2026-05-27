@@ -525,7 +525,29 @@ display:block;
 
 <div class="modal-overlay" id="m-apply"><div class="modal-box">
   <div class="modal-handle"></div><div class="modal-title">📋 지원기록</div>
-  <label class="form-label">작품명 *</label><input id="ap-title" placeholder="작품명">
+  
+<label class="form-label">촬영 분류</label>
+
+<select id="shoot-category" onchange="toggleShootCategory()">
+  <option value="">선택해주세요</option>
+  <option>상업드라마</option>
+  <option>웹드라마</option>
+  <option>숏폼드라마</option>
+  <option>독립영화</option>
+  <option>단편영화</option>
+  <option>상업영화</option>
+  <option>광고영상</option>
+  <option>홍보영상</option>
+  <option>지면촬영</option>
+  <option value="custom">그외촬영 (직접작성)</option>
+</select>
+
+<input
+  id="shoot-category-custom"
+  placeholder="직접 입력"
+  style="display:none;margin-top:8px;">
+
+<label class="form-label">작품명 *</label><input id="ap-title" placeholder="작품명">
   <label class="form-label">감독</label><input id="ap-dir" placeholder="감독 이름">
   <label class="form-label">제작사</label><input id="ap-co" placeholder="제작사">
   <label class="form-label">촬영 일자</label><input id="ap-sdate" type="date">
@@ -542,7 +564,29 @@ display:block;
 
 <div class="modal-overlay" id="m-audition"><div class="modal-box">
   <div class="modal-handle"></div><div class="modal-title">🎤 오디션기록</div>
-  <label class="form-label">작품명 *</label><input id="au-title" placeholder="작품명">
+  
+<label class="form-label">촬영 분류</label>
+
+<select id="apr-category" onchange="toggleAprCategory()">
+  <option value="">선택해주세요</option>
+  <option>상업드라마</option>
+  <option>웹드라마</option>
+  <option>숏폼드라마</option>
+  <option>독립영화</option>
+  <option>단편영화</option>
+  <option>상업영화</option>
+  <option>광고영상</option>
+  <option>홍보영상</option>
+  <option>지면촬영</option>
+  <option value="custom">그외촬영 (직접작성)</option>
+</select>
+
+<input
+  id="apr-category-custom"
+  placeholder="직접 입력"
+  style="display:none;margin-top:8px;">
+
+<label class="form-label">작품명 *</label><input id="au-title" placeholder="작품명">
   <label class="form-label">오디션 일자 *</label><input id="au-date" type="date">
   <label class="form-label">오디션 파일 / 준비 자료</label><textarea id="au-file" placeholder="준비 자료, 대본 링크 등"></textarea>
   <label class="form-label">오디션 회고</label><textarea id="au-rev" style="min-height:100px;" placeholder="진행 상황, 느낀 점, 잘 된 점, 아쉬운 점"></textarea>
@@ -612,7 +656,26 @@ display:block;
   <input id="apr-title" placeholder="작품명">
 
   <label class="form-label">방송국 / 플랫폼</label>
-  <input id="apr-platform" placeholder="예) TVN / 넷플릭스">
+
+  <select id="apr-platform" onchange="toggleCustomPlatform()">
+    <option value="">선택해주세요</option>
+    <option>KBS</option>
+    <option>MBC</option>
+    <option>SBS</option>
+    <option>TVN</option>
+    <option>ENA</option>
+    <option>채널A</option>
+    <option>JTBC</option>
+    <option>Netflix</option>
+    <option>Tving</option>
+    <option>Wavve</option>
+    <option value="custom">기타 (직접 작성)</option>
+  </select>
+
+  <input
+    id="apr-platform-custom"
+    placeholder="직접 입력"
+    style="display:none;margin-top:8px;">
 
   <label class="form-label">출연 회차</label>
   <input id="apr-episode" placeholder="예) 3화">
