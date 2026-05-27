@@ -1,0 +1,1011 @@
+
+<!--
+업그레이드 메모
+========================
+1. 기존 schedule 개념을 "촬영" / "출연기록"으로 분리 예정
+2. Supabase Storage bucket:
+   acting-files
+   ├─ posters/
+   ├─ shooting/
+   └─ contracts/
+
+3. 구현해야 하는 핵심:
+   - 다중 파일 업로드
+   - 포스터 카드형 UI
+   - 계약서 업로드
+   - 촬영자료 업로드
+   - Storage public URL 생성
+
+4. 추천 테이블:
+   shooting_records
+   appearance_records
+   watch_records
+
+5. 현재 파일은 기존 구조 유지 + 리팩토링 준비 버전입니다.
+-->
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>수진의 라이프 매니저</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#F0EEF8;--white:#fff;
+  --p1:#3B2D8F;--p2:#5A45CC;--p3:#8B7DE8;--p-light:#F0ECFF;
+  --teal:#00B894;--teal-l:#E6FAF5;
+  --amber:#E8A020;--amber-l:#FEF3DC;
+  --coral:#E05050;--coral-l:#FDECEA;
+  --blue:#2980B9;--blue-l:#EBF5FB;
+  --green:#27AE60;--green-l:#EAFAF1;
+  --pink:#D63AA0;--pink-l:#FCEAF6;
+  --text:#1A1733;--text2:#5A5880;--text3:#9896B8;
+  --border:#DDD9F5;--bnav:68px;
+  --sh:0 2px 16px rgba(59,45,143,0.09);
+}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);font-size:15px;min-height:100vh;padding-bottom:calc(var(--bnav) + env(safe-area-inset-bottom));}
+.screen{display:none;}
+.screen.active{display:block;}
+#scr-acting.active,#scr-personal.active{display:flex;flex-direction:column;}
+
+/* 로딩 */
+#loading-bar{position:fixed;top:0;left:0;width:0%;height:3px;background:var(--p2);z-index:999;transition:width .3s;}
+/* 설정 버튼 */
+.settings-btn{position:fixed;top:12px;right:14px;z-index:60;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.92);border:1.5px solid var(--border);box-shadow:0 2px 10px rgba(59,45,143,0.13);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .2s;}
+.settings-btn:active{transform:scale(.92);}
+
+/* 설정 모달 전용 */
+#m-settings .modal-box{padding-bottom:36px;}
+.settings-status{display:flex;align-items:center;gap:8px;padding:12px 14px;border-radius:12px;margin-top:14px;font-size:13px;font-weight:600;}
+.settings-status.ok{background:var(--green-l);color:var(--green);}
+.settings-status.err{background:var(--coral-l);color:var(--coral);}
+.settings-status.idle{background:var(--bg);color:var(--text3);}
+.settings-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.settings-dot.ok{background:var(--green);}
+.settings-dot.err{background:var(--coral);}
+.settings-dot.idle{background:var(--text3);}
+.settings-divider{height:1px;background:var(--border);margin:18px 0;}
+.settings-info{font-size:11px;color:var(--text3);line-height:1.7;padding:10px 12px;background:var(--bg);border-radius:10px;}
+
+.spin-wrap{display:flex;align-items:center;justify-content:center;padding:30px;flex-direction:column;gap:10px;color:var(--text3);font-size:13px;}
+.spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--p2);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* 하단 네비 */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--border);display:flex;justify-content:space-around;align-items:center;height:var(--bnav);padding-bottom:env(safe-area-inset-bottom);z-index:50;box-shadow:0 -4px 20px rgba(59,45,143,0.08);}
+.nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;font-family:inherit;color:var(--text3);padding:6px 14px;border-radius:14px;transition:all .15s;}
+.nav-btn.active{color:var(--p2);}
+.nav-iw{width:38px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:10px;transition:background .15s;}
+.nav-btn.active .nav-iw{background:var(--p-light);}
+.nav-ico{font-size:20px;line-height:1;}
+.nav-lbl{font-size:10px;font-weight:700;}
+
+/* 공통 */
+.page-top{background:var(--white);padding:20px 16px 16px;border-bottom:1px solid var(--border);}
+.page-title{font-size:21px;font-weight:800;}
+.page-sub{font-size:12px;color:var(--text2);margin-top:3px;}
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.sec-title{font-size:14px;font-weight:800;display:flex;align-items:center;gap:7px;}
+.sec-title::before{content:'';width:3px;height:15px;background:var(--p2);border-radius:2px;display:block;}
+input,textarea,select{background:var(--bg);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:14px;padding:10px 13px;width:100%;outline:none;transition:border .15s;}
+input:focus,textarea:focus,select:focus{border-color:var(--p2);background:var(--white);}
+textarea{resize:vertical;min-height:80px;}
+.btn{display:flex;align-items:center;justify-content:center;border:none;border-radius:12px;cursor:pointer;font-family:inherit;font-weight:700;padding:12px 18px;font-size:14px;transition:all .15s;}
+.btn-p{background:var(--p2);color:#fff;}
+.btn-p:active{opacity:.85;}
+.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--text2);}
+.btn-sm{padding:7px 13px;font-size:12px;border-radius:9px;}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:30px;font-size:11px;font-weight:700;}
+.chip-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px;}
+.chip{background:var(--white);border:1.5px solid var(--border);border-radius:30px;padding:5px 13px;font-size:12px;cursor:pointer;color:var(--text2);font-weight:600;transition:all .15s;}
+.chip.active{border-color:var(--p2);color:var(--p2);background:var(--p-light);}
+.entry-item{background:var(--white);border-radius:12px;padding:14px;margin-bottom:8px;box-shadow:0 1px 8px rgba(59,45,143,0.07);border:1px solid var(--border);}
+.entry-title{font-size:15px;font-weight:700;}
+.entry-sub{font-size:13px;color:var(--text2);line-height:1.6;}
+.entry-meta{font-size:11px;color:var(--text3);margin-top:5px;font-weight:500;}
+.del-btn{background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;padding:2px 4px;line-height:1;flex-shrink:0;}
+.del-btn:hover{color:var(--coral);}
+.row{display:flex;align-items:center;gap:10px;}
+.row-between{display:flex;align-items:center;justify-content:space-between;}
+.empty{text-align:center;color:var(--text3);padding:24px 0;font-size:13px;}
+.sep{height:1px;background:var(--border);margin:14px 0;}
+.tag-acting{background:var(--p-light);color:var(--p2);}
+.tag-side{background:var(--amber-l);color:var(--amber);}
+.tag-personal{background:var(--teal-l);color:var(--teal);}
+.progress-bar{height:7px;background:var(--bg);border-radius:20px;overflow:hidden;margin-top:7px;border:1px solid var(--border);}
+.progress-fill{height:100%;border-radius:20px;transition:width .5s;}
+.star-row{display:flex;gap:5px;margin:4px 0;}
+.star{font-size:24px;cursor:pointer;color:var(--border);}
+.star.on{color:var(--amber);}
+
+/* 모달 */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(27,23,70,0.42);z-index:200;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);}
+.modal-overlay.open{display:flex;}
+.modal-box{background:var(--white);border-radius:24px 24px 0 0;padding:22px 18px 30px;width:100%;max-width:540px;max-height:92vh;overflow-y:auto;}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px;}
+.modal-title{font-size:17px;font-weight:800;margin-bottom:16px;}
+.form-label{font-size:11px;color:var(--text2);font-weight:700;margin-bottom:5px;margin-top:13px;display:block;letter-spacing:.03em;}
+.form-label:first-child{margin-top:0;}
+
+/* 홈 */
+#scr-home{min-height:calc(100vh - var(--bnav));overflow-y:auto;}
+.home-banner{background:linear-gradient(135deg,var(--p1) 0%,var(--p2) 65%,var(--p3) 100%);padding:26px 20px 22px;position:relative;overflow:hidden;}
+.home-banner::before{content:'';position:absolute;width:220px;height:220px;border-radius:50%;border:1px solid rgba(255,255,255,.1);top:-70px;right:-50px;}
+.home-banner::after{content:'';position:absolute;width:130px;height:130px;border-radius:50%;border:1px solid rgba(255,255,255,.1);bottom:-40px;left:-30px;}
+.banner-greeting{font-size:12px;font-weight:600;color:rgba(255,255,255,.65);letter-spacing:.05em;margin-bottom:8px;}
+.banner-name{font-size:22px;font-weight:800;color:#fff;line-height:1.35;margin-bottom:18px;}
+.banner-name em{color:#C8BFFF;font-style:normal;}
+.banner-date-row{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.14);border-radius:20px;padding:5px 13px;}
+.banner-dot{width:6px;height:6px;border-radius:50%;background:#7BE8A0;animation:pulse 1.4s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.banner-date-txt{font-size:11px;font-weight:700;color:rgba(255,255,255,.9);}
+.home-section{padding:16px 16px 0;}
+.home-stitle{font-size:13px;font-weight:800;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+.home-stitle-l{display:flex;align-items:center;gap:7px;}
+.home-stitle-l::before{content:'';width:3px;height:15px;background:var(--p2);border-radius:2px;display:block;}
+.home-3cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.h3c{background:var(--white);border-radius:18px;padding:16px 10px;box-shadow:var(--sh);border:1px solid var(--border);cursor:pointer;transition:transform .15s;display:flex;flex-direction:column;align-items:center;gap:9px;text-align:center;}
+.h3c:active{transform:scale(.95);}
+.h3c-ico{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;}
+.h3c-ico.a{background:linear-gradient(135deg,var(--p1),var(--p2));}
+.h3c-ico.s{background:linear-gradient(135deg,#E8A020,#F4C842);}
+.h3c-ico.p{background:linear-gradient(135deg,var(--teal),#00D4AA);}
+.h3c-name{font-size:13px;font-weight:800;}
+.h3c-desc{font-size:10px;color:var(--text3);line-height:1.4;}
+.home-cal{background:var(--white);border-radius:18px;padding:16px;box-shadow:var(--sh);border:1px solid var(--border);margin-bottom:20px;}
+.cal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.cal-month{font-size:15px;font-weight:800;}
+.cal-nav{background:none;border:none;cursor:pointer;font-size:18px;color:var(--text2);padding:4px 8px;border-radius:8px;}
+.cal-wds{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;margin-bottom:4px;}
+.cal-wd{font-size:10px;font-weight:700;color:var(--text3);padding:3px 0;}
+.cal-wd:first-child{color:var(--coral);}
+.cal-wd:last-child{color:var(--blue);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;}
+.cal-d{text-align:center;padding:4px 1px;font-size:12px;border-radius:8px;cursor:pointer;color:var(--text2);font-weight:500;min-height:32px;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.cal-d.today .cal-dn{background:var(--p2);color:#fff;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;}
+.cal-d.sun{color:var(--coral);}.cal-d.sat{color:var(--blue);}
+.cal-d.other{opacity:.3;}
+.cal-d.has-ev::after{content:'';width:4px;height:4px;border-radius:50%;background:var(--p2);}
+.cal-dn{font-size:12px;line-height:1;font-weight:500;}
+
+/* 연기 */
+.acting-layout{display:flex;flex:1;overflow:hidden;height:calc(100vh - var(--bnav) - 70px);}
+.acting-sidebar,.personal-sidebar{width:80px;background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:10px 0;flex-shrink:0;overflow-y:auto;}
+.am-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:11px 4px;cursor:pointer;border:none;background:none;font-family:inherit;border-radius:10px;margin:2px 5px;transition:all .15s;width:calc(100% - 10px);}
+.am-btn.active{background:var(--p-light);}
+.am-ico{width:34px;height:34px;border-radius:9px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:17px;}
+.am-btn.active .am-ico{background:var(--p2);}
+.am-lbl{font-size:9px;font-weight:700;color:var(--text3);text-align:center;line-height:1.3;}
+.am-btn.active .am-lbl{color:var(--p2);}
+.acting-content,.personal-content{flex:1;overflow-y:auto;padding:14px;background:var(--bg);}
+.at-panel,.pt-panel{display:none;}
+.at-panel.active,.pt-panel.active{display:block;}
+.at-ptitle,.pt-ptitle{font-size:17px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:7px;}
+
+/* 개인 */
+.personal-layout{display:flex;flex:1;overflow:hidden;height:calc(100vh - var(--bnav) - 70px);}
+.pm-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:11px 4px;cursor:pointer;border:none;background:none;font-family:inherit;border-radius:10px;margin:2px 5px;transition:all .15s;width:calc(100% - 10px);}
+.pm-btn.active{background:var(--teal-l);}
+.pm-ico{width:34px;height:34px;border-radius:9px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:17px;}
+.pm-btn.active .pm-ico{background:var(--teal);}
+.pm-lbl{font-size:9px;font-weight:700;color:var(--text3);text-align:center;line-height:1.3;}
+.pm-btn.active .pm-lbl{color:var(--teal);}
+.goal-card{background:var(--white);border-radius:14px;border:1px solid var(--border);box-shadow:var(--sh);margin-bottom:10px;overflow:hidden;}
+.goal-card-hd{padding:14px 14px 10px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+.goal-card-title{font-size:15px;font-weight:800;flex:1;}
+.goal-card-meta{font-size:11px;color:var(--text3);margin-top:3px;}
+.goal-card-body{padding:0 14px 14px;}
+.sub-goal-item{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--bg);}
+.sub-goal-item:last-child{border-bottom:none;}
+.sub-cb{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all .2s;background:var(--white);}
+.sub-cb.done{background:var(--p2);border-color:var(--p2);}
+.sub-txt{flex:1;font-size:13px;font-weight:500;}
+.sub-txt.done{text-decoration:line-through;color:var(--text3);}
+.sub-dl{font-size:10px;color:var(--text3);}
+.add-sub-row{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;}
+.add-sub-input{flex:1;min-width:100px;padding:7px 11px;font-size:13px;border-radius:9px;}
+
+/* 투두 */
+.todo-section{background:var(--white);border-radius:14px;border:1px solid var(--border);box-shadow:var(--sh);margin-bottom:10px;overflow:hidden;}
+.todo-section-hd{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.todo-section-label{font-size:13px;font-weight:800;}
+.todo-cat-tag{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;}
+.todo-items{padding:8px 14px 4px;}
+.todo-item{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--bg);}
+.todo-item:last-child{border-bottom:none;}
+.todo-cb{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all .2s;background:var(--white);}
+.todo-cb.done{background:var(--green);border-color:var(--green);}
+.todo-txt{flex:1;font-size:13px;font-weight:500;}
+.todo-txt.done{text-decoration:line-through;color:var(--text3);}
+.todo-add-row{display:flex;gap:7px;padding:8px 14px 12px;}
+.todo-add-input{flex:1;padding:7px 11px;font-size:13px;border-radius:9px;}
+.todo-add-btn{width:34px;height:34px;border-radius:9px;border:none;cursor:pointer;color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;}
+
+/* 부업 */
+#scr-sidejob{min-height:calc(100vh - var(--bnav));}
+.sidejob-body{padding:14px;}
+.money-item{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;background:var(--white);border-radius:11px;margin-bottom:7px;border:1px solid var(--border);}
+.income{color:var(--green);}.expense{color:var(--coral);}
+/* 촬영기록 테이블 */
+.sc-wrap{background:var(--white);border-radius:14px;border:1px solid var(--border);box-shadow:var(--sh);overflow:hidden;}
+.sc-top{display:flex;align-items:center;gap:10px;padding:13px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.sc-top-title{font-size:15px;font-weight:800;flex-shrink:0;}
+.sc-search-box{display:flex;align-items:center;gap:7px;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:6px 11px;flex:1;min-width:120px;}
+.sc-search-box input{background:none;border:none;padding:0;font-size:13px;color:var(--text);width:100%;outline:none;}
+.sc-outer{overflow-x:auto;}
+.sc-tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.sc-tbl th{background:var(--bg);color:var(--text2);font-weight:700;font-size:10px;letter-spacing:.04em;padding:9px 11px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
+.sc-tbl td{padding:10px 11px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle;}
+.sc-tbl tr:last-child td{border-bottom:none;}
+.sc-tbl tr.sc-data:hover td{background:#FAFAFF;cursor:pointer;}
+.sc-tbl .sc-tc-name{font-weight:700;min-width:90px;}
+.sc-tbl .sc-tc-pay{font-weight:700;color:var(--green);white-space:nowrap;}
+.sc-tbl .sc-tc-del{text-align:center;width:32px;}
+.sc-del-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:2px 5px;border-radius:6px;}
+.sc-del-btn:hover{color:var(--coral);}
+.sc-detail-row td{padding:0 !important;border-bottom:1px solid var(--border) !important;}
+.sc-detail-inner{display:none;padding:12px 14px;background:var(--p-light);font-size:12px;color:var(--text2);line-height:1.9;}
+.sc-detail-inner.open{display:block;}
+
+.sc-empty{text-align:center;color:var(--text3);padding:28px;font-size:13px;}
+
+/* 포스터 카드 */
+.poster-grid{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+gap:14px;
+}
+
+.poster-card{
+background:var(--white);
+border-radius:16px;
+overflow:hidden;
+border:1px solid var(--border);
+box-shadow:var(--sh);
+cursor:pointer;
+transition:.2s;
+}
+
+.poster-card:hover{
+transform:translateY(-3px);
+}
+
+.poster-img{
+width:100%;
+aspect-ratio:2/3;
+object-fit:cover;
+background:var(--bg);
+}
+
+.poster-body{
+padding:10px;
+}
+
+.poster-title{
+font-size:13px;
+font-weight:800;
+line-height:1.4;
+margin-bottom:5px;
+}
+
+.poster-rating{
+font-size:12px;
+color:var(--amber);
+}
+
+.poster-detail{
+margin-top:8px;
+padding-top:8px;
+border-top:1px solid var(--border);
+font-size:12px;
+color:var(--text2);
+line-height:1.7;
+display:none;
+}
+
+.poster-detail.open{
+display:block;
+}
+
+</style>
+</head>
+<body>
+
+<!-- 로딩바 -->
+<div id="loading-bar"></div>
+
+<!-- 설정 버튼 -->
+<button class="settings-btn" onclick="openModal('m-settings')" title="Supabase 설정">⚙️</button>
+
+
+<!-- ══ 홈 ══ -->
+<div class="screen active" id="scr-home">
+  <div class="home-banner">
+    <div class="banner-greeting">MY LIFE MANAGER</div>
+    <div class="banner-name">안녕하세요, <em>수진</em>님 👋<br>오늘도 빛나는 하루!</div>
+    <div class="banner-date-row">
+      <div class="banner-dot"></div>
+      <div class="banner-date-txt" id="hero-date">—</div>
+    </div>
+  </div>
+  <div class="home-section" style="padding-top:18px;">
+    <div class="home-stitle"><div class="home-stitle-l">나의 공간</div></div>
+    <div class="home-3cards">
+      <div class="h3c" onclick="goScreen('acting')"><div class="h3c-ico a">🎬</div><div class="h3c-name">연기</div><div class="h3c-desc">감상·지원<br>오디션·노트</div></div>
+      <div class="h3c" onclick="goScreen('sidejob')"><div class="h3c-ico s">💼</div><div class="h3c-name">부업</div><div class="h3c-desc">수입·지출<br>목표 관리</div></div>
+      <div class="h3c" onclick="goScreen('personal')"><div class="h3c-ico p">🌿</div><div class="h3c-name">개인</div><div class="h3c-desc">목표·투두<br>일상 기록</div></div>
+    </div>
+  </div>
+  <div class="home-section" style="padding-top:16px;padding-bottom:16px;">
+    <div class="home-stitle"><div class="home-stitle-l">이번 달</div></div>
+    <div class="home-cal">
+      <div class="cal-hd">
+        <button class="cal-nav" onclick="calMove(-1)">‹</button>
+        <div class="cal-month" id="cal-month-label"></div>
+        <button class="cal-nav" onclick="calMove(1)">›</button>
+      </div>
+      <div class="cal-wds"><div class="cal-wd">일</div><div class="cal-wd">월</div><div class="cal-wd">화</div><div class="cal-wd">수</div><div class="cal-wd">목</div><div class="cal-wd">금</div><div class="cal-wd">토</div></div>
+      <div class="cal-grid" id="cal-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 연기 ══ -->
+<div class="screen" id="scr-acting">
+  <div class="page-top"><div class="page-title">🎬 연기 활동</div><div class="page-sub">감상 · 지원 · 오디션 · 스케줄 · 노트</div></div>
+  <div class="acting-layout">
+    <div class="acting-sidebar">
+      <button class="am-btn active" onclick="switchAct('watch',this)"><div class="am-ico">🎞️</div><div class="am-lbl">감상기록</div></button>
+      <button class="am-btn" onclick="switchAct('apply',this)"><div class="am-ico">📋</div><div class="am-lbl">지원기록</div></button>
+      <button class="am-btn" onclick="switchAct('audition',this)"><div class="am-ico">🎤</div><div class="am-lbl">오디션기록</div></button>
+      <button class="am-btn" onclick="switchAct('schedule',this)"><div class="am-ico">🎬</div><div class="am-lbl">촬영</div></button>
+      <button class="am-btn" onclick="switchAct('appearance',this)"><div class="am-ico">🎥</div><div class="am-lbl">출연기록</div></button>
+      <button class="am-btn" onclick="switchAct('note',this)"><div class="am-ico">📝</div><div class="am-lbl">연기노트</div></button>
+    </div>
+    <div class="acting-content">
+      <div class="at-panel active" id="ap-watch">
+        <div class="at-ptitle">🎞️ 감상기록</div>
+        <button class="btn btn-p" style="width:100%;margin-bottom:12px;" onclick="openModal('m-watch')">+ 감상 추가</button>
+        <div class="chip-row" id="wf-chips"><div class="chip active" onclick="fWatch('all',this)">전체</div><div class="chip" onclick="fWatch('영화',this)">영화</div><div class="chip" onclick="fWatch('드라마',this)">드라마</div><div class="chip" onclick="fWatch('연극',this)">연극</div><div class="chip" onclick="fWatch('기타',this)">기타</div></div>
+        <div id="watch-list"></div>
+      </div>
+      <div class="at-panel" id="ap-apply">
+        <div class="at-ptitle">📋 지원기록</div>
+        <button class="btn btn-p" style="width:100%;margin-bottom:12px;" onclick="openModal('m-apply')">+ 지원 추가</button>
+        <div class="chip-row" id="af-chips"><div class="chip active" onclick="fApply('all',this)">전체</div><div class="chip" onclick="fApply('지원',this)">지원</div><div class="chip" onclick="fApply('리스트업',this)">리스트업</div><div class="chip" onclick="fApply('오디션',this)">오디션</div><div class="chip" onclick="fApply('확정',this)">확정</div><div class="chip" onclick="fApply('탈락',this)">탈락</div></div>
+        <div id="apply-list"></div>
+      </div>
+      <div class="at-panel" id="ap-audition">
+        <div class="at-ptitle">🎤 오디션기록</div>
+        <button class="btn btn-p" style="width:100%;margin-bottom:12px;" onclick="openModal('m-audition')">+ 오디션 추가</button>
+        <div id="audition-list"></div>
+      </div>
+      <div class="at-panel" id="ap-schedule">
+        <div class="sc-wrap">
+          <div class="sc-top">
+            <div class="sc-top-title">🎬 촬영기록</div>
+            <div class="sc-search-box">
+              <span style="color:var(--text3);font-size:14px;">🔍</span>
+              <input id="sc-search-input" placeholder="작품명 검색" oninput="renderScheduleList()">
+            </div>
+            <button class="btn btn-p btn-sm" onclick="openModal('m-schedule')">+ 추가</button>
+          </div>
+          <div class="sc-outer">
+            <table class="sc-tbl">
+              <thead>
+                <tr>
+                  <th>작품명</th><th>방송국</th><th>감독</th><th>출연화</th>
+                  <th>출연시간</th><th>출연역할</th><th>출연료</th><th>송출일</th><th></th>
+                </tr>
+              </thead>
+              <tbody id="schedule-list"></tbody>
+            </table>
+          </div>
+        </div>
+      
+</div>
+
+      <div class="at-panel" id="ap-appearance">
+        <div class="sc-wrap">
+          <div class="sc-top">
+            <div class="sc-top-title">🎥 출연기록</div>
+            <div class="sc-search-box">
+              <span style="color:var(--text3);font-size:14px;">🔍</span>
+              <input id="appr-search-input" placeholder="작품명 검색" oninput="renderAppearanceList()">
+            </div>
+            <button class="btn btn-p btn-sm" onclick="openModal('m-appearance')">+ 추가</button>
+          </div>
+
+          <div class="sc-outer">
+            <table class="sc-tbl">
+              <thead>
+                <tr>
+                  <th>작품명</th>
+                  <th>방송국</th>
+                  <th>역할</th>
+                  <th>출연회차</th>
+                  <th>출연료</th>
+                  <th>방영일</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="appearance-list"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="at-panel" id="ap-note">
+        <div class="at-ptitle">📝 연기노트</div>
+        <button class="btn btn-p" style="width:100%;margin-bottom:12px;" onclick="openModal('m-note')">+ 노트 추가</button>
+        <div class="chip-row" id="nf-chips"><div class="chip active" onclick="fNote('all',this)">전체</div><div class="chip" onclick="fNote('연기연습',this)">연기연습</div><div class="chip" onclick="fNote('관찰노트',this)">관찰노트</div></div>
+        <div id="note-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 부업 ══ -->
+<div class="screen" id="scr-sidejob">
+  <div class="page-top"><div class="page-title">💼 부업</div><div class="page-sub">수입 · 지출 · 목표</div></div>
+  <div class="sidejob-body">
+    <div class="entry-item" style="margin-bottom:12px;">
+      <div class="row-between" style="margin-bottom:7px;"><div style="font-size:14px;font-weight:800;">이번 달 목표</div><button class="btn btn-outline btn-sm" onclick="openModal('m-goal')">수정</button></div>
+      <div class="row-between"><span id="goal-display" style="font-size:19px;font-weight:800;color:var(--amber);">미설정</span><span id="goal-pct" style="font-size:13px;color:var(--text2);font-weight:700;"></span></div>
+      <div class="progress-bar"><div class="progress-fill" id="goal-progress" style="background:var(--amber);width:0%;"></div></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:5px;" id="goal-sub"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+      <div class="entry-item" style="margin-bottom:0;"><div style="font-size:19px;margin-bottom:4px;">📥</div><div style="font-size:18px;font-weight:800;color:var(--green);" id="total-income">0원</div><div style="font-size:11px;color:var(--text2);">이번달 수입</div></div>
+      <div class="entry-item" style="margin-bottom:0;"><div style="font-size:19px;margin-bottom:4px;">📤</div><div style="font-size:18px;font-weight:800;color:var(--coral);" id="total-expense">0원</div><div style="font-size:11px;color:var(--text2);">이번달 지출</div></div>
+    </div>
+    <div class="sec-hd"><div class="sec-title">내역</div><button class="btn btn-p btn-sm" onclick="openModal('m-money')">+ 추가</button></div>
+    <div id="money-list"></div>
+  </div>
+</div>
+
+<!-- ══ 개인 ══ -->
+<div class="screen" id="scr-personal">
+  <div class="page-top"><div class="page-title">🌿 개인</div><div class="page-sub">해야할일 · 투두리스트</div></div>
+  <div class="personal-layout">
+    <div class="personal-sidebar">
+      <button class="pm-btn active" onclick="switchPersonal('goal',this)"><div class="pm-ico">🎯</div><div class="pm-lbl">해야할일</div></button>
+      <button class="pm-btn" onclick="switchPersonal('todo',this)"><div class="pm-ico">✅</div><div class="pm-lbl">투두리스트</div></button>
+    </div>
+    <div class="personal-content">
+      <div class="pt-panel active" id="pp-goal">
+        <div class="pt-ptitle">🎯 해야할일</div>
+        <button class="btn btn-p" style="width:100%;margin-bottom:12px;" onclick="openModal('m-big-goal')">+ 목표 추가</button>
+        <div class="chip-row" id="gf-chips"><div class="chip active" onclick="fGoal('all',this)">전체</div><div class="chip" onclick="fGoal('연기',this)">연기</div><div class="chip" onclick="fGoal('개인',this)">개인</div><div class="chip" onclick="fGoal('부업',this)">부업</div></div>
+        <div id="goal-list"></div>
+      </div>
+      <div class="pt-panel" id="pp-todo">
+        <div class="pt-ptitle">✅ 투두리스트</div>
+        <div class="todo-section">
+          <div class="todo-section-hd"><div class="todo-section-label">🔥 꼭 해야할 일</div><span class="todo-cat-tag" style="background:var(--coral-l);color:var(--coral);">MUST DO</span></div>
+          <div class="todo-items" id="td-must"></div>
+          <div class="todo-add-row"><input class="todo-add-input" id="td-must-input" placeholder="할 일 추가" onkeydown="if(event.key==='Enter')addTodo('must')"><button class="todo-add-btn" style="background:var(--coral);" onclick="addTodo('must')">+</button></div>
+        </div>
+        <div class="todo-section">
+          <div class="todo-section-hd"><div class="todo-section-label">😮‍💨 하기 싫지만 하면 좋은 일</div><span class="todo-cat-tag" style="background:var(--amber-l);color:var(--amber);">SHOULD DO</span></div>
+          <div class="todo-items" id="td-should"></div>
+          <div class="todo-add-row"><input class="todo-add-input" id="td-should-input" placeholder="할 일 추가" onkeydown="if(event.key==='Enter')addTodo('should')"><button class="todo-add-btn" style="background:var(--amber);" onclick="addTodo('should')">+</button></div>
+        </div>
+        <div class="todo-section">
+          <div class="todo-section-hd"><div class="todo-section-label">✨ 하고 싶은 일</div><span class="todo-cat-tag" style="background:var(--teal-l);color:var(--teal);">WANT TO</span></div>
+          <div class="todo-items" id="td-want"></div>
+          <div class="todo-add-row"><input class="todo-add-input" id="td-want-input" placeholder="할 일 추가" onkeydown="if(event.key==='Enter')addTodo('want')"><button class="todo-add-btn" style="background:var(--teal);" onclick="addTodo('want')">+</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODALS ══ -->
+<div class="modal-overlay" id="m-watch"><div class="modal-box">
+  <div class="modal-handle"></div><div class="modal-title">🎞️ 감상기록</div>
+  <label class="form-label">작품 제목 *</label><input id="w-title" placeholder="작품 제목">
+  <label class="form-label">감독</label><input id="w-dir" placeholder="감독 이름">
+  <label class="form-label">출연진</label><input id="w-cast" placeholder="주요 배우 (쉼표 구분)">
+  <label class="form-label">종류</label><select id="w-type"><option>영화</option><option>드라마</option><option>연극</option><option>기타</option></select>
+
+  <label class="form-label">포스터 이미지</label>
+  <input id="w-poster" type="file" accept="image/*">
+
+  <label class="form-label">별점</label><div class="star-row" id="w-stars"><span class="star" data-v="1">★</span><span class="star" data-v="2">★</span><span class="star" data-v="3">★</span><span class="star" data-v="4">★</span><span class="star" data-v="5">★</span></div>
+  <label class="form-label">언제 봤는지</label><input id="w-date" type="date">
+  <label class="form-label">장르</label><input id="w-genre" placeholder="예) 멜로, 스릴러">
+  <label class="form-label">가장 기억남는 장면</label><textarea id="w-scene" placeholder="기억에 남는 장면"></textarea>
+  <label class="form-label">감상평</label><textarea id="w-review" placeholder="전체 감상, 배운 점"></textarea>
+  <div class="row" style="gap:10px;margin-top:18px;"><button class="btn btn-outline" style="flex:1;" onclick="closeModal('m-watch')">취소</button><button class="btn btn-p" style="flex:2;" onclick="saveWatch()">저장</button></div>
+</div></div>
+
+<div class="modal-overlay" id="m-apply"><div class="modal-box">
+  <div class="modal-handle"></div><div class="modal-title">📋 지원기록</div>
+  <label class="form-label">작품명 *</label><input id="ap-title" placeholder="작품명">
+  <label class="form-label">감독</label><input id="ap-dir" placeholder="감독 이름">
+  <label class="form-label">제작사</label><input id="ap-co" placeholder="제작사">
+  <label class="form-label">촬영 일자</label><input id="ap-sdate" type="date">
+  <label class="form-label">촬영 회차</label><input id="ap-ep" placeholder="예) 1~3회차">
+  <label class="form-label">페이</label><input id="ap-pay" placeholder="예) 50,000원">
+  <label class="form-label">오디션 유무</label><select id="ap-aud"><option>있음</option><option>없음</option></select>
+  <label class="form-label">시놉시스</label><textarea id="ap-syn" placeholder="작품 시놉시스"></textarea>
+  <label class="form-label">지원 역할</label><input id="ap-role" placeholder="지원하는 역할">
+  <label class="form-label">담당자</label><input id="ap-mgr" placeholder="담당자 이름">
+  <label class="form-label">이메일</label><input id="ap-email" type="email" placeholder="담당자 이메일">
+  <label class="form-label">결과</label><select id="ap-result"><option>지원</option><option>리스트업</option><option>오디션</option><option>확정</option><option>탈락</option></select>
+  <div class="row" style="gap:10px;margin-top:18px;"><button class="btn btn-outline" style="flex:1;" onclick="closeModal('m-apply')">취소</button><button class="btn btn-p" style="flex:2;" onclick="saveApply()">저장</button></div>
+</div></div>
+
+<div class="modal-overlay" id="m-audition"><div class="modal-box">
+  <div class="modal-handle"></div><div class="modal-title">🎤 오디션기록</div>
+  <label class="form-label">작품명 *</label><input id="au-title" placeholder="작품명">
+  <label class="form-label">오디션 일자 *</label><input id="au-date" type="date">
+  <label class="form-label">오디션 파일 / 준비 자료</label><textarea id="au-file" placeholder="준비 자료, 대본 링크 등"></textarea>
+  <label class="form-label">오디션 회고</label><textarea id="au-rev" style="min-height:100px;" placeholder="진행 상황, 느낀 점, 잘 된 점, 아쉬운 점"></textarea>
+  <label class="form-label">작품 결과</label><select id="au-result"><option>결과 대기</option><option>합격</option><option>불합격</option></select>
+  <div class="row" style="gap:10px;margin-top:18px;"><button class="btn btn-outline" style="flex:1;" onclick="closeModal('m-audition')">취소</button><button class="btn btn-p" style="flex:2;" onclick="saveAudition()">저장</button></div>
+</div></div>
+
+<div class="modal-overlay" id="m-schedule"><div class="modal-box">
+  <div class="modal-handle"></div><div class="modal-title">🎬 촬영기록 추가</div>
+  <label class="form-label">작품명 *</label><input id="sc-title" placeholder="작품명">
+  <label class="form-label">방송국 (송출)</label><input id="sc-broadcast" placeholder="예) TVN, MBC, TVING">
+  <label class="form-label">감독</label><input id="sc-dir" placeholder="감독 이름">
+  <label class="form-label">출연화 (회차) *</label><input id="sc-ep" placeholder="예) 3화, 39화">
+  <label class="form-label">출연 시간</label><input id="sc-time" placeholder="예) 14:00~18:00, 약 2시간">
+  <label class="form-label">출연 역할</label><input id="sc-role" placeholder="예) 아이돌 연습생, 간호사">
+  <label class="form-label">출연료 (페이)</label><input id="sc-pay" placeholder="예) 300,000">
+  <label class="form-label">송출일 (방영일)</label><input id="sc-airdate" type="date">
+  <label class="form-label">촬영 장소</label><input id="sc-place" placeholder="예) 홍대 스튜디오">
+  <label class="form-label">촬영 회고</label><textarea id="sc-note" placeholder="촬영 현장 후기, 느낀 점, 배운 점"></textarea>
+  <div class="row" style="gap:10px;margin-top:18px;"><button class="btn btn-outline" style="flex:1;" onclick="closeModal('m-schedule')">취소</button><button class="btn btn-p" style="flex:2;" onclick="saveSchedule()">저장</button></div>
+</div></div>
+
+<div class="modal-overlay" id="m-note"><div class="modal-box">
+  <div class="modal-handle"></div><div class="modal-title">📝 연기노트</div>
+  <label class="form-label">종류</label><select id="nt-type"><option>연기연습</option><option>관찰노트</option></select>
+  <label class="form-label">상세 내용 *</label><textarea id="nt-content" style="min-height:140px;" placeholder="연기 연습 내용이나 관찰한 것을 기록해보세요"></textarea>
+  <div class="row" style="gap:10px;margin-top:18px;"><button class="btn btn-outline" style="flex:1;" onclick="closeModal('m-note')">취소</button><button class="btn btn-p" style="flex:2;" onclick="saveNote()">저장</button></div>
+</div></div>
+
+<div class="modal-overlay" id="m-goal"><div class="modal-box">
+  <div class="modal-handle"></div><div class="modal-title">🎯 월 목표 설정</div>
+  <label class="form-label">목표 수입 (원)</label><input id="goal-input" type="number" placeholder="예) 1500000">
+  <label class="form-label">목표 저축 (원)</label><input id="save-goal-input" type="number" placeholder="예) 500000">
+  <div class="row" style="gap:10px;margin-top:18px;"><button class="btn btn-outline" style="flex:1;" onclick="closeModal('m-goal')">취소</button><button class="btn btn-p" style="flex:2;" onclick="saveGoal()">저장</button></div>
+</div></div>
+
+<div class="modal-overlay" id="m-money"><div class="modal-box">
+  <div class="modal-handle"></div><div class="modal-title">💵 수입 / 지출</div>
+  <label class="form-label">종류</label>
+  <div class="row" style="gap:8px;margin-bottom:6px;">
+    <button id="mb-in" onclick="setMtype('income')" style="flex:1;padding:9px;border-radius:9px;border:2px solid var(--green);background:var(--green-l);color:var(--green);font-weight:800;cursor:pointer;font-family:inherit;font-size:13px;">수입</button>
+    <button id="mb-ex" onclick="setMtype('expense')" style="flex:1;padding:9px;border-radius:9px;border:1.5px solid var(--border);background:transparent;color:var(--text2);font-weight:700;cursor:pointer;font-family:inherit;font-size:13px;">지출</button>
+  </div>
+  <input type="hidden" id="m-type-val" value="income">
+  <label class="form-label">항목 *</label><input id="m-item" placeholder="예) 알바비, 식비">
+  <label class="form-label">금액 (원) *</label><input id="m-amount" type="number" placeholder="예) 50000">
+  <label class="form-label">날짜</label><input id="m-date" type="date">
+  <label class="form-label">메모</label><input id="m-note-field" placeholder="선택">
+  <div class="row" style="gap:10px;margin-top:18px;"><button class="btn btn-outline" style="flex:1;" onclick="closeModal('m-money')">취소</button><button class="btn btn-p" style="flex:2;" onclick="saveMoney()">저장</button></div>
+</div></div>
+
+<div class="modal-overlay" id="m-big-goal"><div class="modal-box">
+  <div class="modal-handle"></div><div class="modal-title">🎯 목표 추가</div>
+  <label class="form-label">종류</label><select id="bg-type"><option>연기</option><option>개인</option><option>부업</option></select>
+  <label class="form-label">큰 목표 *</label><input id="bg-title" placeholder="예) 단편영화 주연 따기">
+  <label class="form-label">마감 기한</label><input id="bg-dl" type="date">
+  <label class="form-label">상세 내용</label><textarea id="bg-detail" placeholder="목표에 대한 상세 내용"></textarea>
+  <div class="row" style="gap:10px;margin-top:18px;"><button class="btn btn-outline" style="flex:1;" onclick="closeModal('m-big-goal')">취소</button><button class="btn btn-p" style="flex:2;" onclick="saveBigGoal()">저장</button></div>
+</div></div>
+
+
+<div class="modal-overlay" id="m-appearance"><div class="modal-box">
+  <div class="modal-handle"></div>
+  <div class="modal-title">🎥 출연기록 추가</div>
+
+  <label class="form-label">작품명 *</label>
+  <input id="apr-title" placeholder="작품명">
+
+  <label class="form-label">방송국 / 플랫폼</label>
+  <input id="apr-platform" placeholder="예) TVN / 넷플릭스">
+
+  <label class="form-label">출연 회차</label>
+  <input id="apr-episode" placeholder="예) 3화">
+
+  <label class="form-label">출연 역할</label>
+  <input id="apr-role" placeholder="예) 대학생, 간호사">
+
+  <label class="form-label">출연료</label>
+  <input id="apr-pay" placeholder="예) 300000">
+
+  <label class="form-label">방영일</label>
+  <input id="apr-date" type="date">
+
+  <label class="form-label">계약서 파일 업로드</label>
+  <input id="apr-files" type="file" multiple>
+
+  <div class="row" style="gap:10px;margin-top:18px;">
+    <button class="btn btn-outline" style="flex:1;" onclick="closeModal('m-appearance')">취소</button>
+    <button class="btn btn-p" style="flex:2;" onclick="saveAppearance()">저장</button>
+  </div>
+</div></div>
+
+<!-- 설정 모달 -->
+
+<div class="modal-overlay" id="m-settings"><div class="modal-box">
+  <div class="modal-handle"></div>
+  <div class="modal-title">⚙️ Supabase 연결 설정</div>
+  <label class="form-label">Project URL</label>
+  <input id="cfg-url" placeholder="https://xxxxxx.supabase.co" type="url">
+  <label class="form-label">Anon Key (publishable key)</label>
+  <input id="cfg-key" placeholder="sb_publishable_..." type="password">
+  <div id="cfg-status" class="settings-status idle">
+    <div class="settings-dot idle"></div>
+    <span>저장된 설정이 없어요</span>
+  </div>
+  <div class="settings-divider"></div>
+  <div class="settings-info">
+    🔒 입력한 URL과 Key는 이 기기의 브라우저에만 저장돼요.<br>
+    📍 Supabase → Settings → API 에서 확인할 수 있어요.<br>
+    ✅ 저장 후 연결 테스트를 눌러 확인해보세요.
+  </div>
+  <div class="row" style="gap:10px;margin-top:18px;">
+    <button class="btn btn-outline" style="flex:1;" onclick="testSbConnection()">연결 테스트</button>
+    <button class="btn btn-p" style="flex:2;" onclick="saveSbConfig()">저장</button>
+  </div>
+  <button class="btn btn-outline" style="width:100%;margin-top:10px;color:var(--coral);border-color:var(--coral-l);" onclick="clearSbConfig()">설정 초기화</button>
+</div></div>
+
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="goScreen('home')"><div class="nav-iw"><div class="nav-ico">🏠</div></div><div class="nav-lbl">홈</div></button>
+  <button class="nav-btn" onclick="goScreen('acting')"><div class="nav-iw"><div class="nav-ico">🎬</div></div><div class="nav-lbl">연기</div></button>
+  <button class="nav-btn" onclick="goScreen('sidejob')"><div class="nav-iw"><div class="nav-ico">💼</div></div><div class="nav-lbl">부업</div></button>
+  <button class="nav-btn" onclick="goScreen('personal')"><div class="nav-iw"><div class="nav-ico">🌿</div></div><div class="nav-lbl">개인</div></button>
+</nav>
+
+<script>
+// ═══════════════════════════════════════════
+// ⚙️ 설정은 우측 상단 ⚙️ 버튼에서!
+// ═══════════════════════════════════════════
+let SB_URL = localStorage.getItem('sb_url') || '';
+let SB_KEY = localStorage.getItem('sb_key') || '';
+
+// Supabase REST API 헬퍼
+const sb = {
+  async get(table, query=''){
+    if(!SB_URL||!SB_KEY)return[];
+    const r = await fetch(`${SB_URL}/rest/v1/${table}?order=created_at.desc${query}`,
+      {headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}});
+    return r.ok ? r.json() : [];
+  },
+  async insert(table, data){
+    loading(true);
+    const r = await fetch(`${SB_URL}/rest/v1/${table}`,
+      {method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+       body:JSON.stringify(data)});
+    loading(false);
+    return r.ok ? r.json() : null;
+  },
+  async update(table, id, data){
+    loading(true);
+    const r = await fetch(`${SB_URL}/rest/v1/${table}?id=eq.${id}`,
+      {method:'PATCH',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'},
+       body:JSON.stringify(data)});
+    loading(false);
+    return r.ok;
+  },
+  async delete(table, id){
+    loading(true);
+    const r = await fetch(`${SB_URL}/rest/v1/${table}?id=eq.${id}`,
+      {method:'DELETE',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}});
+    loading(false);
+    return r.ok;
+  },
+  async upsert(table, data){
+    loading(true);
+    const r = await fetch(`${SB_URL}/rest/v1/${table}`,
+      {method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},
+       body:JSON.stringify(data)});
+    loading(false);
+    return r.ok;
+  }
+};
+
+function loading(on){
+  const bar=document.getElementById('loading-bar');
+  bar.style.width=on?'70%':'100%';
+  if(!on)setTimeout(()=>{bar.style.width='0%';},400);
+}
+
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+const today=()=>new Date().toISOString().slice(0,10);
+const fmtD=d=>{if(!d)return'';const t=new Date(d);return`${t.getFullYear()}.${String(t.getMonth()+1).padStart(2,'0')}.${String(t.getDate()).padStart(2,'0')}`};
+const won=n=>Number(n).toLocaleString('ko-KR')+'원';
+
+// 화면 전환
+const SCRMAP={home:0,acting:1,sidejob:2,personal:3};
+function goScreen(n){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('scr-'+n).classList.add('active');
+  const idx=SCRMAP[n];
+  if(idx!==undefined)document.querySelectorAll('.nav-btn')[idx].classList.add('active');
+  if(n==='home')renderHome();
+  if(n==='acting'){const ap=document.querySelector('.at-panel.active');if(ap)renderActTab(ap.id.replace('ap-',''));}
+  if(n==='sidejob')renderSidejob();
+  if(n==='personal'){const pp=document.querySelector('.pt-panel.active');if(pp)renderPersonalTab(pp.id.replace('pp-',''));}
+}
+
+// 모달
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+
+// 달력
+let calY=new Date().getFullYear(),calM=new Date().getMonth();
+let calEvDates=new Set();
+function calMove(d){calM+=d;if(calM>11){calM=0;calY++;}if(calM<0){calM=11;calY--;}renderCal();}
+async function loadCalEvents(){
+  const [sc,au]=await Promise.all([sb.get('schedule','&select=shoot_date'),sb.get('audition','&select=audition_date')]);
+  calEvDates=new Set();
+  sc.forEach(x=>{if(x.shoot_date)calEvDates.add(x.shoot_date.slice(0,10));});
+  au.forEach(x=>{if(x.audition_date)calEvDates.add(x.audition_date.slice(0,10));});
+  renderCal();
+}
+function renderCal(){
+  const mns=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  document.getElementById('cal-month-label').textContent=`${calY}년 ${mns[calM]}`;
+  const first=new Date(calY,calM,1),last=new Date(calY,calM+1,0),sd=first.getDay(),td=today();
+  let html='';
+  const prevLast=new Date(calY,calM,0).getDate();
+  for(let i=sd-1;i>=0;i--)html+=`<div class="cal-d other"><div class="cal-dn">${prevLast-i}</div></div>`;
+  for(let d=1;d<=last.getDate();d++){
+    const ds=`${calY}-${String(calM+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dow=(sd+d-1)%7;
+    let cls='cal-d';
+    if(ds===td)cls+=' today';
+    if(dow===0)cls+=' sun';if(dow===6)cls+=' sat';
+    if(calEvDates.has(ds))cls+=' has-ev';
+    html+=`<div class="${cls}"><div class="cal-dn">${d}</div></div>`;
+  }
+  const end=(sd+last.getDate()-1)%7;
+  for(let i=1;i<7-end;i++)html+=`<div class="cal-d other"><div class="cal-dn">${i}</div></div>`;
+  document.getElementById('cal-grid').innerHTML=html;
+}
+
+// 홈
+function renderHome(){
+  const now=new Date();
+  const days=['일','월','화','수','목','금','토'];
+  document.getElementById('hero-date').textContent=`${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${days[now.getDay()]}요일`;
+  loadCalEvents();
+}
+
+// ── 연기 탭 전환
+function switchAct(tab,el){
+  document.querySelectorAll('.am-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');
+  document.querySelectorAll('.at-panel').forEach(p=>p.classList.remove('active'));document.getElementById('ap-'+tab).classList.add('active');
+  renderActTab(tab);
+}
+function renderActTab(tab){
+  const m={watch:renderWatchList,apply:renderApplyList,audition:renderAuditionList,schedule:renderScheduleList,appearance:renderAppearanceList,note:renderNoteList};
+  if(m[tab])m[tab]();
+}
+
+// ── 감상기록
+let wStar=0,wFilter='all';
+document.querySelectorAll('#w-stars .star').forEach(s=>s.addEventListener('click',()=>{
+  wStar=parseInt(s.dataset.v);
+  document.querySelectorAll('#w-stars .star').forEach((t,i)=>t.classList.toggle('on',i<wStar));
+}));
+function fWatch(f,el){wFilter=f;document.querySelectorAll('#wf-chips .chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');renderWatchList();}
+async function saveWatch(){
+  const title=document.getElementById('w-title').value.trim();
+  if(!title)return alert('제목을 입력해주세요');
+
+  let posterUrl='';
+
+  const posterFile=document.getElementById('w-poster');
+
+  if(posterFile.files.length){
+    const uploaded=await uploadMultipleFiles(posterFile,'posters');
+    if(uploaded.length) posterUrl=uploaded[0];
+  }
+
+  await sb.insert('watch',{id:uid(),title,poster_url:posterUrl,director:document.getElementById('w-dir').value,
+    cast_members:document.getElementById('w-cast').value,type:document.getElementById('w-type').value,
+    star:wStar,watched_date:document.getElementById('w-date').value||today(),
+    genre:document.getElementById('w-genre').value,scene:document.getElementById('w-scene').value,
+    review:document.getElementById('w-review').value});
+  ['w-title','w-dir','w-cast','w-genre','w-scene','w-review'].forEach(f=>document.getElementById(f).value='');
+  document.getElementById('w-date').value='';wStar=0;document.querySelectorAll('#w-stars .star').forEach(s=>s.classList.remove('on'));
+  closeModal('m-watch');renderWatchList();
+}
+async function delWatch(id){await sb.delete('watch',id);renderWatchList();}
+
+async function renderWatchList(){
+  const q=wFilter==='all'?'':'&type=eq.'+encodeURIComponent(wFilter);
+  const list=await sb.get('watch',q);
+  const el=document.getElementById('watch-list');
+
+  if(!list.length){
+    el.innerHTML='<div class="empty">아직 감상 기록이 없어요 🎞️</div>';
+    return;
+  }
+
+  el.innerHTML='<div class="poster-grid">'+list.map(x=>`
+    <div class="poster-card" onclick="togglePosterDetail('${x.id}')">
+
+      <img class="poster-img"
+        src="${x.poster_url || 'https://placehold.co/400x600/EFEAFE/7B68EE?text=POSTER'}">
+
+      <div class="poster-body">
+        <div class="poster-title">${x.title}</div>
+
+        <div class="poster-rating">
+          ${x.star ? '★'.repeat(x.star)+'☆'.repeat(5-x.star) : '☆☆☆☆☆'}
+        </div>
+
+        <div class="poster-detail" id="poster-detail-${x.id}">
+          ${x.director ? `<div><b>감독</b><br>${x.director}</div>` : ''}
+
+          ${x.cast_members ? `<div style="margin-top:7px;"><b>출연진</b><br>${x.cast_members}</div>` : ''}
+
+          ${x.scene ? `<div style="margin-top:7px;"><b>기억나는 장면</b><br>${x.scene}</div>` : ''}
+
+          ${x.review ? `<div style="margin-top:7px;"><b>감상평</b><br>${x.review}</div>` : ''}
+        </div>
+      </div>
+    </div>
+  `).join('')+'</div>';
+}
+
+
+// ── 투두리스트
+async function addTodo(cat){
+  const inp=document.getElementById('td-'+cat+'-input');const txt=inp.value.trim();if(!txt)return;
+  await sb.insert('todos',{id:uid(),cat,txt,done:false});inp.value='';renderTodoList(cat);
+}
+async function toggleTodo(id,cat){
+  const list=await sb.get('todos','&id=eq.'+id);if(!list.length)return;
+  await sb.update('todos',id,{done:!list[0].done});renderTodoList(cat);
+}
+async function delTodo(id,cat){await sb.delete('todos',id);renderTodoList(cat);}
+async function renderTodoList(cat){
+  const list=await sb.get('todos','&cat=eq.'+cat+'&order=created_at.asc');
+  const el=document.getElementById('td-'+cat);
+  if(!list.length){el.innerHTML='<div style="padding:6px 0;font-size:13px;color:var(--text3);text-align:center;">아직 없어요</div>';return;}
+  el.innerHTML=list.map(x=>`<div class="todo-item">
+    <div class="todo-cb ${x.done?'done':''}" onclick="toggleTodo('${x.id}','${cat}')">
+      ${x.done?'<span style="color:#fff;font-size:10px;font-weight:800;">✓</span>':''}
+    </div>
+    <div class="todo-txt ${x.done?'done':''}">${x.txt}</div>
+    <button class="del-btn" onclick="delTodo('${x.id}','${cat}')" style="font-size:15px;">×</button>
+  </div>`).join('');
+}
+
+
+// ── Supabase 설정
+function loadSbConfig(){
+  const url=localStorage.getItem('sb_url')||'';
+  const key=localStorage.getItem('sb_key')||'';
+  document.getElementById('cfg-url').value=url;
+  document.getElementById('cfg-key').value=key;
+  updateCfgStatus(url&&key?'saved':null);
+}
+function updateCfgStatus(state, msg){
+  const el=document.getElementById('cfg-status');
+  const dot=el.querySelector('.settings-dot');
+  const span=el.querySelector('span');
+  el.className='settings-status';dot.className='settings-dot';
+  if(state==='ok'){el.classList.add('ok');dot.classList.add('ok');span.textContent=msg||'연결 성공! ✅';}
+  else if(state==='err'){el.classList.add('err');dot.classList.add('err');span.textContent=msg||'연결 실패 ❌';}
+  else if(state==='saved'){el.classList.add('ok');dot.classList.add('ok');span.textContent='설정이 저장되어 있어요 ✅';}
+  else{el.classList.add('idle');dot.classList.add('idle');span.textContent='저장된 설정이 없어요';}
+}
+function saveSbConfig(){
+  const url=document.getElementById('cfg-url').value.trim().replace(/\/$/,'');
+  const key=document.getElementById('cfg-key').value.trim();
+  if(!url||!key)return alert('URL과 Key를 모두 입력해주세요');
+  localStorage.setItem('sb_url',url);
+  localStorage.setItem('sb_key',key);
+  SB_URL=url;SB_KEY=key;
+  updateCfgStatus('ok','저장 완료! 앱을 사용해보세요 ✅');
+  setTimeout(()=>{closeModal('m-settings');renderHome();},800);
+}
+async function testSbConnection(){
+  const url=document.getElementById('cfg-url').value.trim().replace(/\/$/,'');
+  const key=document.getElementById('cfg-key').value.trim();
+  if(!url||!key)return alert('URL과 Key를 먼저 입력해주세요');
+  updateCfgStatus('idle','연결 테스트 중...');
+  try{
+    const r=await fetch(`${url}/rest/v1/todos?limit=1`,
+      {headers:{'apikey':key,'Authorization':'Bearer '+key}});
+    if(r.ok||r.status===406){updateCfgStatus('ok','연결 성공! ✅');}
+    else{updateCfgStatus('err','연결 실패 (status: '+r.status+')');}
+  }catch(e){updateCfgStatus('err','연결 실패: '+e.message);}
+}
+function clearSbConfig(){
+  if(!confirm('설정을 초기화할까요?'))return;
+  localStorage.removeItem('sb_url');localStorage.removeItem('sb_key');
+  SB_URL='';SB_KEY='';
+  document.getElementById('cfg-url').value='';
+  document.getElementById('cfg-key').value='';
+  updateCfgStatus(null);
+}
+
+// 초기화
+document.getElementById('m-date').value=today();
+loadSbConfig();
+// 설정 없으면 자동으로 설정창 열기
+if(!SB_URL||!SB_KEY){setTimeout(()=>openModal('m-settings'),400);}
+renderHome();
+</script>
+</body>
+</html>
+
+
+<script>
+/* =========================
+   SUPABASE STORAGE HELPERS
+========================= */
+
+async function uploadFile(file, folder='misc'){
+  if(!SB_URL || !SB_KEY){
+    alert('Supabase 설정 필요');
+    return null;
+  }
+
+  const filename = `${Date.now()}_${file.name}`;
+  const path = `${folder}/${filename}`;
+
+  const res = await fetch(
+    `${SB_URL}/storage/v1/object/acting-files/${path}`,
+    {
+      method:'POST',
+      headers:{
+        'apikey':SB_KEY,
+        'Authorization':'Bearer '+SB_KEY,
+        'x-upsert':'true'
+      },
+      body:file
+    }
+  );
+
+  if(!res.ok){
+    console.error(await res.text());
+    alert('파일 업로드 실패');
+    return null;
+  }
+
+  return `${SB_URL}/storage/v1/object/public/acting-files/${path}`;
+}
+
+async function uploadMultipleFiles(fileInput, folder='misc'){
+  const files = Array.from(fileInput.files || []);
+  const urls = [];
+
+  for(const file of files){
+    const url = await uploadFile(file, folder);
+    if(url) urls.push(url);
+  }
+
+  return urls;
+}
+
+/*
+예시 사용:
+
+const urls = await uploadMultipleFiles(
+  document.getElementById('shooting-files'),
+  'shooting'
+);
+
+*/
+</script>
+
