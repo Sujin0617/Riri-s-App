@@ -1197,6 +1197,77 @@ display:block;
     min-height:44px;
   }
 
+  /* ───────── 연기/개인: 사이드바 → 상단 가로 탭 ───────── */
+  .acting-layout,
+  .personal-layout{
+    flex-direction:column !important;
+    height:auto !important;
+    overflow:visible !important;
+  }
+
+  .acting-sidebar,
+  .personal-sidebar{
+    width:100% !important;
+    flex-direction:row !important;
+    overflow-x:auto !important;
+    overflow-y:hidden !important;
+    padding:8px 6px !important;
+    border-right:none !important;
+    border-bottom:1px solid var(--border) !important;
+    flex-shrink:0;
+    gap:2px;
+    position:sticky;
+    top:0;
+    z-index:5;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+  }
+  .acting-sidebar::-webkit-scrollbar,
+  .personal-sidebar::-webkit-scrollbar{
+    display:none;
+  }
+
+  .am-btn,
+  .pm-btn{
+    flex-shrink:0 !important;
+    width:auto !important;
+    min-width:60px;
+    margin:0 2px !important;
+    padding:8px 10px !important;
+  }
+
+  .am-ico,
+  .pm-ico{
+    width:32px !important;
+    height:32px !important;
+    font-size:16px !important;
+  }
+
+  .am-lbl,
+  .pm-lbl{
+    font-size:10px !important;
+    white-space:nowrap;
+  }
+
+  .acting-content,
+  .personal-content{
+    height:auto !important;
+    min-height:calc(100vh - var(--bnav) - 200px);
+    padding:14px 14px 80px !important;
+  }
+
+  /* 연기/개인 화면 내부 테이블 가로 스크롤 보장 */
+  .acting-content table,
+  .personal-content table{
+    min-width:100%;
+  }
+
+  /* 연기 콘텐츠 영역의 카드/리스트 폭 풀리도록 */
+  .at-panel,
+  .pt-panel{
+    width:100%;
+  }
+
 }
 
 /* tablet */
