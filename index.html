@@ -1171,6 +1171,16 @@ display:block;
     border-radius:22px !important;
   }
 
+  /* 모달 위치: 화면 위쪽에 붙어서 나오도록 (기본 flex-end → flex-start) */
+  .modal-overlay{
+    align-items:flex-start !important;
+    padding-top:24px !important;
+  }
+  /* 모달 상단 안내 핸들 숨김 (위에 붙어있으니 안 어울림) */
+  .modal-handle{
+    display:none !important;
+  }
+
   input,
   select,
   textarea,
@@ -1209,37 +1219,29 @@ display:block;
   .personal-sidebar{
     width:100% !important;
     flex-direction:row !important;
-    overflow-x:auto !important;
-    overflow-y:hidden !important;
-    padding:8px 6px !important;
+    flex-wrap:wrap !important;
+    overflow:visible !important;
+    padding:10px 8px !important;
     border-right:none !important;
     border-bottom:1px solid var(--border) !important;
     flex-shrink:0;
-    gap:2px;
-    position:sticky;
-    top:0;
-    z-index:5;
-    scrollbar-width:none;
-    -webkit-overflow-scrolling:touch;
-  }
-  .acting-sidebar::-webkit-scrollbar,
-  .personal-sidebar::-webkit-scrollbar{
-    display:none;
+    gap:0;
+    background:var(--white);
   }
 
   .am-btn,
   .pm-btn{
-    flex-shrink:0 !important;
+    flex:1 0 20% !important;       /* 한 줄에 5개 = 두 줄로 자동 분할 */
+    max-width:20% !important;
     width:auto !important;
-    min-width:60px;
-    margin:0 2px !important;
-    padding:8px 10px !important;
+    margin:3px 0 !important;
+    padding:8px 4px !important;
   }
 
   .am-ico,
   .pm-ico{
-    width:32px !important;
-    height:32px !important;
+    width:34px !important;
+    height:34px !important;
     font-size:16px !important;
   }
 
@@ -1659,20 +1661,20 @@ display:block;
     <div class="acting-content">
       <!-- 현황 대시보드 -->
       <div class="at-panel active" id="ap-dashboard">
-        <div class="at-ptitle">📊 이번달 현황</div>
+        <div class="at-ptitle">📊 <span id="dash-month-title">-</span>월 현황</div>
         <div class="dash-grid">
           <div class="dash-card accent-p">
-            <div class="dash-label">이번달 지원</div>
+            <div class="dash-label">지원건수</div>
             <div class="dash-value"><span id="dash-apply-count">-</span><span class="dash-unit">건</span></div>
             <div class="dash-sub">합격 <span class="dash-highlight" id="dash-apply-pass">0</span>건</div>
           </div>
           <div class="dash-card accent-blue">
-            <div class="dash-label">리스트업 연락</div>
+            <div class="dash-label">리스트업연락건수</div>
             <div class="dash-value"><span id="dash-listup-count">-</span><span class="dash-unit">건</span></div>
             <div class="dash-sub">픽스 <span class="dash-highlight" id="dash-listup-fix">0</span>건</div>
           </div>
           <div class="dash-card accent-teal">
-            <div class="dash-label">이번달 촬영</div>
+            <div class="dash-label">촬영건수</div>
             <div class="dash-value"><span id="dash-shoot-count">-</span><span class="dash-unit">건</span></div>
             <div class="dash-sub" id="dash-shoot-sub">총 누적 0건</div>
           </div>
@@ -3747,6 +3749,10 @@ async function renderDashboard(){
   const year = now.getFullYear();
   const month = now.getMonth();
   const monthKey = `${year}-${String(month+1).padStart(2,'0')}`;
+
+  // 제목에 현재 월 표시 (한국시간 = 브라우저 로컬)
+  const titleEl = document.getElementById('dash-month-title');
+  if(titleEl) titleEl.textContent = month + 1;
 
   // 데이터 fetch
   const [applyRows, shootRows, auditionRows, listupRows, eventRows] = await Promise.all([
