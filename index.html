@@ -2694,8 +2694,10 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
   <label class="form-label">촬영 일자</label><input id="ap-sdate" type="date">
   <label class="form-label">촬영 회차</label><input id="ap-ep" placeholder="예) 1~3회차">
   <label class="form-label">페이</label><input id="ap-pay" placeholder="예) 50000" inputmode="numeric" oninput="formatPay(this)">
-  <label class="form-label">시놉시스</label><textarea id="ap-syn" placeholder="작품 시놉시스"></textarea>
-  <label class="form-label">지원 역할</label><input id="ap-role" placeholder="지원하는 역할">
+  <label class="form-label">본문 내용</label><textarea id="ap-syn" placeholder="공고 본문 내용 (자동으로 채워짐)" style="min-height:120px;"></textarea>
+  <label class="form-label">지원 역할 (이름만)</label><input id="ap-role" placeholder="예) 윤, 준">
+  <label class="form-label">역할 설명</label><textarea id="ap-role-desc" placeholder="역할에 대한 설명 (성별·나이·캐릭터 등)"></textarea>
+  <label class="form-label">기타 메모</label><textarea id="ap-memo" placeholder="지원 방법·마감일·준비물 등 메모"></textarea>
   <label class="form-label">지원 URL</label><input id="ap-url" placeholder="https://">
   <label class="form-label">담당자</label><input id="ap-mgr" placeholder="담당자 이름">
   <label class="form-label">이메일</label><input id="ap-email" type="email" placeholder="담당자 이메일">
@@ -4191,7 +4193,7 @@ function clearSbConfig(){
 }
 
 // 초기화
-document.getElementById('m-date').value=today();
+const _mdEl=document.getElementById('m-date'); if(_mdEl)_mdEl.value=today();
 loadSbConfig();
 // 설정 없으면 자동으로 설정창 열기
 if(!SB_URL||!SB_KEY){setTimeout(()=>openModal('m-settings'),400);}
@@ -4410,6 +4412,8 @@ async function saveApply(){
     url:(document.getElementById('ap-url')?.value||'').trim(),
     result:document.getElementById('ap-result')?.value||'지원',
     synopsis:(document.getElementById('ap-syn')?.value||'').trim(),
+    role_desc:(document.getElementById('ap-role-desc')?.value||'').trim(),
+    memo:(document.getElementById('ap-memo')?.value||'').trim(),
     manager:(document.getElementById('ap-mgr')?.value||'').trim(),
     email:(document.getElementById('ap-email')?.value||'').trim()
   };
@@ -4425,7 +4429,7 @@ async function saveApply(){
   if(!ok)return;
 
   // 폼 초기화
-  ['ap-title','ap-dir','ap-co','ap-pay','ap-syn','ap-role','ap-url','ap-mgr','ap-email','ap-edit-id'].forEach(f=>{const el=document.getElementById(f);if(el)el.value='';});
+  ['ap-title','ap-dir','ap-co','ap-pay','ap-syn','ap-role','ap-role-desc','ap-memo','ap-url','ap-mgr','ap-email','ap-edit-id'].forEach(f=>{const el=document.getElementById(f);if(el)el.value='';});
   if(document.getElementById('ap-sdate'))document.getElementById('ap-sdate').value='';
   if(document.getElementById('ap-adate'))document.getElementById('ap-adate').value='';
   if(document.getElementById('shoot-category'))document.getElementById('shoot-category').value='';
@@ -4470,6 +4474,8 @@ async function editApply(id){
   document.getElementById('ap-pay').value=payDisplay(r.pay);
   document.getElementById('ap-syn').value=r.synopsis||'';
   document.getElementById('ap-role').value=r.role||'';
+  if(document.getElementById('ap-role-desc'))document.getElementById('ap-role-desc').value=r.role_desc||'';
+  if(document.getElementById('ap-memo'))document.getElementById('ap-memo').value=r.memo||'';
   document.getElementById('ap-url').value=r.url||'';
   document.getElementById('ap-mgr').value=r.manager||'';
   document.getElementById('ap-email').value=r.email||'';
@@ -4481,7 +4487,7 @@ async function editApply(id){
 
 // "+ 지원 추가" 클릭 시 새 모드로 초기화 (지원일자는 오늘 KR 기본)
 function openApplyNew(){
-  ['ap-title','ap-dir','ap-co','ap-pay','ap-syn','ap-role','ap-url','ap-mgr','ap-email','ap-edit-id','ap-sdate','ap-filmmakers-url'].forEach(f=>{const el=document.getElementById(f);if(el)el.value='';});
+  ['ap-title','ap-dir','ap-co','ap-pay','ap-syn','ap-role','ap-role-desc','ap-memo','ap-url','ap-mgr','ap-email','ap-edit-id','ap-sdate','ap-filmmakers-url'].forEach(f=>{const el=document.getElementById(f);if(el)el.value='';});
   // 지원일자 = 오늘 (한국 시간)
   const ad=document.getElementById('ap-adate'); if(ad)ad.value=todayKR();
   if(document.getElementById('shoot-category'))document.getElementById('shoot-category').value='';
@@ -4510,6 +4516,14 @@ function _setVal(id, val){
 
 // ── 공용 파서: HTML이든 붙여넣은 순수 텍스트든 둘 다 처리
 function parseFilmmakers(raw){
+  // 1) raw HTML이면 meta 태그 먼저 확보 (URL 자동 추출 시 가장 안정적)
+  let metaTitle='', metaDesc='';
+  const mt = raw.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i);
+  if(mt) metaTitle = mt[1];
+  const md = raw.match(/<meta[^>]+(?:property=["']og:description["']|name=["']description["'])[^>]+content=["']([^"']+)["']/i);
+  if(md) metaDesc = md[1];
+
+  // 2) HTML 태그 제거 → plain text 통일
   const looksHtml = /<[a-z!][^>]*>/i.test(raw);
   let text = raw;
   if(looksHtml){
@@ -4517,78 +4531,99 @@ function parseFilmmakers(raw){
       .replace(/<script[\s\S]*?<\/script>/gi,' ')
       .replace(/<style[\s\S]*?<\/style>/gi,' ')
       .replace(/<br\s*\/?>/gi,'\n')
-      .replace(/<\/(p|div|li|tr|h\d)>/gi,'\n')
+      .replace(/<\/(p|div|li|tr|h\d|dt|dd|td)>/gi,'\n')
       .replace(/<[^>]+>/g,' ');
   }
-  text = text
+  text = (metaDesc + '\n' + text)
     .replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>')
     .replace(/&nbsp;/g,' ').replace(/&#\d+;/g,' ')
     .replace(/[ \t]+/g,' ');
 
+  // 라벨 값 잡기 (같은 줄 → 다음 줄). 값 뒤 군더더기(인증내역 등) 정리
+  const clean = v => (v||'').replace(/\s*(인증내역|작성자|회원에게만.*)$/,'').trim();
   const grab = (labels) => {
     for(const lab of labels){
       const re = new RegExp(lab + '\\s*[:：]?[ \\t]*([^\\n]+)?', 'i');
       const m = text.match(re);
       if(m){
-        let v = (m[1]||'').trim();
+        let v = clean(m[1]);
         if(!v){
           const re2 = new RegExp(lab + '\\s*[:：]?[ \\t]*\\n+[ \\t]*([^\\n]+)', 'i');
           const m2 = text.match(re2);
-          v = m2 ? m2[1].trim() : '';
+          v = clean(m2 ? m2[1] : '');
         }
-        if(v && v.length < 120) return v;
+        if(v && v.length < 100) return v;
       }
     }
     return '';
   };
 
-  let title = grab(['작품\\s*제목','작품명','제목']);
-  if(!title){
-    const tm = text.match(/['‘’"「『]([^'‘’"」』\n]{1,40})['‘’"」』]/);
-    if(tm) title = tm[1].trim();
-  } else {
-    const q = title.match(/['‘’"「『]([^'‘’"」』]+)['‘’"」』]/);
-    if(q) title = q[1].trim();
-  }
+  // 작품명: 꺽쇠/따옴표 안 > 라벨 > meta제목
+  let title = '';
+  const src = (metaTitle||'') + ' ' + text;
+  const qm = src.match(/[<＜「『'‘"]([^<>＜＞」』'‘’"\n]{1,40})[>＞」』'’"]/);
+  if(qm) title = qm[1].trim();
+  if(!title) title = grab(['작품\\s*제목','작품명','제목']);
+  title = title.replace(/\s*\(가제\)\s*/,'').trim();
 
-  const director = grab(['감독']);
-  const company  = grab(['제작사','제작']);
+  const director = grab(['감독','연출']);
+  const company  = grab(['제작사','제작','제작팀']);
   const manager  = grab(['담당자','담당']);
-  const role     = (grab(['모집\\s*배역','모집\\s*배역명','배역','역할'])||'').slice(0,40);
 
+  // 이메일 (본문 노출분)
   const em = text.match(/([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})/);
   const email = em ? em[1] : '';
 
-  const shootRaw = grab(['촬영\\s*기간','촬영일','촬영\\s*일정']) || text;
+  // 촬영일: "2026년 8월 17일" / "8월 17일" / "2026-08-17"
   let shoot_date='', shoot_range='';
-  const fullRange = shootRaw.match(/(\d{4})[.\-년\s]+(\d{1,2})[.\-월\s]+(\d{1,2})일?\s*[-~]\s*(?:(\d{4})[.\-년\s]+)?(\d{1,2})[.\-월\s]+(\d{1,2})/);
-  const shortRange = shootRaw.match(/(\d{1,2})월\s*(\d{1,2})일?\s*[-~]\s*(\d{1,2})월?\s*(\d{1,2})일?/);
-  const singleDate = shootRaw.match(/(\d{4})[.\-년\s]+(\d{1,2})[.\-월\s]+(\d{1,2})/);
+  const fullRange = text.match(/(\d{4})[.\-년\s]+(\d{1,2})[.\-월\s]+(\d{1,2})일?\s*[-~]\s*(?:(\d{4})[.\-년\s]+)?(?:(\d{1,2})[.\-월\s]+)?(\d{1,2})/);
+  const ymd = text.match(/(\d{4})[.\-년\s]+(\d{1,2})[.\-월\s]+(\d{1,2})/);
+  const md2 = text.match(/(\d{1,2})\s*월\s*(\d{1,2})\s*[-~일]/);
   if(fullRange){
-    const y1=fullRange[1],m1=fullRange[2].padStart(2,'0'),d1=fullRange[3].padStart(2,'0');
-    const y2=fullRange[4]||y1,m2=fullRange[5].padStart(2,'0'),d2=fullRange[6].padStart(2,'0');
-    shoot_date=`${y1}-${m1}-${d1}`; shoot_range=`${y1}-${m1}-${d1} ~ ${y2}-${m2}-${d2}`;
-  } else if(shortRange){
-    const m1=shortRange[1].padStart(2,'0'),d1=shortRange[2].padStart(2,'0');
-    const m2=shortRange[3].padStart(2,'0'),d2=shortRange[4].padStart(2,'0');
-    const ym=text.match(/20\d{2}/); const y=ym?ym[0]:new Date().getFullYear();
-    shoot_date=`${y}-${m1}-${d1}`; shoot_range=`${m1}/${d1} ~ ${m2}/${d2}`;
-  } else if(singleDate){
-    shoot_date=`${singleDate[1]}-${singleDate[2].padStart(2,'0')}-${singleDate[3].padStart(2,'0')}`;
+    const y=fullRange[1], m1=fullRange[2].padStart(2,'0'), d1=fullRange[3].padStart(2,'0');
+    shoot_date=`${y}-${m1}-${d1}`;
+    const d2=(fullRange[6]||'').padStart(2,'0'); const m2=(fullRange[5]||fullRange[2]).padStart(2,'0');
+    if(d2) shoot_range=`${y}-${m1}-${d1} ~ ${m2}/${d2}`;
+  } else if(ymd){
+    shoot_date=`${ymd[1]}-${ymd[2].padStart(2,'0')}-${ymd[3].padStart(2,'0')}`;
+  } else if(md2){
+    const y=(text.match(/20\d{2}/)||[new Date().getFullYear()])[0];
+    shoot_date=`${y}-${md2[1].padStart(2,'0')}-${md2[2].padStart(2,'0')}`;
   }
 
-  const payRaw = text.match(/(?:출연료|페이|회차당|회당)[^0-9]*?(\d[\d,]+)\s*원/);
-  const pay = payRaw ? parseInt(payRaw[1].replace(/,/g,'')) : 0;
+  // 페이: "10만원" / "회차당 최저 10만원" / "50,000원"
+  let pay = 0;
+  const pm = text.match(/(?:출연료|페이|회차\s*당|회당|작품당)[\s\S]{0,40}?(\d[\d,]*)\s*(만)?\s*원/);
+  if(pm){ pay = parseInt(pm[1].replace(/,/g,'')); if(pm[2]==='만') pay *= 10000; }
 
-  const synMatch = text.match(/(?:시놉시스|줄거리|로그라인)\s*[：:]?\s*([\s\S]{5,300}?)(?=\n\n|\[|모집|배역|담당자|담당|이메일|출연료|촬영|페이|$)/);
-  const synopsis = synMatch ? synMatch[1].replace(/\s+/g,' ').trim().slice(0,300) : '';
+  // 역할(이름): 배역 헤더 "윤 (여자 주연)" 첫 번째 → 이름만
+  let role = '';
+  const roleHead = text.match(/([가-힣]{1,6})\s*\(\s*[^)]*(?:주연|조연|단역|역)[^)]*\)/);
+  if(roleHead){ role = roleHead[1].trim(); }
+  else { role = grab(['모집\\s*배역','배역','지원\\s*역할','역할']); role = role.replace(/총\s*\d+\s*명/,'').trim(); }
 
-  const catMap = {'단편영화':'단편영화','독립영화':'독립영화','상업영화':'상업영화',
+  // 본문 내용: 공고 상세 본문 전체 (상단 메뉴·하단 다른공고 목록·푸터는 제외)
+  let synopsis = '';
+  {
+    let body = text;
+    const s = body.search(/구인자\s*정보|작품과\s*역할\s*정보|■\s*영화\s*개요|■?\s*로그라인/);
+    if(s > 0) body = body.slice(s);
+    const e = body.search(/\n\s*목록\s*\n|댓글\s*\d|카테고리\s*전체|상세검색|©\s*Filmmakers|새글\s*쓰기|Available on the|이 게시물을/);
+    if(e > 0) body = body.slice(0, e);
+    synopsis = body.replace(/[ \t]+/g,' ').replace(/\n{3,}/g,'\n\n').trim().slice(0,4000);
+    if(!synopsis){ // 못 자르면 로그라인이라도
+      const lg = text.match(/(?:로그라인|시놉시스|줄거리)\s*[:：]?\s*([\s\S]{10,400})/);
+      if(lg) synopsis = lg[1].replace(/\s+/g,' ').trim().slice(0,400);
+    }
+  }
+
+  // 카테고리
+  const catMap = {'단편영화':'단편영화','장편 독립영화':'독립영화','독립영화':'독립영화','장편 상업영화':'상업영화','상업영화':'상업영화',
     'OTT':'상업드라마','TV 시리즈':'상업드라마','웹드라마':'웹드라마','숏폼':'숏폼드라마','광고':'광고영상','홍보':'홍보영상'};
   let category='';
   for(const [k,v] of Object.entries(catMap)){ if(text.includes(k)){ category=v; break; } }
 
-  return { title, director, company, manager, email, shoot_date, shoot_range, pay, role, synopsis, category };
+  return { title, director, company, manager, email, shoot_date, shoot_range, pay, role, role_desc:'', synopsis, category };
 }
 
 // ── 공용: 파싱 결과를 폼에 채우기 (null 가드 포함)
@@ -4597,7 +4632,7 @@ function applyFilmmakersInfo(info, srcUrl){
   _setVal('ap-dir',   info.director);
   _setVal('ap-co',    info.company);
   _setVal('ap-sdate', info.shoot_date);
-  _setVal('ap-role',  info.role);
+  // 역할·역할 설명은 비워둠 — 배역이 여러 개라 사라가 직접 골라 입력
   _setVal('ap-syn',   info.synopsis);
   _setVal('ap-mgr',   info.manager);
   _setVal('ap-email', info.email);
@@ -4800,6 +4835,7 @@ async function openApplyDetail(id){
         <div style="margin-top:10px;">📋 <b>작품명</b><br><span style="color:var(--text2);font-weight:700;">${r.title||'-'}</span></div>
         <div style="margin-top:10px;">🏢 <b>제작사</b><br><span style="color:var(--text2);">${r.company||'-'}</span></div>
         <div style="margin-top:10px;">🎭 <b>지원 역할</b><br><span style="color:var(--text2);">${r.role||'-'}</span></div>
+        ${r.role_desc?`<div style="margin-top:10px;">🧩 <b>역할 설명</b><br><span style="color:var(--text2);white-space:pre-wrap;">${r.role_desc}</span></div>`:''}
         <div style="margin-top:10px;">🎬 <b>감독</b><br><span style="color:var(--text2);">${r.director||'-'}</span></div>
         <div style="margin-top:10px;">🎯 <b>촬영일</b><br><span style="color:var(--text2);">${r.shoot_date||'-'}</span></div>
         <div style="margin-top:10px;">💰 <b>페이</b><br><span style="color:var(--text2);font-weight:600;">${payDisplay(r.pay)||'-'}</span></div>
@@ -4807,9 +4843,10 @@ async function openApplyDetail(id){
         <div style="margin-top:10px;">📌 <b>결과</b><br>
           <span style="display:inline-block;padding:5px 14px;border-radius:999px;font-size:13px;font-weight:800;background:${rs.bg};color:${rs.fg};border:1.5px solid ${rs.bd};">${r.result||'-'}</span>
         </div>
-        ${r.synopsis?`<div style="margin-top:10px;">📝 <b>시놉시스</b><br><span style="color:var(--text2);">${r.synopsis}</span></div>`:''}
+        ${r.synopsis?`<div style="margin-top:10px;">📝 <b>본문 내용</b><br><span style="color:var(--text2);white-space:pre-wrap;">${r.synopsis}</span></div>`:''}
         ${r.manager?`<div style="margin-top:10px;">👤 <b>담당자</b><br><span style="color:var(--text2);">${r.manager}</span></div>`:''}
         ${r.email?`<div style="margin-top:10px;">📧 <b>이메일</b><br><span style="color:var(--text2);">${r.email}</span></div>`:''}
+        ${r.memo?`<div style="margin-top:10px;">🗒️ <b>기타 메모</b><br><span style="color:var(--text2);white-space:pre-wrap;">${r.memo}</span></div>`:''}
       </div>
       <div class="row" style="gap:10px;">
         <button style="flex:1;padding:13px;border-radius:14px;border:1.5px solid var(--p2);color:var(--p2);background:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;" onclick="editApply('${r.id}')">✏️ 수정</button>
