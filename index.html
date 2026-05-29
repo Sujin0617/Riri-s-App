@@ -1544,6 +1544,52 @@ display:block;
 </head>
 <body>
 
+<!-- 🔒 비밀번호 잠금 게이트 -->
+<div id="pw-gate" style="position:fixed;inset:0;z-index:99999;background:linear-gradient(160deg,#FFF8E1 0%,#FFE9A8 100%);display:flex;align-items:center;justify-content:center;font-family:inherit;">
+  <div id="pw-card" style="width:min(86vw,340px);background:#fff;border-radius:20px;padding:34px 26px 28px;box-shadow:0 14px 40px rgba(139,101,0,.18);text-align:center;">
+    <div style="font-size:38px;margin-bottom:6px;">🔒</div>
+    <div style="font-size:17px;font-weight:800;color:#8B6500;margin-bottom:4px;">리리'S APP</div>
+    <div style="font-size:12px;color:#9a8a5a;margin-bottom:20px;">비밀번호를 입력해주세요</div>
+    <input id="pw-input" type="password" placeholder="비밀번호" autocomplete="off"
+      style="width:100%;box-sizing:border-box;font-size:15px;text-align:center;padding:12px;border-radius:12px;border:1.5px solid #FFD45E;outline:none;letter-spacing:2px;"
+      onkeydown="if(event.key==='Enter')checkPw()">
+    <div id="pw-err" style="display:none;font-size:12px;color:#e0556b;font-weight:700;margin-top:9px;">비밀번호가 맞지 않아요</div>
+    <label style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;color:#9a8a5a;margin-top:14px;cursor:pointer;">
+      <input id="pw-remember" type="checkbox" checked style="width:15px;height:15px;accent-color:#FFB800;"> 이 기기에서 기억하기
+    </label>
+    <button onclick="checkPw()"
+      style="width:100%;margin-top:16px;background:#FFB800;border:none;border-radius:12px;padding:13px;font-family:inherit;font-size:15px;font-weight:800;color:#1a1a1a;cursor:pointer;">열기</button>
+  </div>
+</div>
+<script>
+// ★★★ 비밀번호: 아래 한 줄만 원하는 값으로 바꾸세요 ★★★
+const APP_PASSWORD = "110300a!";
+
+function _unlockGate(instant){
+  const g=document.getElementById('pw-gate'); if(!g)return;
+  if(instant){ g.style.display='none'; return; }
+  g.style.transition='opacity .3s'; g.style.opacity='0';
+  setTimeout(()=>{ g.style.display='none'; },300);
+}
+function checkPw(){
+  const v=document.getElementById('pw-input').value;
+  const err=document.getElementById('pw-err');
+  if(v===APP_PASSWORD){
+    if(document.getElementById('pw-remember').checked) localStorage.setItem('wd_apply_pw', v);
+    _unlockGate(false);
+  } else {
+    err.style.display='block';
+    const c=document.getElementById('pw-card');
+    c.animate([{transform:'translateX(0)'},{transform:'translateX(-9px)'},{transform:'translateX(9px)'},{transform:'translateX(0)'}],{duration:260});
+    document.getElementById('pw-input').select();
+  }
+}
+// 기억된 기기면 즉시 통과 / 아니면 입력칸 포커스
+if(localStorage.getItem('wd_apply_pw')===APP_PASSWORD){ _unlockGate(true); }
+else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focus(); },100); }
+</script>
+
+
 <!-- 로딩바 -->
 <div id="loading-bar"></div>
 
