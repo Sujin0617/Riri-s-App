@@ -3851,13 +3851,8 @@ async function renderDashboard(){
   // ── 다가오는 일정 (오늘 이후)
   const todayStr = now.toISOString().slice(0,10);
   const upcoming = [];
-  applyRows.forEach(r=>{
-    if(r.shoot_date && r.shoot_date >= todayStr){
-      upcoming.push({date:r.shoot_date, title:r.title||'무제',
-        meta:`${r.category||''} ${r.role?'· '+r.role:''}`.trim(),
-        tag:'지원', tagClass:'dash-tag-apply'});
-    }
-  });
+  // ※ 다가오는 = 진짜 확정된 일정만 (촬영기록 + 오디션기록)
+  //   지원기록·리스트업연락의 촬영일은 '예정일'이라 제외, 일정달력은 미정/예정 메모용이라 제외
   auditionRows.forEach(r=>{
     const d=r.audition_date||r.date||'';
     if(d && d >= todayStr){
@@ -3873,13 +3868,7 @@ async function renderDashboard(){
         tag:'송출', tagClass:'dash-tag-shoot'});
     }
   });
-  listupRows.forEach(r=>{
-    if(r.shoot_date && r.shoot_date >= todayStr && r.status!=='탈락'){
-      upcoming.push({date:r.shoot_date, title:r.title||'무제',
-        meta:`${r.category||''} ${r.role?'· '+r.role:''}`.trim(),
-        tag:'리스트업', tagClass:'dash-tag-listup'});
-    }
-  });
+  listupRows.forEach(()=>{}); // 리스트업연락은 '예정/연락 단계'라 다가오는에서 제외
   upcoming.sort((a,b)=>a.date.localeCompare(b.date));
 
   const upBox = document.getElementById('dash-upcoming');
@@ -4776,7 +4765,7 @@ async function renderApplyList(){
       <td>${r.director||'-'}</td>
       <td>${r.shoot_date||'-'}</td>
       <td style="font-weight:600;">${payDisplay(r.pay)||'-'}</td>
-      <td>${r.role||'-'}</td>
+      <td style="white-space:nowrap;" title="${(r.role||'').replace(/"/g,'&quot;')}">${(r.role||'').length>10 ? r.role.slice(0,10)+'…' : (r.role||'-')}</td>
       <td>${urlCell(r.url)}</td>
       <td>${resultStyle(r.result)}</td>
     </tr>
