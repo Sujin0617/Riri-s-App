@@ -4602,16 +4602,23 @@ function parseFilmmakers(raw){
   if(roleHead){ role = roleHead[1].trim(); }
   else { role = grab(['모집\\s*배역','배역','지원\\s*역할','역할']); role = role.replace(/총\s*\d+\s*명/,'').trim(); }
 
-  // 본문 내용: 공고 상세 본문 전체 (상단 메뉴·하단 다른공고 목록·푸터는 제외)
+  // 본문 내용 = 작성자가 직접 쓴 글만 (구인자정보·작품역할·모집정보 표는 제외)
   let synopsis = '';
   {
     let body = text;
-    const s = body.search(/구인자\s*정보|작품과\s*역할\s*정보|■\s*영화\s*개요|■?\s*로그라인/);
-    if(s > 0) body = body.slice(s);
-    const e = body.search(/\n\s*목록\s*\n|댓글\s*\d|카테고리\s*전체|상세검색|©\s*Filmmakers|새글\s*쓰기|Available on the|이 게시물을/);
+    // 1) "모집 정보" 섹션의 마감일 뱃지(D-x) 이후부터가 작성자 본문
+    const mi = body.search(/모집\s*정보/);
+    if(mi >= 0){
+      const after = body.slice(mi);
+      const dm = after.match(/D\s*-?\s*\d+/);
+      if(dm){ body = after.slice(dm.index + dm[0].length); }
+      else { body = after.replace(/^[\s\S]*?모집\s*마감일[^\n]*\n/, ''); }
+    }
+    // 2) 끝: 첨부파일(.pdf)·목록·댓글·작성자정보·푸터 전까지
+    const e = body.search(/[^\n]*\.pdf|Size\s*:|Downloads|\n\s*목록\s*\n|댓글\s*\d|카테고리\s*전체|상세검색|©\s*Filmmakers|새글\s*쓰기|Available on the/);
     if(e > 0) body = body.slice(0, e);
     synopsis = body.replace(/[ \t]+/g,' ').replace(/\n{3,}/g,'\n\n').trim().slice(0,4000);
-    if(!synopsis){ // 못 자르면 로그라인이라도
+    if(!synopsis){ // 폴백: 로그라인
       const lg = text.match(/(?:로그라인|시놉시스|줄거리)\s*[:：]?\s*([\s\S]{10,400})/);
       if(lg) synopsis = lg[1].replace(/\s+/g,' ').trim().slice(0,400);
     }
