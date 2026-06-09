@@ -2964,13 +2964,15 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
   <label class="form-label">작품명 *</label><input id="ap-title" placeholder="작품명">
   <label class="form-label">감독</label><input id="ap-dir" placeholder="감독 이름">
   <label class="form-label">제작사</label><input id="ap-co" placeholder="제작사">
-  <label class="form-label">촬영 일자 <span style="font-weight:400;color:var(--text3);font-size:11px;">(여러 날짜 추가 가능)</span></label>
+  <label class="form-label">촬영 일자 <span style="font-weight:400;color:var(--text3);font-size:11px;">(달력 선택 또는 직접 입력)</span></label>
   <div class="multi-date-wrap" id="ap-sdate-wrap">
     <div class="multi-date-tags" id="ap-sdate-tags"><span class="multi-date-empty">날짜를 추가해주세요</span></div>
     <div class="multi-date-add">
       <input type="date" id="ap-sdate-input">
       <button onclick="multiDateAdd('ap-sdate')">+ 추가</button>
     </div>
+    <textarea id="ap-sdate-memo" placeholder="예) 8월~9월 중 20회차 이내, 주말 위주 등 자유롭게 메모"
+      style="width:100%;margin-top:8px;font-family:inherit;font-size:12px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;resize:vertical;min-height:48px;outline:none;color:var(--text);" rows="2"></textarea>
   </div>
   <input type="hidden" id="ap-sdate">
   <label class="form-label">촬영 회차</label><input id="ap-ep" placeholder="예) 1~3회차">
@@ -4664,13 +4666,15 @@ document.addEventListener('change', function(e){
 <label class="form-label">페이</label>
 <input id="lu-pay" placeholder="예) 300000" inputmode="numeric" oninput="formatPay(this)">
 
-<label class="form-label">촬영일 <span style="font-weight:400;color:var(--text3);font-size:11px;">(여러 날짜 추가 가능)</span></label>
+<label class="form-label">촬영일 <span style="font-weight:400;color:var(--text3);font-size:11px;">(달력 선택 또는 직접 입력)</span></label>
 <div class="multi-date-wrap" id="lu-date-wrap">
   <div class="multi-date-tags" id="lu-date-tags"><span class="multi-date-empty">날짜를 추가해주세요</span></div>
   <div class="multi-date-add">
     <input type="date" id="lu-date-input">
     <button onclick="multiDateAdd('lu-date')">+ 추가</button>
   </div>
+  <textarea id="lu-date-memo" placeholder="예) 8월~9월 중 20회차 이내, 주말 위주 등 자유롭게 메모"
+    style="width:100%;margin-top:8px;font-family:inherit;font-size:12px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;resize:vertical;min-height:48px;outline:none;color:var(--text);" rows="2"></textarea>
 </div>
 <input type="hidden" id="lu-date">
 
@@ -4820,6 +4824,7 @@ async function saveApply(){
     broadcast:'',
     apply_method:'',
     shoot_date:document.getElementById('ap-sdate')?.value||null,
+    shoot_date_memo:(document.getElementById('ap-sdate-memo')?.value||'').trim(),
     director:(document.getElementById('ap-dir')?.value||'').trim(),
     role:(document.getElementById('ap-role')?.value||'').trim(),
     pay:payNumber(document.getElementById('ap-pay')?.value||''),
@@ -4887,7 +4892,7 @@ async function editApply(id){
   document.getElementById('ap-title').value=r.title||'';
   document.getElementById('ap-dir').value=r.director||'';
   document.getElementById('ap-co').value=r.company||'';
-  multiDateLoad('ap-sdate', r.shoot_date||'');
+  multiDateLoad('ap-sdate', r.shoot_date||''); const apMemoEl=document.getElementById('ap-sdate-memo');if(apMemoEl)apMemoEl.value=r.shoot_date_memo||'';
   document.getElementById('ap-pay').value=payDisplay(r.pay);
   document.getElementById('ap-syn').value=r.synopsis||'';
   document.getElementById('ap-role').value=r.role||'';
@@ -4914,13 +4919,29 @@ async function editApply(id){
 
 // "+ 지원 추가" 클릭 시 새 모드로 초기화 (지원일자는 오늘 KR 기본)
 function openApplyNew(){
-  ['ap-title','ap-dir','ap-co','ap-pay','ap-syn','ap-role','ap-role-desc','ap-memo','ap-url','ap-mgr','ap-email','ap-edit-id','ap-sdate','ap-filmmakers-url'].forEach(f=>{const el=document.getElementById(f);if(el)el.value='';}); multiDateReset('ap-sdate');;
-  if(document.getElementById('ap-source'))document.getElementById('ap-source').value='';
-  if(document.getElementById('ap-source-custom')){document.getElementById('ap-source-custom').value='';document.getElementById('ap-source-custom').style.display='none';};
-  // 지원일자 = 오늘 (한국 시간)
+  // 텍스트·textarea 전부 초기화
+  ['ap-title','ap-dir','ap-co','ap-pay','ap-syn','ap-role','ap-role-desc','ap-memo',
+   'ap-url','ap-mgr','ap-email','ap-edit-id','ap-sdate','ap-filmmakers-url',
+   'ap-ep','ap-paste-text','ap-sdate-memo'].forEach(f=>{
+    const el=document.getElementById(f);if(el)el.value='';
+  });
+  // 멀티 날짜 리셋
+  multiDateReset('ap-sdate');
+  // 공고 페이지 붙여넣기 영역 초기화
+  const pasteZone=document.getElementById('ap-paste-zone');
+  if(pasteZone){const ta=pasteZone.querySelector('textarea');if(ta)ta.value='';}
+  // 촬영 분류 초기화
+  const cat=document.getElementById('apply-category');
+  if(cat){cat.value='';const catC=document.getElementById('apply-category-custom');if(catC){catC.value='';catC.style.display='none';}}
+  const shootCat=document.getElementById('shoot-category');
+  if(shootCat){shootCat.value='';const scc=document.getElementById('shoot-category-custom');if(scc){scc.value='';scc.style.display='none';}}
+  // 공고페이지 select 초기화
+  if(document.getElementById('ap-source')){document.getElementById('ap-source').value='';const sc=document.getElementById('ap-source-custom');if(sc){sc.value='';sc.style.display='none';}}
+  // 방송국 초기화
+  const apPlatform=document.getElementById('apr-platform');
+  if(apPlatform){apPlatform.value='';const apc=document.getElementById('apr-platform-custom');if(apc){apc.value='';apc.style.display='none';}}
+  // 결과·지원일자
   const ad=document.getElementById('ap-adate'); if(ad)ad.value=todayKR();
-  if(document.getElementById('shoot-category'))document.getElementById('shoot-category').value='';
-  if(document.getElementById('shoot-category-custom')){document.getElementById('shoot-category-custom').value='';document.getElementById('shoot-category-custom').style.display='none';}
   if(document.getElementById('ap-result'))document.getElementById('ap-result').value='지원';
   if(document.getElementById('m-apply-title'))document.getElementById('m-apply-title').textContent='📋 지원기록';
   const errEl=document.getElementById('ap-fetch-err'); if(errEl)errEl.style.display='none';
@@ -5304,7 +5325,7 @@ function fApply(v,el){
 
 // ── 리스트업연락 ─────────────────────────────────
 function openListupNew(){
-  ['lu-title','lu-director','lu-company','lu-role','lu-manager','lu-pay','lu-date','lu-episode','lu-note','lu-edit-id','lu-broadcast-custom'].forEach(f=>{const el=document.getElementById(f);if(el)el.value='';}); multiDateReset('lu-date');;
+  ['lu-title','lu-director','lu-company','lu-role','lu-manager','lu-pay','lu-date','lu-episode','lu-note','lu-edit-id','lu-broadcast-custom'].forEach(f=>{const el=document.getElementById(f);if(el)el.value='';}); multiDateReset('lu-date'); const luMemo=document.getElementById('lu-date-memo');if(luMemo)luMemo.value='';;
   const luBrSelReset=document.getElementById('lu-broadcast');if(luBrSelReset)luBrSelReset.value='';
   const luBrCustReset=document.getElementById('lu-broadcast-custom');if(luBrCustReset){luBrCustReset.value='';luBrCustReset.style.display='none';}
   const cat=document.getElementById('lu-category'); if(cat)cat.value='';
@@ -5360,6 +5381,7 @@ async function saveListup(){
     manager:(document.getElementById('lu-manager')?.value||'').trim(),
     pay:payNumber(document.getElementById('lu-pay')?.value||''),
     shoot_date:document.getElementById('lu-date')?.value||null,
+    shoot_date_memo:(document.getElementById('lu-date-memo')?.value||'').trim(),
     episode:(document.getElementById('lu-episode')?.value||'').trim(),
     status:document.getElementById('lu-status')?.value||'대기',
     note:(document.getElementById('lu-note')?.value||'').trim(),
@@ -5400,7 +5422,7 @@ async function editListup(id){
   loadManagerOptions(r.manager||'');
   document.getElementById('lu-pay').value=payDisplay(r.pay);
   document.getElementById('lu-cdate').value=r.contact_date||'';
-  multiDateLoad('lu-date', r.shoot_date||'');
+  multiDateLoad('lu-date', r.shoot_date||''); const luMemoEl=document.getElementById('lu-date-memo');if(luMemoEl)luMemoEl.value=r.shoot_date_memo||'';
   document.getElementById('lu-episode').value=r.episode||'';
   document.getElementById('lu-status').value=r.status||'대기';
   document.getElementById('lu-note').value=r.note||'';
@@ -5441,7 +5463,7 @@ async function openListupDetail(id){
         <div style="margin-top:10px;">🎭 <b>역할</b><br><span style="color:var(--text2);">${r.role||'-'}</span></div>
         <div style="margin-top:10px;">👤 <b>캐스팅담당자</b><br><span style="color:var(--text2);">${r.manager||'-'}</span></div>
         <div style="margin-top:10px;">💰 <b>페이</b><br><span style="color:var(--text2);font-weight:600;">${payDisplay(r.pay)||'-'}</span></div>
-        <div style="margin-top:10px;">📅 <b>촬영일</b><br><span style="color:var(--text2);">${r.shoot_date||'-'}</span></div>
+        <div style="margin-top:10px;">📅 <b>촬영일</b><br><span style="color:var(--text2);">${(r.shoot_date||'').replace(/,/g,' / ')||'-'}</span>${r.shoot_date_memo?`<div style="font-size:12px;color:var(--text3);margin-top:3px;">${r.shoot_date_memo}</div>`:''}</div>
         <div style="margin-top:10px;">🎯 <b>촬영회차</b><br><span style="color:var(--text2);">${r.episode||'-'}</span></div>
         <div style="margin-top:10px;">📌 <b>최종상태</b><br>
           <span style="display:inline-block;padding:5px 14px;border-radius:999px;font-size:13px;font-weight:800;background:${ss.bg};color:${ss.fg};border:1.5px solid ${ss.bd};">${r.status||'대기'}</span>
