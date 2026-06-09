@@ -1944,6 +1944,7 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
     <option>상업드라마</option><option>웹드라마</option><option>숏폼드라마</option>
     <option>독립영화</option><option>단편영화</option><option>상업영화</option>
     <option>광고영상</option><option>홍보영상</option><option>지면촬영</option>
+  <option>뮤직비디오</option>
   </select>
   <label>결과</label>
   <select id="apply-filter-result" onchange="renderApplyList()">
@@ -2014,6 +2015,7 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
     <option>상업드라마</option><option>웹드라마</option><option>숏폼드라마</option>
     <option>독립영화</option><option>단편영화</option><option>상업영화</option>
     <option>광고영상</option><option>홍보영상</option><option>지면촬영</option>
+  <option>뮤직비디오</option>
   </select>
   <label>상태</label>
   <select id="listup-filter-status" onchange="renderListupList()">
@@ -2131,6 +2133,7 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
               <option>상업드라마</option><option>웹드라마</option><option>숏폼드라마</option>
               <option>독립영화</option><option>단편영화</option><option>상업영화</option>
               <option>광고영상</option><option>홍보영상</option><option>지면촬영</option>
+  <option>뮤직비디오</option>
             </select>
             <label>지급여부</label>
             <select id="sched-filter-paid" onchange="renderScheduleList()">
@@ -2182,6 +2185,7 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
               <option>상업드라마</option><option>웹드라마</option><option>숏폼드라마</option>
               <option>독립영화</option><option>단편영화</option><option>상업영화</option>
               <option>광고영상</option><option>홍보영상</option><option>지면촬영</option>
+  <option>뮤직비디오</option>
             </select>
           </div>
 
@@ -2937,6 +2941,7 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
   <option>광고영상</option>
   <option>홍보영상</option>
   <option>지면촬영</option>
+  <option>뮤직비디오</option>
   <option value="custom">그외촬영 (직접작성)</option>
 </select>
 
@@ -3000,6 +3005,7 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
   <option>광고영상</option>
   <option>홍보영상</option>
   <option>지면촬영</option>
+  <option>뮤직비디오</option>
   <option value="custom">그외촬영 (직접작성)</option>
 </select>
 <input id="apr-category-custom" placeholder="직접 입력" style="display:none;margin-top:8px;">
@@ -3065,6 +3071,7 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
   <option>광고영상</option>
   <option>홍보영상</option>
   <option>지면촬영</option>
+  <option>뮤직비디오</option>
   <option value="custom">그외촬영 (직접작성)</option>
 </select>
 
@@ -3302,6 +3309,7 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
     <option>광고영상</option>
     <option>홍보영상</option>
     <option>지면촬영</option>
+  <option>뮤직비디오</option>
     <option value="custom">그외촬영 (직접작성)</option>
   </select>
   <input id="apr-cat-custom" placeholder="직접 입력" style="display:none;margin-top:8px;">
@@ -4566,6 +4574,7 @@ document.addEventListener('change', function(e){
 <option>광고영상</option>
 <option>홍보영상</option>
 <option>지면촬영</option>
+  <option>뮤직비디오</option>
 </select>
 
 <label class="form-label">역할</label>
@@ -4780,7 +4789,7 @@ async function editApply(id){
   // 카테고리 셀렉트 처리
   const catSel=document.getElementById('shoot-category');
   const catCustom=document.getElementById('shoot-category-custom');
-  const cats=['상업드라마','웹드라마','숏폼드라마','독립영화','단편영화','상업영화','광고영상','홍보영상','지면촬영'];
+  const cats=['상업드라마','웹드라마','숏폼드라마','독립영화','단편영화','상업영화','광고영상','홍보영상','지면촬영','뮤직비디오'];
   if(r.category && cats.includes(r.category)){
     catSel.value=r.category;
     catCustom.style.display='none';
@@ -4987,7 +4996,7 @@ function applyFilmmakersInfo(info, srcUrl){
   if(info.pay && info.pay > 0) _setVal('ap-pay', info.pay.toLocaleString());
   if(srcUrl) _setVal('ap-url', srcUrl);
 
-  const cats = ['상업드라마','웹드라마','숏폼드라마','독립영화','단편영화','상업영화','광고영상','홍보영상','지면촬영'];
+  const cats = ['상업드라마','웹드라마','숏폼드라마','독립영화','단편영화','상업영화','광고영상','홍보영상','지면촬영','뮤직비디오'];
   const catSel = document.getElementById('shoot-category');
   const catCustom = document.getElementById('shoot-category-custom');
   if(catSel && info.category){
@@ -5520,7 +5529,7 @@ async function fillFromApply(){
   // 카테고리 처리
   const catSel=document.getElementById('apr-category');
   const catCustom=document.getElementById('apr-category-custom');
-  const cats=['상업드라마','웹드라마','숏폼드라마','독립영화','단편영화','상업영화','광고영상','홍보영상','지면촬영'];
+  const cats=['상업드라마','웹드라마','숏폼드라마','독립영화','단편영화','상업영화','광고영상','홍보영상','지면촬영','뮤직비디오'];
   if(r.category && cats.includes(r.category)){
     catSel.value=r.category;
     catCustom.style.display='none';
@@ -5594,7 +5603,7 @@ async function editAudition(id){
   // 카테고리 셋팅
   const catSel=document.getElementById('apr-category');
   const catCustom=document.getElementById('apr-category-custom');
-  const cats=['상업드라마','웹드라마','숏폼드라마','독립영화','단편영화','상업영화','광고영상','홍보영상','지면촬영'];
+  const cats=['상업드라마','웹드라마','숏폼드라마','독립영화','단편영화','상업영화','광고영상','홍보영상','지면촬영','뮤직비디오'];
   if(r.category && cats.includes(r.category)){ catSel.value=r.category; catCustom.style.display='none'; catCustom.value=''; }
   else if(r.category){ catSel.value='custom'; catCustom.style.display='block'; catCustom.value=r.category; }
   else { catSel.value=''; catCustom.style.display='none'; catCustom.value=''; }
@@ -5776,7 +5785,7 @@ async function fillFromScheduleSource(){
   // 분류
   const catSel=document.getElementById('apply-category');
   const catCustom=document.getElementById('apply-category-custom');
-  const cats=['상업드라마','웹드라마','숏폼드라마','독립영화','단편영화','상업영화','광고영상','홍보영상','지면촬영'];
+  const cats=['상업드라마','웹드라마','숏폼드라마','독립영화','단편영화','상업영화','광고영상','홍보영상','지면촬영','뮤직비디오'];
   if(r.category && cats.includes(r.category)){ catSel.value=r.category; catCustom.style.display='none'; catCustom.value=''; }
   else if(r.category){ catSel.value='custom'; catCustom.style.display='block'; catCustom.value=r.category; }
 
@@ -5870,7 +5879,7 @@ async function editSchedule(id){
   // 분류
   const catSel=document.getElementById('apply-category');
   const catCustom=document.getElementById('apply-category-custom');
-  const cats=['상업드라마','웹드라마','숏폼드라마','독립영화','단편영화','상업영화','광고영상','홍보영상','지면촬영'];
+  const cats=['상업드라마','웹드라마','숏폼드라마','독립영화','단편영화','상업영화','광고영상','홍보영상','지면촬영','뮤직비디오'];
   if(r.category && cats.includes(r.category)){ catSel.value=r.category; catCustom.style.display='none'; catCustom.value=''; }
   else if(r.category){ catSel.value='custom'; catCustom.style.display='block'; catCustom.value=r.category; }
   else { catSel.value=''; catCustom.style.display='none'; catCustom.value=''; }
@@ -6019,7 +6028,7 @@ async function fillFromSchedule(){
   // 분류
   const catSel=document.getElementById('apr-cat');
   const catCustom=document.getElementById('apr-cat-custom');
-  const cats=['상업드라마','웹드라마','숏폼드라마','독립영화','단편영화','상업영화','광고영상','홍보영상','지면촬영'];
+  const cats=['상업드라마','웹드라마','숏폼드라마','독립영화','단편영화','상업영화','광고영상','홍보영상','지면촬영','뮤직비디오'];
   if(r.category && cats.includes(r.category)){ catSel.value=r.category; catCustom.style.display='none'; catCustom.value=''; }
   else if(r.category){ catSel.value='custom'; catCustom.style.display='block'; catCustom.value=r.category; }
 
@@ -6122,7 +6131,7 @@ async function editAppearance(id){
   // 분류
   const catSel=document.getElementById('apr-cat');
   const catCustom=document.getElementById('apr-cat-custom');
-  const cats=['상업드라마','웹드라마','숏폼드라마','독립영화','단편영화','상업영화','광고영상','홍보영상','지면촬영'];
+  const cats=['상업드라마','웹드라마','숏폼드라마','독립영화','단편영화','상업영화','광고영상','홍보영상','지면촬영','뮤직비디오'];
   if(r.category && cats.includes(r.category)){ catSel.value=r.category; catCustom.style.display='none'; catCustom.value=''; }
   else if(r.category){ catSel.value='custom'; catCustom.style.display='block'; catCustom.value=r.category; }
   else { catSel.value=''; catCustom.style.display='none'; catCustom.value=''; }
