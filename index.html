@@ -1816,7 +1816,7 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
 <thead>
 <tr>
 <th>지원일자</th><th>분류</th><th>작품명</th><th>제작사</th><th>감독</th><th>촬영일</th>
-<th>페이</th><th>역할</th><th>URL</th><th>결과</th>
+<th>페이</th><th>역할</th><th>URL</th><th>공고</th><th>결과</th>
 </tr>
 </thead>
 
@@ -2699,6 +2699,21 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
   <label class="form-label">역할 설명</label><textarea id="ap-role-desc" placeholder="역할에 대한 설명 (성별·나이·캐릭터 등)"></textarea>
   <label class="form-label">기타 메모</label><textarea id="ap-memo" placeholder="지원 방법·마감일·준비물 등 메모"></textarea>
   <label class="form-label">지원 URL</label><input id="ap-url" placeholder="https://">
+  <label class="form-label">공고페이지</label>
+  <div style="display:flex;flex-direction:column;gap:6px;">
+    <select id="ap-source" onchange="toggleApSourceCustom()" style="width:100%;padding:11px 12px;border:1.5px solid var(--border);border-radius:12px;font-family:inherit;font-size:14px;background:var(--white);color:var(--text);">
+      <option value="">-- 선택 --</option>
+      <option value="필메">필메</option>
+      <option value="캐스트링크">캐스트링크</option>
+      <option value="리플레이">리플레이</option>
+      <option value="피플앤아트">피플앤아트</option>
+      <option value="인스타">인스타</option>
+      <option value="쓰레드">쓰레드</option>
+      <option value="이메일">이메일</option>
+      <option value="기타">그외 (직접입력)</option>
+    </select>
+    <input id="ap-source-custom" placeholder="직접 입력" style="display:none;">
+  </div>
   <label class="form-label">담당자</label><input id="ap-mgr" placeholder="담당자 이름">
   <label class="form-label">이메일</label><input id="ap-email" type="email" placeholder="담당자 이메일">
   <label class="form-label">결과</label><select id="ap-result"><option>지원</option><option>리스트업</option><option>오디션</option><option>확정</option><option>탈락</option></select>
@@ -4394,6 +4409,19 @@ function toggleFiltersPanel(id, btn){
   if(btn) btn.classList.toggle('active', open);
 }
 
+function toggleApSourceCustom(){
+  const sel=document.getElementById('ap-source');
+  const cus=document.getElementById('ap-source-custom');
+  if(!sel||!cus)return;
+  if(sel.value==='기타'){
+    cus.style.display='block';
+    cus.focus();
+  } else {
+    cus.style.display='none';
+    cus.value='';
+  }
+}
+
 async function saveApply(){
   const title=(document.getElementById('ap-title')?.value||'').trim();
   if(!title)return alert('작품명을 입력해주세요');
@@ -4415,6 +4443,7 @@ async function saveApply(){
     role:(document.getElementById('ap-role')?.value||'').trim(),
     pay:payNumber(document.getElementById('ap-pay')?.value||''),
     url:(document.getElementById('ap-url')?.value||'').trim(),
+    source:(document.getElementById('ap-source')?.value==='기타'?(document.getElementById('ap-source-custom')?.value||'').trim():document.getElementById('ap-source')?.value||''),
     result:document.getElementById('ap-result')?.value||'지원',
     synopsis:(document.getElementById('ap-syn')?.value||'').trim(),
     role_desc:(document.getElementById('ap-role-desc')?.value||'').trim(),
@@ -4435,6 +4464,8 @@ async function saveApply(){
 
   // 폼 초기화
   ['ap-title','ap-dir','ap-co','ap-pay','ap-syn','ap-role','ap-role-desc','ap-memo','ap-url','ap-mgr','ap-email','ap-edit-id'].forEach(f=>{const el=document.getElementById(f);if(el)el.value='';});
+  if(document.getElementById('ap-source'))document.getElementById('ap-source').value='';
+  if(document.getElementById('ap-source-custom')){document.getElementById('ap-source-custom').value='';document.getElementById('ap-source-custom').style.display='none';}
   if(document.getElementById('ap-sdate'))document.getElementById('ap-sdate').value='';
   if(document.getElementById('ap-adate'))document.getElementById('ap-adate').value='';
   if(document.getElementById('shoot-category'))document.getElementById('shoot-category').value='';
@@ -4482,6 +4513,16 @@ async function editApply(id){
   if(document.getElementById('ap-role-desc'))document.getElementById('ap-role-desc').value=r.role_desc||'';
   if(document.getElementById('ap-memo'))document.getElementById('ap-memo').value=r.memo||'';
   document.getElementById('ap-url').value=r.url||'';
+  {
+    const presets=['필메','캐스트링크','리플레이','피플앤아트','인스타','쓰레드','이메일'];
+    const srcSel=document.getElementById('ap-source');
+    const srcCus=document.getElementById('ap-source-custom');
+    if(srcSel && srcCus){
+      if(!r.source){ srcSel.value=''; srcCus.value=''; srcCus.style.display='none'; }
+      else if(presets.includes(r.source)){ srcSel.value=r.source; srcCus.value=''; srcCus.style.display='none'; }
+      else { srcSel.value='기타'; srcCus.value=r.source; srcCus.style.display='block'; }
+    }
+  }
   document.getElementById('ap-mgr').value=r.manager||'';
   document.getElementById('ap-email').value=r.email||'';
   document.getElementById('ap-result').value=r.result||'지원';
@@ -4493,6 +4534,8 @@ async function editApply(id){
 // "+ 지원 추가" 클릭 시 새 모드로 초기화 (지원일자는 오늘 KR 기본)
 function openApplyNew(){
   ['ap-title','ap-dir','ap-co','ap-pay','ap-syn','ap-role','ap-role-desc','ap-memo','ap-url','ap-mgr','ap-email','ap-edit-id','ap-sdate','ap-filmmakers-url'].forEach(f=>{const el=document.getElementById(f);if(el)el.value='';});
+  if(document.getElementById('ap-source'))document.getElementById('ap-source').value='';
+  if(document.getElementById('ap-source-custom')){document.getElementById('ap-source-custom').value='';document.getElementById('ap-source-custom').style.display='none';};
   // 지원일자 = 오늘 (한국 시간)
   const ad=document.getElementById('ap-adate'); if(ad)ad.value=todayKR();
   if(document.getElementById('shoot-category'))document.getElementById('shoot-category').value='';
@@ -4778,7 +4821,7 @@ async function renderApplyList(){
   });
 
   if(!rows.length){
-    box.innerHTML='<tr><td colspan="10" class="sc-empty">조건에 맞는 지원기록이 없습니다 📋</td></tr>';
+    box.innerHTML='<tr><td colspan="11" class="sc-empty">조건에 맞는 지원기록이 없습니다 📋</td></tr>';
     return;
   }
 
@@ -4814,6 +4857,7 @@ async function renderApplyList(){
       <td style="font-weight:600;">${payDisplay(r.pay)||'-'}</td>
       <td style="white-space:nowrap;" title="${(r.role||'').replace(/"/g,'&quot;')}">${(r.role||'').length>10 ? r.role.slice(0,10)+'…' : (r.role||'-')}</td>
       <td>${urlCell(r.url)}</td>
+      <td style="font-size:12px;color:var(--text2);white-space:nowrap;">${r.source||'-'}</td>
       <td>${resultStyle(r.result)}</td>
     </tr>
   `).join('');
@@ -4852,6 +4896,7 @@ async function openApplyDetail(id){
         <div style="margin-top:10px;">🎯 <b>촬영일</b><br><span style="color:var(--text2);">${r.shoot_date||'-'}</span></div>
         <div style="margin-top:10px;">💰 <b>페이</b><br><span style="color:var(--text2);font-weight:600;">${payDisplay(r.pay)||'-'}</span></div>
         ${urlLine}
+        ${r.source?`<div style="margin-top:10px;">📌 <b>공고페이지</b><br><span style="color:var(--text2);font-weight:600;">${r.source}</span></div>`:''}
         <div style="margin-top:10px;">📌 <b>결과</b><br>
           <span style="display:inline-block;padding:5px 14px;border-radius:999px;font-size:13px;font-weight:800;background:${rs.bg};color:${rs.fg};border:1.5px solid ${rs.bd};">${r.result||'-'}</span>
         </div>
