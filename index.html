@@ -3040,6 +3040,7 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
     placeholder="직접 입력"
     style="display:none;margin-top:8px;">
   <label class="form-label">감독</label><input id="sc-dir" placeholder="감독 이름">
+  <label class="form-label">제작사</label><input id="sc-company" placeholder="제작사">
   <label class="form-label">촬영회차 (회차) *</label><input id="sc-ep" placeholder="예) 3화, 39화">
   <label class="form-label">콜타임</label><input id="sc-time" placeholder="예) 14:00~18:00, 약 2시간">
   <label class="form-label">출연 역할</label><input id="sc-role" placeholder="예) 아이돌 연습생, 간호사">
@@ -4478,6 +4479,16 @@ document.addEventListener('change', function(e){
 <label class="form-label">제작사</label>
 <input id="lu-company" placeholder="제작사">
 
+<label class="form-label">방송국 (송출)</label>
+<select id="lu-broadcast" onchange="toggleLuBroadcast()">
+  <option value="">선택해주세요</option>
+  <option>KBS</option><option>MBC</option><option>SBS</option>
+  <option>TVN</option><option>ENA</option><option>채널A</option>
+  <option>JTBC</option><option>Netflix</option><option>Tving</option>
+  <option>Wavve</option><option value="custom">기타 (직접작성)</option>
+</select>
+<input id="lu-broadcast-custom" placeholder="직접 입력" style="display:none;margin-top:8px;">
+
 <label class="form-label">촬영분류</label>
 <select id="lu-category">
 <option value="">선택해주세요</option>
@@ -4546,6 +4557,13 @@ function toggleApplyCategory(){
   if(s&&c)c.style.display=s.value==='custom'?'block':'none';
 }
 
+function toggleLuBroadcast(){
+  const sel=document.getElementById('lu-broadcast');
+  const custom=document.getElementById('lu-broadcast-custom');
+  if(!sel||!custom)return;
+  custom.style.display=sel.value==='custom'?'block':'none';
+  if(sel.value!=='custom')custom.value='';
+}
 function toggleBroadcastCustom(){
   const s=document.getElementById('sc-broadcast');
   const c=document.getElementById('sc-broadcast-custom');
@@ -5131,7 +5149,9 @@ function fApply(v,el){
 
 // ── 리스트업연락 ─────────────────────────────────
 function openListupNew(){
-  ['lu-title','lu-director','lu-company','lu-role','lu-manager','lu-pay','lu-date','lu-episode','lu-note','lu-edit-id'].forEach(f=>{const el=document.getElementById(f);if(el)el.value='';});
+  ['lu-title','lu-director','lu-company','lu-role','lu-manager','lu-pay','lu-date','lu-episode','lu-note','lu-edit-id','lu-broadcast-custom'].forEach(f=>{const el=document.getElementById(f);if(el)el.value='';});
+  const luBrSelReset=document.getElementById('lu-broadcast');if(luBrSelReset)luBrSelReset.value='';
+  const luBrCustReset=document.getElementById('lu-broadcast-custom');if(luBrCustReset){luBrCustReset.value='';luBrCustReset.style.display='none';}
   const cat=document.getElementById('lu-category'); if(cat)cat.value='';
   const st=document.getElementById('lu-status'); if(st)st.value='대기';
   // 연락일 = 오늘 (KR)
@@ -5187,7 +5207,8 @@ async function saveListup(){
     shoot_date:document.getElementById('lu-date')?.value||null,
     episode:(document.getElementById('lu-episode')?.value||'').trim(),
     status:document.getElementById('lu-status')?.value||'대기',
-    note:(document.getElementById('lu-note')?.value||'').trim()
+    note:(document.getElementById('lu-note')?.value||'').trim(),
+    broadcast:(()=>{const s=document.getElementById('lu-broadcast');const c=document.getElementById('lu-broadcast-custom');return s?.value==='custom'?(c?.value||''):(s?.value||'');})()
   };
 
   let ok;
@@ -5228,6 +5249,12 @@ async function editListup(id){
   document.getElementById('lu-episode').value=r.episode||'';
   document.getElementById('lu-status').value=r.status||'대기';
   document.getElementById('lu-note').value=r.note||'';
+  const luBrSel=document.getElementById('lu-broadcast');
+  const luBrCustom=document.getElementById('lu-broadcast-custom');
+  const luBrs=['KBS','MBC','SBS','TVN','ENA','채널A','JTBC','Netflix','Tving','Wavve'];
+  if(r.broadcast&&luBrs.includes(r.broadcast)){luBrSel.value=r.broadcast;luBrCustom.style.display='none';luBrCustom.value='';}
+  else if(r.broadcast){luBrSel.value='custom';luBrCustom.style.display='block';luBrCustom.value=r.broadcast;}
+  else{luBrSel.value='';luBrCustom.style.display='none';luBrCustom.value='';}
   const t=document.getElementById('m-listup-title'); if(t)t.textContent='✏️ 리스트업연락 수정';
   closeModal('m-listup-detail');
   openModal('m-listup');
@@ -5254,6 +5281,7 @@ async function openListupDetail(id){
         <div style="margin-top:10px;">📋 <b>작품명</b><br><span style="color:var(--text2);font-weight:700;">${r.title||'-'}</span></div>
         <div style="margin-top:10px;">🎬 <b>감독</b><br><span style="color:var(--text2);">${r.director||'-'}</span></div>
         <div style="margin-top:10px;">🏢 <b>제작사</b><br><span style="color:var(--text2);">${r.company||'-'}</span></div>
+        <div style="margin-top:10px;">📺 <b>방송국</b><br><span style="color:var(--text2);">${r.broadcast||'-'}</span></div>
         <div style="margin-top:10px;">🎞️ <b>촬영분류</b><br><span style="color:var(--text2);">${r.category||'-'}</span></div>
         <div style="margin-top:10px;">🎭 <b>역할</b><br><span style="color:var(--text2);">${r.role||'-'}</span></div>
         <div style="margin-top:10px;">👤 <b>캐스팅담당자</b><br><span style="color:var(--text2);">${r.manager||'-'}</span></div>
@@ -5688,6 +5716,14 @@ async function fillFromScheduleSource(){
   // 작품명·감독·역할·페이
   document.getElementById('sc-title').value = r.title || '';
   document.getElementById('sc-dir').value = r.director || '';
+  document.getElementById('sc-company').value = r.company || '';
+  // 방송국 채우기
+  const scBrSel=document.getElementById('sc-broadcast');
+  const scBrCustom=document.getElementById('sc-broadcast-custom');
+  const scBrs=['KBS','MBC','SBS','TVN','ENA','채널A','JTBC','Netflix','Tving','Wavve'];
+  const scBrVal=r.broadcast||r.platform||'';
+  if(scBrVal&&scBrs.includes(scBrVal)){scBrSel.value=scBrVal;scBrCustom.style.display='none';scBrCustom.value='';}
+  else if(scBrVal){scBrSel.value='custom';scBrCustom.style.display='block';scBrCustom.value=scBrVal;}
   document.getElementById('sc-role').value = r.role || '';
   document.getElementById('sc-pay').value = payDisplay(r.pay);
 
@@ -5723,6 +5759,7 @@ async function saveSchedule(){
     title,
     broadcast,
     director:(document.getElementById('sc-dir')?.value||'').trim(),
+    company:(document.getElementById('sc-company')?.value||'').trim(),
     episode:(document.getElementById('sc-ep')?.value||'').trim(),
     calltime:(document.getElementById('sc-time')?.value||'').trim(),
     role:(document.getElementById('sc-role')?.value||'').trim(),
@@ -5782,6 +5819,7 @@ async function editSchedule(id){
   document.getElementById('sc-sdate').value=r.shoot_date||'';
   document.getElementById('sc-title').value=r.title||'';
   document.getElementById('sc-dir').value=r.director||'';
+  document.getElementById('sc-company').value=r.company||'';
   document.getElementById('sc-ep').value=r.episode||'';
   document.getElementById('sc-time').value=r.calltime||'';
   document.getElementById('sc-role').value=r.role||'';
@@ -5818,6 +5856,7 @@ async function openScheduleDetail(id){
         <div style="margin-top:10px;">📋 <b>작품명</b><br><span style="color:var(--text2);font-weight:700;">${r.title||'-'}</span></div>
         <div style="margin-top:10px;">📺 <b>방송국</b><br><span style="color:var(--text2);">${r.broadcast||'-'}</span></div>
         <div style="margin-top:10px;">🎬 <b>감독</b><br><span style="color:var(--text2);">${r.director||'-'}</span></div>
+        <div style="margin-top:10px;">🏢 <b>제작사</b><br><span style="color:var(--text2);">${r.company||'-'}</span></div>
         <div style="margin-top:10px;">🎯 <b>촬영회차</b><br><span style="color:var(--text2);">${r.episode||'-'}</span></div>
         <div style="margin-top:10px;">⏰ <b>콜타임</b><br><span style="color:var(--text2);">${r.calltime||'-'}</span></div>
         <div style="margin-top:10px;">🎭 <b>출연 역할</b><br><span style="color:var(--text2);">${r.role||'-'}</span></div>
@@ -7926,7 +7965,19 @@ function blogBuildPrompt(){
     "5. 맛·냄새·식감 묘사는 내가 준 재료에 있을 때만.\n"+
     "6. 장소 정보(위치·영업시간·주차 등) 내가 안 준 것은 절대 넣지 마.\n"+
     "7. 분량 맞추려고 없는 내용 늘리는 것 금지. 차라리 짧게.\n"+
-    "[분량] "+lengthSpec+"\n\n"+BLOG_LILI_VOICE;
+    "[분량] "+lengthSpec+`\n\n`+BLOG_LILI_VOICE+`
+
+[제목 규칙 — 반드시]
+형식: [지역/브랜드 태그] 핵심키워드 장소/이름 | 부제목 또는 감성문구
+예시1: [일본여행] 후쿠오카 근교 노을명소 미야지다케 신사 + 미야지하마 해변 | n번째 여행자 강추코스
+예시2: [서울맛집] 을지로 숨은 노포 김치찌개 | 웨이팅 30분 줄서는 이유 있는 집
+예시3: [성수체험] 연남동 도예공방 이색 데이트 | 커플 강추 감성 소품 만들기
+규칙:
+- 맨 앞에 반드시 [지역명여행] 또는 [지역명맛집] 등 대괄호 태그
+- 태그 뒤에 핵심 장소명·키워드 (SEO 검색어)
+- | 뒤에 클릭 유도 감성 문구 또는 추천 이유
+- 전체 40~60자 이내
+- 숫자(n번째, TOP5 등) 활용하면 클릭률 UP`;
 
   if(d.saleMode){
     const brand=document.getElementById("b-saleBrand")?.value.trim()||"";
@@ -7979,7 +8030,7 @@ function blogBuildPrompt(){
     structure=`[글 종류] ${d.label}\n${greet}\n${BLOG_SEO_INTRO}\n[구성] 상위노출형 도입 3줄 → 번호+소제목(저장형 포맷) → 핵심 요약 → 댓글 유도\n[SEO] 제목·소제목에 키워드 자연스럽게.`;
   }
 
-  return `너는 한국어 블로그를 쓰는 박리리의 전담 마케터야. 2030 여성 타깃, 네이버 블로그.\n\n${common}\n\n${structure}\n\n[입력 내용 — 이것만 사용]\n${product}${linkBlock}${photoBlock}\n\n[출력 형식] 다른 말 없이:\n[제목]\n(SEO 키워드 포함, 클릭하고 싶은 제목)\n[본문]\n(본문)\n[키워드]\n(네이버 태그 6~8개, 쉼표 구분)`;
+  return `너는 한국어 블로그를 쓰는 박리리의 전담 마케터야. 2030 여성 타깃, 네이버 블로그.\n\n${common}\n\n${structure}\n\n[입력 내용 — 이것만 사용]\n${product}${linkBlock}${photoBlock}\n\n[출력 형식] 다른 말 없이:\n[제목]\n(아래 제목 규칙 반드시 따를 것)\n[본문]\n(본문)\n[키워드]\n(네이버 태그 6~8개, 쉼표 구분)`;
 }
 
 async function blogGenerate(){
@@ -8024,26 +8075,42 @@ function blogRenderResult(r){
   if(!resBox)return;
   let html=`<div class="blog-result-box">
     <div class="blog-result-badge ${cat.badge}">${cat.label} · ${d.label}</div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-      <div style="font-size:11px;color:var(--text3);font-weight:600;">완성된 글 · ${count}자</div>
-      <button class="blog-copy-btn" style="flex:none;padding:6px 12px;" onclick="blogCopyAll()">글 복사</button>
-    </div>
+    <div style="font-size:11px;color:var(--text3);font-weight:600;margin-bottom:10px;">완성된 글 · ${count}자</div>
     <div class="blog-result-title">${blogEscHtml(r.title)}</div>
     <div class="blog-result-body">${blogEscHtml(r.body)}</div>`;
   if(r.keywords.length){
-    html+=`<div style="font-size:10px;font-weight:700;color:var(--text3);margin-bottom:7px;letter-spacing:.04em;">태그 / 키워드 (${r.keywords.length}개)</div>
-    <div class="blog-result-kw">${r.keywords.map(k=>`<span class="blog-kw-chip">#${blogEscHtml(k)}</span>`).join("")}</div>
-    <div class="blog-copy-row">
-      <button class="blog-copy-btn ghost" onclick="blogCopyKw()">태그 복사</button>
-      <button class="blog-copy-btn" onclick="blogCopyAll()">전체 복사</button>
-    </div>`;
+    html+=`<div style="font-size:10px;font-weight:700;color:var(--text3);margin-top:14px;margin-bottom:7px;letter-spacing:.04em;">태그 / 키워드 (${r.keywords.length}개)</div>
+    <div class="blog-result-kw">${r.keywords.map(k=>`<span class="blog-kw-chip">#${blogEscHtml(k)}</span>`).join("")}</div>`;
   }
-  html+='</div>';
+  html+=`<div class="blog-copy-row" style="margin-top:14px;">
+    <button class="blog-copy-btn ghost" id="blogBtnTitle">제목 복사</button>
+    <button class="blog-copy-btn ghost" id="blogBtnKw">태그 복사</button>
+    <button class="blog-copy-btn" id="blogBtnAll">전체 복사</button>
+  </div></div>`;
   resBox.innerHTML=html;
   resBox.scrollIntoView({behavior:'smooth',block:'start'});
+  // 버튼 이벤트 직접 바인딩 (innerHTML 안 onclick 대신)
+  document.getElementById('blogBtnTitle')?.addEventListener('click',function(){
+    if(!blogLastResult)return;
+    navigator.clipboard.writeText(blogLastResult.title).then(()=>{
+      const orig=this.textContent;this.textContent='복사됨 ✓';setTimeout(()=>this.textContent=orig,1500);
+    });
+  });
+  document.getElementById('blogBtnKw')?.addEventListener('click',function(){
+    if(!blogLastResult)return;
+    navigator.clipboard.writeText(blogLastResult.keywords.map(k=>'#'+k).join(' ')).then(()=>{
+      const orig=this.textContent;this.textContent='복사됨 ✓';setTimeout(()=>this.textContent=orig,1500);
+    });
+  });
+  document.getElementById('blogBtnAll')?.addEventListener('click',function(){
+    if(!blogLastResult)return;
+    navigator.clipboard.writeText(blogLastResult.title+'\n\n'+blogLastResult.body).then(()=>{
+      const orig=this.textContent;this.textContent='복사됨 ✓';setTimeout(()=>this.textContent=orig,1500);
+    });
+  });
 }
-function blogCopyAll(){if(blogLastResult)navigator.clipboard.writeText(blogLastResult.title+"\n\n"+blogLastResult.body).then(()=>{const btn=event.target;const orig=btn.textContent;btn.textContent="복사됨 ✓";setTimeout(()=>btn.textContent=orig,1500);});}
-function blogCopyKw(){if(blogLastResult)navigator.clipboard.writeText(blogLastResult.keywords.map(k=>"#"+k).join(" ")).then(()=>{const btn=event.target;const orig=btn.textContent;btn.textContent="복사됨 ✓";setTimeout(()=>btn.textContent=orig,1500);});}
+function blogCopyAll(){if(blogLastResult)navigator.clipboard.writeText(blogLastResult.title+"\n\n"+blogLastResult.body);}
+function blogCopyKw(){if(blogLastResult)navigator.clipboard.writeText(blogLastResult.keywords.map(k=>"#"+k).join(" "));}
 function blogShowErr(m){const el=document.getElementById("blogErr");if(el)el.textContent=m;}
 function blogResetEmpty(){const el=document.getElementById("blogResult");if(el)el.innerHTML='<div class="blog-empty"><div class="be-ico">🌸</div><div>다시 시도해 주세요</div></div>';}
 function blogEscHtml(s){return(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
