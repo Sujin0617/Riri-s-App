@@ -268,6 +268,28 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   display:flex;flex-direction:column;gap:6px;
   max-height:560px;overflow-y:auto;
 }
+/* 오늘의 일기 */
+.today-diary-card{
+  background:white;border:1px solid var(--border);border-radius:16px;padding:18px;margin-top:14px;
+}
+.today-diary-hd{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border);
+}
+.today-diary-title{font-size:16px;font-weight:800;color:var(--text);}
+.today-diary-date{font-size:11px;color:var(--text3);font-weight:600;}
+.today-diary-textarea{
+  width:100%;min-height:120px;max-height:400px;resize:vertical;
+  font-family:'Noto Sans KR',sans-serif;font-size:14px;line-height:1.8;
+  border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;
+  outline:none;color:var(--text);background:var(--bg);transition:border .15s;
+}
+.today-diary-textarea:focus{border-color:var(--p2);background:#fff;}
+.today-diary-footer{display:flex;justify-content:space-between;align-items:center;margin-top:10px;}
+.today-diary-count{font-size:11px;color:var(--text3);}
+.today-diary-save{padding:8px 18px;background:var(--p2);color:#fff;border:none;border-radius:10px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:.15s;}
+.today-diary-save:hover{background:var(--p1);}
+.today-diary-saved{font-size:11px;color:var(--green);font-weight:600;}
 .today-todo-empty{
   text-align:center;padding:40px 14px;color:var(--text3);font-size:13px;
 }
@@ -2410,9 +2432,18 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
       <div class="pt-panel active" id="pp-today">
         <!-- 상단 인사 -->
         <div class="sc-wrap" style="padding:18px 20px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
-          <div>
-            <div style="font-size:12px;color:var(--text3);font-weight:600;letter-spacing:0.04em;">TODAY · 오늘 일정</div>
-            <div id="today-date-label" style="font-size:20px;font-weight:800;color:var(--text);margin-top:4px;">—</div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div>
+              <div style="font-size:12px;color:var(--text3);font-weight:600;letter-spacing:0.04em;">TODAY · 오늘 일정</div>
+              <div id="today-date-label" style="font-size:20px;font-weight:800;color:var(--text);margin-top:4px;">—</div>
+            </div>
+            <div style="position:relative;">
+              <button onclick="document.getElementById('today-date-picker').showPicker?document.getElementById('today-date-picker').showPicker():document.getElementById('today-date-picker').click()"
+                style="width:36px;height:36px;border-radius:10px;border:1.5px solid var(--border);background:var(--white);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;">🗓️</button>
+              <input type="date" id="today-date-picker"
+                style="position:absolute;opacity:0;width:0;height:0;top:0;left:0;pointer-events:none;"
+                onchange="todayPickDate(this.value)">
+            </div>
           </div>
           <button class="btn btn-p btn-sm" onclick="openTodoNew()" style="flex-shrink:0;">+ 할 일 추가</button>
         </div>
@@ -2474,6 +2505,24 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
               <button class="btn btn-p btn-sm" onclick="openTodoNew()">+ 추가</button>
             </div>
             <div class="today-todo-list" id="today-todo-list"></div>
+          </div>
+        </div>
+
+        <!-- 오늘의 일기 -->
+        <div class="today-diary-card">
+          <div class="today-diary-hd">
+            <div class="today-diary-title">📓 오늘의 일기</div>
+            <div class="today-diary-date" id="diary-date-label"></div>
+          </div>
+          <textarea class="today-diary-textarea" id="diary-textarea"
+            placeholder="오늘 하루 어땠어요? 편하게 써도 돼요 🌿"
+            oninput="diaryCountUpdate()"></textarea>
+          <div class="today-diary-footer">
+            <span class="today-diary-count"><span id="diary-char-count">0</span>자</span>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="today-diary-saved" id="diary-saved-msg" style="display:none;">✓ 저장됨</span>
+              <button class="today-diary-save" onclick="saveDiary()">저장</button>
+            </div>
           </div>
         </div>
       </div>
@@ -8111,6 +8160,57 @@ function blogRenderResult(r){
 }
 function blogCopyAll(){if(blogLastResult)navigator.clipboard.writeText(blogLastResult.title+"\n\n"+blogLastResult.body);}
 function blogCopyKw(){if(blogLastResult)navigator.clipboard.writeText(blogLastResult.keywords.map(k=>"#"+k).join(" "));}
+function todayPickDate(dateStr){
+  if(!dateStr)return;
+  renderTodayDashboard(dateStr);
+}
+
+// ── 오늘의 일기 ──
+function diaryCountUpdate(){
+  const ta=document.getElementById('diary-textarea');
+  const cnt=document.getElementById('diary-char-count');
+  if(cnt)cnt.textContent=(ta?.value||'').length;
+}
+async function loadDiary(date){
+  const ta=document.getElementById('diary-textarea');
+  const label=document.getElementById('diary-date-label');
+  const msg=document.getElementById('diary-saved-msg');
+  if(!ta)return;
+  if(label)label.textContent=date;
+  if(msg)msg.style.display='none';
+  ta.value='';
+  ta.dataset.date=date;
+  diaryCountUpdate();
+  try{
+    const rows=await sb.get('diaries','&date=eq.'+date);
+    if(rows.length){
+      ta.value=rows[0].content||'';
+      ta.dataset.id=rows[0].id||'';
+      if(msg){msg.style.display='inline';setTimeout(()=>msg.style.display='none',1500);}
+    } else {
+      ta.dataset.id='';
+    }
+  }catch(e){}
+  diaryCountUpdate();
+}
+async function saveDiary(){
+  const ta=document.getElementById('diary-textarea');
+  if(!ta)return;
+  const date=ta.dataset.date||todayKR();
+  const content=ta.value;
+  const existId=ta.dataset.id||'';
+  const msg=document.getElementById('diary-saved-msg');
+  try{
+    if(existId){
+      await sb.update('diaries',existId,{content,date});
+    } else {
+      const newId=uid();
+      await sb.insert('diaries',{id:newId,date,content,created_at:new Date().toISOString()});
+      ta.dataset.id=newId;
+    }
+    if(msg){msg.style.display='inline';setTimeout(()=>msg.style.display='none',2000);}
+  }catch(e){alert('저장 실패: '+e.message);}
+}
 function blogShowErr(m){const el=document.getElementById("blogErr");if(el)el.textContent=m;}
 function blogResetEmpty(){const el=document.getElementById("blogResult");if(el)el.innerHTML='<div class="blog-empty"><div class="be-ico">🌸</div><div>다시 시도해 주세요</div></div>';}
 function blogEscHtml(s){return(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
@@ -8302,15 +8402,21 @@ async function copyMonologue(id){
 // 🌅 오늘 일정 대시보드 (4단계 시간대)
 // ════════════════════════════════════════
 
-async function renderTodayDashboard(){
+async function renderTodayDashboard(targetDate){
   const today = todayKR();
+  const dateToShow = targetDate || today;
   const days=['일','월','화','수','목','금','토'];
-  const d = new Date(today+'T00:00:00+09:00');
+  const d = new Date(dateToShow+'T00:00:00+09:00');
+  const isToday = dateToShow === today;
   const dateLabel = document.getElementById('today-date-label');
-  if(dateLabel) dateLabel.textContent = `${today} (${days[d.getDay()]})`;
+  if(dateLabel) dateLabel.textContent = `${dateToShow} (${days[d.getDay()]})${isToday?'':' 📅'}`;
+  // 달력 picker 값도 맞춰줌
+  const picker = document.getElementById('today-date-picker');
+  if(picker) picker.value = dateToShow;
+  loadDiary(dateToShow);
 
   let todos = [];
-  try{ todos = await sb.get('todos','&date=eq.'+today); }catch(e){}
+  try{ todos = await sb.get('todos','&date=eq.'+dateToShow); }catch(e){}
 
   const slots = ['오전','오후1','오후2','저녁'];
   const grouped = {'오전':[], '오후1':[], '오후2':[], '저녁':[]};
@@ -8769,11 +8875,16 @@ async function todoActionMemo(){
 }
 
 async function todoActionToday(){
-  await sb.update('todos', _todoActionId, {date: todayKR()});
-  _todoSelectedDate = todayKR();
+  const today = todayKR();
+  await sb.update('todos', _todoActionId, {date: today});
+  _todoSelectedDate = today;
   closeModal('m-todo-action');
   renderTodoWeekCal();
   renderTodoList();
+  // 오늘 대시보드 열려있으면 갱신
+  if(document.getElementById('pp-today')?.classList.contains('active')){
+    renderTodayDashboard(today);
+  }
 }
 
 async function todoActionTomorrow(){
@@ -8784,19 +8895,42 @@ async function todoActionTomorrow(){
   closeModal('m-todo-action');
   renderTodoWeekCal();
   renderTodoList();
+  // 오늘 대시보드 열려있으면 현재 보던 날짜 기준 갱신
+  if(document.getElementById('pp-today')?.classList.contains('active')){
+    const curDate = document.getElementById('today-date-picker')?.value || todayKR();
+    renderTodayDashboard(curDate);
+  }
 }
 
 async function todoActionChangeDate(){
   const rows=await sb.get('todos','&id=eq.'+_todoActionId);
   if(!rows.length)return;
-  const newDate = prompt('변경할 날짜 (YYYY-MM-DD):', rows[0].date || todayKR());
-  if(!newDate) return;
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(newDate)) return alert('YYYY-MM-DD 형식으로 입력해주세요');
-  await sb.update('todos', _todoActionId, {date: newDate});
-  _todoSelectedDate = newDate;
-  closeModal('m-todo-action');
+  const curDate = rows[0].date || todayKR();
+  // 달력 picker 모달 열기
+  const picker = document.getElementById('todo-date-change-picker');
+  if(picker){
+    picker.value = curDate;
+    picker.dataset.todoId = _todoActionId;
+    closeModal('m-todo-action');
+    setTimeout(()=>{
+      if(picker.showPicker) picker.showPicker();
+      else picker.click();
+    }, 100);
+  }
+}
+async function applyTodoDateChange(val){
+  const picker = document.getElementById('todo-date-change-picker');
+  if(!val||!picker)return;
+  const id = picker.dataset.todoId;
+  if(!id)return;
+  await sb.update('todos', id, {date: val});
+  _todoSelectedDate = val;
   renderTodoWeekCal();
   renderTodoList();
+  if(document.getElementById('pp-today')?.classList.contains('active')){
+    const curDate = document.getElementById('today-date-picker')?.value || todayKR();
+    renderTodayDashboard(curDate);
+  }
 }
 
 async function todoActionEdit(){
@@ -8910,3 +9044,7 @@ const urls = await uploadMultipleFiles(
 */
 </script>
 
+<!-- 할일 날짜변경 전용 hidden picker -->
+<input type="date" id="todo-date-change-picker"
+  style="position:fixed;opacity:0;width:0;height:0;pointer-events:none;top:50%;left:50%;"
+  onchange="applyTodoDateChange(this.value)">
