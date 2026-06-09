@@ -2080,14 +2080,14 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
       <table class="sc-tbl">
         <thead>
           <tr>
-            <th>성명</th>
+            <th style="cursor:pointer;user-select:none;" onclick="toggleCastingSort('name')" id="cast-th-name">성명 <span id="cast-sort-name">↕</span></th>
             <th>소속</th>
             <th>직책</th>
             <th>분야</th>
             <th>연락처</th>
             <th>작업유무</th>
             <th>작업작품</th>
-            <th>최신연락일</th>
+            <th style="cursor:pointer;user-select:none;" onclick="toggleCastingSort('date')" id="cast-th-date">최신연락일 <span id="cast-sort-date">↕</span></th>
           </tr>
         </thead>
 
@@ -5801,6 +5801,33 @@ async function openAppearanceDetail(id){
   openModal('m-appearance-detail');
 }
 
+let _castingSort = { key: null, dir: 'asc' }; // key: 'name' | 'date' | null
+
+function toggleCastingSort(key){
+  if(_castingSort.key === key){
+    _castingSort.dir = _castingSort.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    _castingSort.key = key;
+    _castingSort.dir = 'asc';
+  }
+  renderCastingList();
+}
+
+function updateCastingSortUI(){
+  const icons = { name: document.getElementById('cast-sort-name'), date: document.getElementById('cast-sort-date') };
+  const ths   = { name: document.getElementById('cast-th-name'),   date: document.getElementById('cast-th-date') };
+  ['name','date'].forEach(k => {
+    if(!icons[k]) return;
+    if(_castingSort.key === k){
+      icons[k].textContent = _castingSort.dir === 'asc' ? '▲' : '▼';
+      if(ths[k]) ths[k].style.color = 'var(--p1)';
+    } else {
+      icons[k].textContent = '↕';
+      if(ths[k]) ths[k].style.color = '';
+    }
+  });
+}
+
 async function renderCastingList(){
   const body=document.getElementById('casting-list');
   if(!body)return;
@@ -5810,6 +5837,22 @@ async function renderCastingList(){
   // 검색
   const q=(document.getElementById('casting-search-input')?.value||'').trim().toLowerCase();
   if(q) rows=rows.filter(r=>(r.name||'').toLowerCase().includes(q));
+
+  // 정렬
+  if(_castingSort.key === 'name'){
+    rows.sort((a,b)=>{
+      const cmp=(a.name||'').localeCompare(b.name||'','ko');
+      return _castingSort.dir==='asc' ? cmp : -cmp;
+    });
+  } else if(_castingSort.key === 'date'){
+    rows.sort((a,b)=>{
+      const da=a.latest_contact||'', db=b.latest_contact||'';
+      const cmp=da.localeCompare(db);
+      return _castingSort.dir==='asc' ? cmp : -cmp;
+    });
+  }
+
+  updateCastingSortUI();
 
   if(!rows.length){
     body.innerHTML='<tr><td colspan="8" class="sc-empty">캐스팅 연락처가 없습니다 📇</td></tr>';
