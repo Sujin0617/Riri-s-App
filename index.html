@@ -4667,10 +4667,12 @@ function formatPay(el){
 }
 // 페이 원시 숫자만 저장용으로 추출
 function payNumber(s){
-  return (s||'').replace(/[^\d]/g,'');
+  if(s===null||s===undefined)return '';
+  return String(s).replace(/[^\d]/g,'');
 }
 // 페이 표시용 포맷 (저장값을 xxx,xxx원으로)
 function payDisplay(s){
+  if(s===null||s===undefined)return '';
   const n=payNumber(s);
   return n ? Number(n).toLocaleString('ko-KR')+'원' : '';
 }
