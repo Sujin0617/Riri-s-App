@@ -1670,6 +1670,17 @@ display:block;
 .dcd-ev.ev-shoot{background:var(--teal-l);color:#006a50;}
 .dcd-ev.ev-listup{background:var(--blue-l);color:#1d4ed8;}
 .dcd-ev.ev-practice{background:var(--pink-l);color:#9d174d;}
+/* 멀티 날짜 피커 */
+.multi-date-wrap{border:1.5px solid var(--border);border-radius:12px;background:#fff;padding:10px 12px;}
+.multi-date-tags{display:flex;flex-wrap:wrap;gap:6px;min-height:28px;margin-bottom:8px;}
+.multi-date-tag{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;background:var(--p-light);color:var(--p1);border-radius:999px;font-size:12px;font-weight:700;}
+.multi-date-tag button{background:none;border:none;cursor:pointer;color:var(--p1);font-size:13px;line-height:1;padding:0 0 0 2px;}
+.multi-date-tag button:hover{color:var(--coral);}
+.multi-date-empty{font-size:12px;color:var(--text3);line-height:28px;}
+.multi-date-add{display:flex;gap:8px;align-items:center;}
+.multi-date-add input[type=date]{flex:1;font-family:inherit;font-size:13px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;outline:none;}
+.multi-date-add input[type=date]:focus{border-color:var(--p2);}
+.multi-date-add button{padding:7px 14px;background:var(--p2);color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}
 .dash-cal-legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:11px;color:var(--text2);}
 .dash-cal-legend span{display:flex;align-items:center;gap:4px;}
 .dash-cal-legend .lg-dot{width:7px;height:7px;border-radius:50%;}
@@ -2953,7 +2964,15 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
   <label class="form-label">작품명 *</label><input id="ap-title" placeholder="작품명">
   <label class="form-label">감독</label><input id="ap-dir" placeholder="감독 이름">
   <label class="form-label">제작사</label><input id="ap-co" placeholder="제작사">
-  <label class="form-label">촬영 일자</label><input id="ap-sdate" type="date">
+  <label class="form-label">촬영 일자 <span style="font-weight:400;color:var(--text3);font-size:11px;">(여러 날짜 추가 가능)</span></label>
+  <div class="multi-date-wrap" id="ap-sdate-wrap">
+    <div class="multi-date-tags" id="ap-sdate-tags"><span class="multi-date-empty">날짜를 추가해주세요</span></div>
+    <div class="multi-date-add">
+      <input type="date" id="ap-sdate-input">
+      <button onclick="multiDateAdd('ap-sdate')">+ 추가</button>
+    </div>
+  </div>
+  <input type="hidden" id="ap-sdate">
   <label class="form-label">촬영 회차</label><input id="ap-ep" placeholder="예) 1~3회차">
   <label class="form-label">페이</label><input id="ap-pay" placeholder="예) 50000" inputmode="numeric" oninput="formatPay(this)">
   <label class="form-label">본문 내용</label><textarea id="ap-syn" placeholder="공고 본문 내용 (자동으로 채워짐)" style="min-height:120px;"></textarea>
@@ -4193,11 +4212,17 @@ async function renderDashboard(){
     if(!eventsByDate[k]) eventsByDate[k]=[];
     eventsByDate[k].push({type, title, meta, id});
   };
-  applyRows.forEach(r=>addEv(r.shoot_date, 'apply', r.title||'무제', '지원', r.id));
+  applyRows.forEach(r=>{
+    (r.shoot_date||'').split(',').filter(Boolean).forEach(d=>addEv(d.trim(),'apply',r.title||'무제','지원',r.id));
+  });
   auditionRows.forEach(r=>addEv(r.audition_date||r.date, 'aud', r.title||'무제', '오디션', r.id));
   shootRows.forEach(r=>addEv(r.shoot_date, 'shoot', r.title||'무제', '촬영', r.id));
   // 리스트업: 대기 중인 것만 표시 (픽스/탈락 제외)
-  listupRows.forEach(r=>{ if(r.status==='대기') addEv(r.shoot_date, 'listup', r.title||'무제', '리스트업', r.id); });
+  listupRows.forEach(r=>{
+    if(r.status==='대기'){
+      (r.shoot_date||'').split(',').filter(Boolean).forEach(d=>addEv(d.trim(),'listup',r.title||'무제','리스트업',r.id));
+    }
+  });
   eventRows.forEach(r=>addEv(r.date, 'practice', r.title||'무제', r.type||'', r.id));
 
   _dashEventsCache = eventsByDate;
@@ -4445,6 +4470,53 @@ async function renderTodoList(cat){
 
 
 // ── Supabase 설정 (고정값 사용 — 변경 불필요)
+// ── 멀티 날짜 피커 ──
+function multiDateAdd(prefix){
+  const input = document.getElementById(prefix+'-input');
+  if(!input||!input.value)return;
+  const dates = multiDateGet(prefix);
+  if(dates.includes(input.value)){input.value='';return;}
+  dates.push(input.value);
+  dates.sort();
+  multiDateSet(prefix, dates);
+  input.value='';
+}
+function multiDateRemove(prefix, date){
+  const dates = multiDateGet(prefix).filter(d=>d!==date);
+  multiDateSet(prefix, dates);
+}
+function multiDateGet(prefix){
+  const hidden = document.getElementById(prefix);
+  if(!hidden||!hidden.value)return [];
+  return hidden.value.split(',').filter(Boolean);
+}
+function multiDateSet(prefix, dates){
+  const hidden = document.getElementById(prefix);
+  const tagsEl = document.getElementById(prefix+'-tags');
+  if(hidden) hidden.value = dates.join(',');
+  if(tagsEl){
+    if(!dates.length){
+      tagsEl.innerHTML='<span class="multi-date-empty">날짜를 추가해주세요</span>';
+    } else {
+      tagsEl.innerHTML = dates.map(d=>{
+        const [y,m,day]=d.split('-');
+        const dow=['일','월','화','수','목','금','토'][new Date(d).getDay()];
+        return `<span class="multi-date-tag">${m}/${day}(${dow})<button onclick="multiDateRemove('${prefix}','${d}')">×</button></span>`;
+      }).join('');
+    }
+  }
+}
+function multiDateReset(prefix){
+  multiDateSet(prefix,[]);
+  const input=document.getElementById(prefix+'-input');
+  if(input)input.value='';
+}
+function multiDateLoad(prefix, value){
+  // value: "2026-06-10,2026-06-11" 형태 또는 단일 날짜
+  const dates = (value||'').split(',').filter(Boolean).sort();
+  multiDateSet(prefix, dates);
+}
+
 function loadSbConfig(){
   SB_URL = _SB_URL_FIXED;
   SB_KEY = _SB_KEY_FIXED;
@@ -4592,8 +4664,15 @@ document.addEventListener('change', function(e){
 <label class="form-label">페이</label>
 <input id="lu-pay" placeholder="예) 300000" inputmode="numeric" oninput="formatPay(this)">
 
-<label class="form-label">촬영일</label>
-<input id="lu-date" type="date">
+<label class="form-label">촬영일 <span style="font-weight:400;color:var(--text3);font-size:11px;">(여러 날짜 추가 가능)</span></label>
+<div class="multi-date-wrap" id="lu-date-wrap">
+  <div class="multi-date-tags" id="lu-date-tags"><span class="multi-date-empty">날짜를 추가해주세요</span></div>
+  <div class="multi-date-add">
+    <input type="date" id="lu-date-input">
+    <button onclick="multiDateAdd('lu-date')">+ 추가</button>
+  </div>
+</div>
+<input type="hidden" id="lu-date">
 
 <label class="form-label">촬영회차</label>
 <input id="lu-episode" placeholder="예) 3회차">
@@ -4808,7 +4887,7 @@ async function editApply(id){
   document.getElementById('ap-title').value=r.title||'';
   document.getElementById('ap-dir').value=r.director||'';
   document.getElementById('ap-co').value=r.company||'';
-  document.getElementById('ap-sdate').value=r.shoot_date||'';
+  multiDateLoad('ap-sdate', r.shoot_date||'');
   document.getElementById('ap-pay').value=payDisplay(r.pay);
   document.getElementById('ap-syn').value=r.synopsis||'';
   document.getElementById('ap-role').value=r.role||'';
@@ -4835,7 +4914,7 @@ async function editApply(id){
 
 // "+ 지원 추가" 클릭 시 새 모드로 초기화 (지원일자는 오늘 KR 기본)
 function openApplyNew(){
-  ['ap-title','ap-dir','ap-co','ap-pay','ap-syn','ap-role','ap-role-desc','ap-memo','ap-url','ap-mgr','ap-email','ap-edit-id','ap-sdate','ap-filmmakers-url'].forEach(f=>{const el=document.getElementById(f);if(el)el.value='';});
+  ['ap-title','ap-dir','ap-co','ap-pay','ap-syn','ap-role','ap-role-desc','ap-memo','ap-url','ap-mgr','ap-email','ap-edit-id','ap-sdate','ap-filmmakers-url'].forEach(f=>{const el=document.getElementById(f);if(el)el.value='';}); multiDateReset('ap-sdate');;
   if(document.getElementById('ap-source'))document.getElementById('ap-source').value='';
   if(document.getElementById('ap-source-custom')){document.getElementById('ap-source-custom').value='';document.getElementById('ap-source-custom').style.display='none';};
   // 지원일자 = 오늘 (한국 시간)
@@ -5225,7 +5304,7 @@ function fApply(v,el){
 
 // ── 리스트업연락 ─────────────────────────────────
 function openListupNew(){
-  ['lu-title','lu-director','lu-company','lu-role','lu-manager','lu-pay','lu-date','lu-episode','lu-note','lu-edit-id','lu-broadcast-custom'].forEach(f=>{const el=document.getElementById(f);if(el)el.value='';});
+  ['lu-title','lu-director','lu-company','lu-role','lu-manager','lu-pay','lu-date','lu-episode','lu-note','lu-edit-id','lu-broadcast-custom'].forEach(f=>{const el=document.getElementById(f);if(el)el.value='';}); multiDateReset('lu-date');;
   const luBrSelReset=document.getElementById('lu-broadcast');if(luBrSelReset)luBrSelReset.value='';
   const luBrCustReset=document.getElementById('lu-broadcast-custom');if(luBrCustReset){luBrCustReset.value='';luBrCustReset.style.display='none';}
   const cat=document.getElementById('lu-category'); if(cat)cat.value='';
@@ -5321,7 +5400,7 @@ async function editListup(id){
   loadManagerOptions(r.manager||'');
   document.getElementById('lu-pay').value=payDisplay(r.pay);
   document.getElementById('lu-cdate').value=r.contact_date||'';
-  document.getElementById('lu-date').value=r.shoot_date||'';
+  multiDateLoad('lu-date', r.shoot_date||'');
   document.getElementById('lu-episode').value=r.episode||'';
   document.getElementById('lu-status').value=r.status||'대기';
   document.getElementById('lu-note').value=r.note||'';
