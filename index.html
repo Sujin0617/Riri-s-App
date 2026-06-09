@@ -8015,7 +8015,16 @@ function blogCopyKw(){if(blogLastResult)navigator.clipboard.writeText(blogLastRe
 function blogShowErr(m){const el=document.getElementById("blogErr");if(el)el.textContent=m;}
 function blogResetEmpty(){const el=document.getElementById("blogResult");if(el)el.innerHTML='<div class="blog-empty"><div class="be-ico">🌸</div><div>다시 시도해 주세요</div></div>';}
 function blogEscHtml(s){return(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
-function renderPersonalTab(){}
+function renderPersonalTab(name){
+  if(!name) name = (document.querySelector('.pt-panel.active')?.id||'').replace('pp-','') || 'today';
+  if(name==='today') renderTodayDashboard();
+  else if(name==='idea') renderIdeaList();
+  else if(name==='todo') initTodoView();
+  else if(name==='yearly') ypInit();
+  else if(name==='monthly') mpInit();
+  else if(name==='bucket') bkInit();
+  else if(name==='money') mnyInit();
+}
 
 window.addEventListener('load',()=>{
   renderApplyList();
