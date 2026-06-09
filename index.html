@@ -7881,7 +7881,7 @@ async function blogAnalyzeAll(){
     try{
       const res=await fetch("https://vbnqscxgufgcktcprqeq.supabase.co/functions/v1/anthropic-proxy",{
         method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZibnFzY3hndWZnY2t0Y3BycWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4NTM4MDUsImV4cCI6MjA5NTQyOTgwNX0.SoWxfgB31fHZ-3PVl4s_j0oLUjjpJW6g7YWafkiGzFY"},
-        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:300,
+        body:JSON.stringify({model:"claude-sonnet-4-5",max_tokens:300,
           messages:[{role:"user",content:[
             {type:"image",source:{type:"base64",media_type:p.file.type||"image/jpeg",data:p.base64}},
             {type:"text",text:"이 사진을 한국어로 짧게 설명해줘. 보이는 것만 사실 그대로: 장소(외관/내부/음식/메뉴판 등), 텍스트(간판·가격)가 보이면 읽어줘. 3줄 이내. 추측 금지."}
@@ -7998,7 +7998,7 @@ async function blogGenerate(){
   try{
     const res=await fetch("https://vbnqscxgufgcktcprqeq.supabase.co/functions/v1/anthropic-proxy",{
       method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZibnFzY3hndWZnY2t0Y3BycWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4NTM4MDUsImV4cCI6MjA5NTQyOTgwNX0.SoWxfgB31fHZ-3PVl4s_j0oLUjjpJW6g7YWafkiGzFY"},
-      body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:4000,
+      body:JSON.stringify({model:"claude-sonnet-4-5",max_tokens:4000,
         messages:[{role:"user",content:blogBuildPrompt()}]})
     });
     const data=await res.json();
