@@ -3363,18 +3363,17 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
     <span>Supabase 연결됨 ✅</span>
   </div>
   <div class="settings-divider"></div>
-  <div class="settings-info">
-    🔒 데이터베이스가 앱에 고정 연결되어 있어요.<br>
-    📍 별도 설정 없이 바로 사용 가능해요.<br>
-    ✅ 연결 상태가 이상할 때만 아래 테스트를 눌러보세요.
-  </div>
-  <div style="margin-top:14px;padding:10px 12px;background:var(--bg);border-radius:10px;font-size:11px;color:var(--text3);word-break:break-all;">
-    <div style="font-weight:700;color:var(--text2);margin-bottom:4px;">Project URL</div>
-    <div>https://vbnqscxgufgcktcprqeq.supabase.co</div>
+  <label class="form-label" style="font-weight:700;">🤖 Claude API Key <span style="color:var(--coral)">*</span></label>
+  <input id="cfg-anthropic-key" type="password" placeholder="sk-ant-..." style="margin-bottom:6px;">
+  <div id="cfg-anthropic-status" style="font-size:11px;color:var(--text3);margin-bottom:4px;"></div>
+  <div class="settings-info" style="margin-bottom:0;">
+    🔑 블로그 글 생성에 필요해요.<br>
+    📍 console.anthropic.com → API Keys에서 발급<br>
+    🔒 이 기기 브라우저에만 저장돼요.
   </div>
   <div class="row" style="gap:10px;margin-top:18px;">
-    <button class="btn btn-outline" style="flex:1;" onclick="testSbConnection()">연결 테스트</button>
-    <button class="btn btn-p" style="flex:2;" onclick="closeModal('m-settings')">닫기</button>
+    <button class="btn btn-outline" style="flex:1;" onclick="testSbConnection()">DB 테스트</button>
+    <button class="btn btn-p" style="flex:2;" onclick="saveAnthropicKey()">저장</button>
   </div>
 </div></div>
 
@@ -3834,6 +3833,7 @@ const _SB_URL_FIXED = 'https://vbnqscxgufgcktcprqeq.supabase.co';
 const _SB_KEY_FIXED = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZibnFzY3hndWZnY2t0Y3BycWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4NTM4MDUsImV4cCI6MjA5NTQyOTgwNX0.SoWxfgB31fHZ-3PVl4s_j0oLUjjpJW6g7YWafkiGzFY';
 let SB_URL = _SB_URL_FIXED;
 let SB_KEY = _SB_KEY_FIXED;
+let ANTHROPIC_API_KEY = localStorage.getItem('anthropic_api_key') || '';
 
 function todayKR(){
   const f = new Intl.DateTimeFormat('en-CA', {
@@ -4369,9 +4369,28 @@ async function renderTodoList(cat){
 
 // ── Supabase 설정 (고정값 사용 — 변경 불필요)
 function loadSbConfig(){
-  // 고정값으로 항상 연결 유지
   SB_URL = _SB_URL_FIXED;
   SB_KEY = _SB_KEY_FIXED;
+  // Anthropic API Key 불러오기
+  ANTHROPIC_API_KEY = localStorage.getItem('anthropic_api_key') || '';
+  const keyInput = document.getElementById('cfg-anthropic-key');
+  const keyStatus = document.getElementById('cfg-anthropic-status');
+  if(keyInput) keyInput.value = ANTHROPIC_API_KEY;
+  if(keyStatus){
+    if(ANTHROPIC_API_KEY) keyStatus.textContent = '✅ API Key 저장됨';
+    else keyStatus.textContent = '⚠️ API Key를 입력해주세요';
+    keyStatus.style.color = ANTHROPIC_API_KEY ? 'var(--green)' : 'var(--coral)';
+  }
+}
+function saveAnthropicKey(){
+  const key = (document.getElementById('cfg-anthropic-key')?.value || '').trim();
+  if(!key) return alert('API Key를 입력해주세요');
+  if(!key.startsWith('sk-ant-')) return alert('올바른 Anthropic API Key가 아니에요\nsk-ant- 로 시작해야 해요');
+  localStorage.setItem('anthropic_api_key', key);
+  ANTHROPIC_API_KEY = key;
+  const keyStatus = document.getElementById('cfg-anthropic-status');
+  if(keyStatus){ keyStatus.textContent = '✅ 저장 완료!'; keyStatus.style.color = 'var(--green)'; }
+  setTimeout(()=>closeModal('m-settings'), 800);
 }
 function updateCfgStatus(state, msg){
   const el=document.getElementById('cfg-status');
@@ -4403,7 +4422,8 @@ function clearSbConfig(){
 // 초기화
 const _mdEl=document.getElementById('m-date'); if(_mdEl)_mdEl.value=today();
 loadSbConfig();
-// 고정 연결 — 설정창 자동 열기 불필요
+// API Key 없으면 설정창 자동 열기
+if(!ANTHROPIC_API_KEY){ setTimeout(()=>openModal('m-settings'), 500); }
 renderHome();
 </script>
 
@@ -7847,8 +7867,8 @@ async function blogAnalyzeAll(){
   for(let i=0;i<blogPhotos.length;i++){
     const p=blogPhotos[i];if(p.analysisText)continue;
     try{
-      const res=await fetch("https://vbnqscxgufgcktcprqeq.supabase.co/functions/v1/anthropic-proxy",{
-        method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZibnFzY3hndWZnY2t0Y3BycWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4NTM4MDUsImV4cCI6MjA5NTQyOTgwNX0.SoWxfgB31fHZ-3PVl4s_j0oLUjjpJW6g7YWafkiGzFY"},
+      const res=await fetch("https://api.anthropic.com/v1/messages",{
+        method:"POST",headers:{"Content-Type":"application/json","x-api-key":ANTHROPIC_API_KEY,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
         body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:300,
           messages:[{role:"user",content:[
             {type:"image",source:{type:"base64",media_type:p.file.type||"image/jpeg",data:p.base64}},
@@ -7964,8 +7984,8 @@ async function blogGenerate(){
   const resBox=document.getElementById("blogResult");
   if(resBox)resBox.innerHTML=`<div class="blog-empty"><div class="be-ico" style="animation:spin .7s linear infinite">${cat.emoji}</div><div>박리리 감성 담는 중…</div></div>`;
   try{
-    const res=await fetch("https://vbnqscxgufgcktcprqeq.supabase.co/functions/v1/anthropic-proxy",{
-      method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZibnFzY3hndWZnY2t0Y3BycWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4NTM4MDUsImV4cCI6MjA5NTQyOTgwNX0.SoWxfgB31fHZ-3PVl4s_j0oLUjjpJW6g7YWafkiGzFY"},
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",headers:{"Content-Type":"application/json","x-api-key":ANTHROPIC_API_KEY,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
       body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:4000,
         messages:[{role:"user",content:blogBuildPrompt()}]})
     });
