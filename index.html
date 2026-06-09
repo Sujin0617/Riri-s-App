@@ -3835,6 +3835,13 @@ const _SB_KEY_FIXED = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 let SB_URL = _SB_URL_FIXED;
 let SB_KEY = _SB_KEY_FIXED;
 
+function todayKR(){
+  const f = new Intl.DateTimeFormat('en-CA', {
+    timeZone:'Asia/Seoul', year:'numeric', month:'2-digit', day:'2-digit'
+  });
+  return f.format(new Date());
+}
+
 // Supabase REST API 헬퍼
 const sb = {
   async get(table, query=''){
@@ -4579,13 +4586,6 @@ function payDisplay(s){
 }
 
 // 한국 시간 기준 오늘 날짜 (YYYY-MM-DD)
-function todayKR(){
-  const f = new Intl.DateTimeFormat('en-CA', {
-    timeZone:'Asia/Seoul', year:'numeric', month:'2-digit', day:'2-digit'
-  });
-  return f.format(new Date());
-}
-
 // 필터 패널 토글 (정렬은 항상 보이고 필터는 토글)
 function toggleFiltersPanel(id, btn){
   const p=document.getElementById(id);
@@ -7847,8 +7847,8 @@ async function blogAnalyzeAll(){
   for(let i=0;i<blogPhotos.length;i++){
     const p=blogPhotos[i];if(p.analysisText)continue;
     try{
-      const res=await fetch("https://api.anthropic.com/v1/messages",{
-        method:"POST",headers:{"Content-Type":"application/json"},
+      const res=await fetch("https://vbnqscxgufgcktcprqeq.supabase.co/functions/v1/anthropic-proxy",{
+        method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZibnFzY3hndWZnY2t0Y3BycWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4NTM4MDUsImV4cCI6MjA5NTQyOTgwNX0.SoWxfgB31fHZ-3PVl4s_j0oLUjjpJW6g7YWafkiGzFY"},
         body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:300,
           messages:[{role:"user",content:[
             {type:"image",source:{type:"base64",media_type:p.file.type||"image/jpeg",data:p.base64}},
@@ -7964,8 +7964,8 @@ async function blogGenerate(){
   const resBox=document.getElementById("blogResult");
   if(resBox)resBox.innerHTML=`<div class="blog-empty"><div class="be-ico" style="animation:spin .7s linear infinite">${cat.emoji}</div><div>박리리 감성 담는 중…</div></div>`;
   try{
-    const res=await fetch("https://api.anthropic.com/v1/messages",{
-      method:"POST",headers:{"Content-Type":"application/json"},
+    const res=await fetch("https://vbnqscxgufgcktcprqeq.supabase.co/functions/v1/anthropic-proxy",{
+      method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZibnFzY3hndWZnY2t0Y3BycWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4NTM4MDUsImV4cCI6MjA5NTQyOTgwNX0.SoWxfgB31fHZ-3PVl4s_j0oLUjjpJW6g7YWafkiGzFY"},
       body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:4000,
         messages:[{role:"user",content:blogBuildPrompt()}]})
     });
