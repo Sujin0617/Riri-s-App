@@ -4267,7 +4267,12 @@ document.addEventListener('change', function(e){
 
 
 <label class="form-label">캐스팅담당자</label>
-<input id="lu-manager" placeholder="담당자">
+<div style="display:flex;flex-direction:column;gap:6px;">
+  <select id="lu-manager-select" onchange="applyManagerSelect()" style="width:100%;padding:11px 12px;border:1.5px solid var(--border);border-radius:12px;font-family:inherit;font-size:14px;background:var(--white);color:var(--text);">
+    <option value="">-- 연락처에서 선택 --</option>
+  </select>
+  <input id="lu-manager" placeholder="직접 입력 (또는 위에서 선택)">
+</div>
 
 <label class="form-label">페이</label>
 <input id="lu-pay" placeholder="예) 300000" inputmode="numeric" oninput="formatPay(this)">
@@ -4879,7 +4884,35 @@ function openListupNew(){
   // 연락일 = 오늘 (KR)
   const cd=document.getElementById('lu-cdate'); if(cd)cd.value=todayKR();
   const t=document.getElementById('m-listup-title'); if(t)t.textContent='📞 리스트업연락 추가';
+  const sel=document.getElementById('lu-manager-select'); if(sel)sel.value='';
+  loadManagerOptions();
   openModal('m-listup');
+}
+
+// 캐스팅연락처 목록 → lu-manager-select 드롭다운 채우기
+async function loadManagerOptions(currentVal=''){
+  const sel=document.getElementById('lu-manager-select');
+  if(!sel)return;
+  const rows=await sb.get('casting_contacts');
+  let html='<option value="">-- 연락처에서 선택 --</option>';
+  rows.forEach(r=>{
+    const label=(r.name||'')+(r.position?(' '+r.position):'');
+    html+=`<option value="${label}">${label}</option>`;
+  });
+  sel.innerHTML=html;
+  // 현재 값이 목록에 있으면 선택 표시
+  if(currentVal){
+    const opt=Array.from(sel.options).find(o=>o.value===currentVal);
+    if(opt) sel.value=currentVal;
+  }
+}
+
+// 드롭다운 선택 시 텍스트 input에 반영
+function applyManagerSelect(){
+  const sel=document.getElementById('lu-manager-select');
+  const inp=document.getElementById('lu-manager');
+  if(!sel||!inp)return;
+  if(sel.value) inp.value=sel.value;
 }
 
 async function saveListup(){
@@ -4935,6 +4968,7 @@ async function editListup(id){
   document.getElementById('lu-category').value=r.category||'';
   document.getElementById('lu-role').value=r.role||'';
   document.getElementById('lu-manager').value=r.manager||'';
+  loadManagerOptions(r.manager||'');
   document.getElementById('lu-pay').value=payDisplay(r.pay);
   document.getElementById('lu-cdate').value=r.contact_date||'';
   document.getElementById('lu-date').value=r.shoot_date||'';
