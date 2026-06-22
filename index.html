@@ -1663,6 +1663,7 @@ display:block;
 .dcd-dot.dot-shoot{background:var(--teal);}
 .dcd-dot.dot-listup{background:var(--blue);}
 .dcd-dot.dot-practice{background:var(--pink);}
+.dcd-dot.dot-appearance{background:#7C3AED;}
 /* 달력 이벤트 텍스트 */
 .dcd-ev{width:100%;font-size:9px;font-weight:700;border-radius:4px;padding:1px 4px;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.5;}
 .dcd-ev.ev-apply{background:var(--p-light);color:var(--p1);}
@@ -1670,6 +1671,7 @@ display:block;
 .dcd-ev.ev-shoot{background:var(--teal-l);color:#006a50;}
 .dcd-ev.ev-listup{background:var(--blue-l);color:#1d4ed8;}
 .dcd-ev.ev-practice{background:var(--pink-l);color:#9d174d;}
+.dcd-ev.ev-appearance{background:#EDE6FB;color:#5B21B6;}
 /* 멀티 날짜 피커 */
 .multi-date-wrap{border:1.5px solid var(--border);border-radius:12px;background:#fff;padding:10px 12px;}
 .multi-date-tags{display:flex;flex-wrap:wrap;gap:6px;min-height:28px;margin-bottom:8px;}
@@ -2103,12 +2105,13 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
             <th>작품명</th>
             <th>감독</th>
             <th>제작사</th>
+            <th>오디션종류</th>
             <th>대본</th>
             <th>결과</th>
           </tr>
         </thead>
         <tbody id="audition-list">
-          <tr><td colspan="7" class="sc-empty">오디션기록이 없습니다 🎤</td></tr>
+          <tr><td colspan="8" class="sc-empty">오디션기록이 없습니다 🎤</td></tr>
         </tbody>
       </table>
     </div>
@@ -2920,7 +2923,7 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
 
 <!-- 필름메이커스 자동기입 -->
 <div style="background:var(--p-light);border:1.5px solid var(--p3);border-radius:14px;padding:14px 14px 12px;margin-bottom:18px;">
-  <div style="font-size:12px;font-weight:800;color:var(--p1);margin-bottom:8px;">🎬 필름메이커스 공고 자동기입</div>
+  <div style="font-size:12px;font-weight:800;color:var(--p1);margin-bottom:8px;">🎬 필름메이커스 공고 자동기입 (Claude AI 분석)</div>
   <div style="display:flex;gap:7px;align-items:center;">
     <input id="ap-filmmakers-url" placeholder="https://www.filmmakers.co.kr/actorCasting/..." style="flex:1;font-size:12px;padding:8px 10px;border-radius:9px;border:1px solid var(--border);" oninput="document.getElementById('ap-fetch-err').style.display='none'">
     <button onclick="fetchFilmmakersInfo()" id="ap-fetch-btn" style="background:var(--p2);border:none;border-radius:9px;padding:8px 13px;font-family:inherit;font-size:12px;font-weight:700;color:#1a1a1a;cursor:pointer;white-space:nowrap;flex-shrink:0;">불러오기</button>
@@ -2932,7 +2935,7 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
   <div id="ap-paste-zone" style="margin-top:10px;border-top:1px dashed var(--p3);padding-top:10px;">
     <div style="font-size:11px;color:var(--p1);font-weight:700;margin-bottom:6px;">⌨️ 안 불러와지면 — 공고 페이지 글 전체를 복사해서 붙여넣으세요</div>
     <textarea id="ap-paste-text" placeholder="필름메이커스 공고 페이지에서 Ctrl+A → Ctrl+C 한 내용을 여기 붙여넣고 아래 버튼을 누르세요." style="width:100%;box-sizing:border-box;min-height:70px;font-size:12px;padding:8px 10px;border-radius:9px;border:1px solid var(--border);font-family:inherit;resize:vertical;"></textarea>
-    <button onclick="parsePastedInfo()" style="margin-top:7px;width:100%;background:var(--p3);border:none;border-radius:9px;padding:9px;font-family:inherit;font-size:12px;font-weight:700;color:#1a1a1a;cursor:pointer;">붙여넣은 내용에서 추출</button>
+    <button onclick="parsePastedInfo()" id="ap-paste-btn" style="margin-top:7px;width:100%;background:var(--p3);border:none;border-radius:9px;padding:9px;font-family:inherit;font-size:12px;font-weight:700;color:#1a1a1a;cursor:pointer;">✨ Claude로 분석해서 자동입력</button>
   </div>
 </div>
 
@@ -2978,6 +2981,12 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
   <label class="form-label">촬영 회차</label><input id="ap-ep" placeholder="예) 1~3회차">
   <label class="form-label">페이</label><input id="ap-pay" placeholder="예) 50000" inputmode="numeric" oninput="formatPay(this)">
   <label class="form-label">본문 내용</label><textarea id="ap-syn" placeholder="공고 본문 내용 (자동으로 채워짐)" style="min-height:120px;"></textarea>
+  <div id="ap-role-select-wrap" style="display:none;margin-bottom:10px;">
+    <label class="form-label">🎭 공고에서 발견된 역할 (선택하면 자동 입력)</label>
+    <select id="ap-role-select" onchange="applyRoleSelection()">
+      <option value="">-- 역할을 선택해주세요 --</option>
+    </select>
+  </div>
   <label class="form-label">지원 역할 (이름만)</label><input id="ap-role" placeholder="예) 윤, 준">
   <label class="form-label">역할 설명</label><textarea id="ap-role-desc" placeholder="역할에 대한 설명 (성별·나이·캐릭터 등)"></textarea>
   <label class="form-label">기타 메모</label><textarea id="ap-memo" placeholder="지원 방법·마감일·준비물 등 메모"></textarea>
@@ -3042,6 +3051,13 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
 
 <label class="form-label">오디션 일자 *</label>
 <input id="au-date" type="date">
+
+<label class="form-label">오디션 종류</label>
+<select id="au-type">
+  <option value="">선택해주세요</option>
+  <option value="대면">대면</option>
+  <option value="비대면">비대면</option>
+</select>
 
 <label class="form-label">준비 자료</label>
 <textarea id="au-file" placeholder="준비 자료, 메모 등"></textarea>
@@ -3740,6 +3756,16 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
   </div>
 </div>
 
+<!-- 일정 목록 → 일정 상세 모달 (읽기 전용) -->
+<div class="modal-overlay" id="m-day-event-detail">
+  <div class="modal-box" style="max-width:480px;border-radius:24px;">
+    <div class="modal-handle"></div>
+    <div style="font-size:17px;font-weight:800;margin-bottom:16px;" id="m-day-event-title">🗓️ 일정 상세</div>
+    <div id="day-event-detail-body" style="font-size:14px;line-height:2.1;background:var(--bg);padding:16px;border-radius:16px;"></div>
+    <button class="btn btn-outline" style="width:100%;margin-top:14px;" onclick="closeModal('m-day-event-detail')">닫기</button>
+  </div>
+</div>
+
 <!-- 사이드 드로어 -->
 <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
 <div class="drawer" id="drawer">
@@ -3923,6 +3949,7 @@ const _SB_KEY_FIXED = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 let SB_URL = _SB_URL_FIXED;
 let SB_KEY = _SB_KEY_FIXED;
 let ANTHROPIC_API_KEY = localStorage.getItem('anthropic_api_key') || '';
+let _fmRolesCache = []; // 필름메이커스 자동기입 - 분석된 역할 목록 캐시
 
 function todayKR(){
   const f = new Intl.DateTimeFormat('en-CA', {
@@ -4134,12 +4161,13 @@ async function renderDashboard(){
   if(titleEl) titleEl.textContent = month + 1;
 
   // 데이터 fetch
-  const [applyRows, shootRows, auditionRows, listupRows, eventRows] = await Promise.all([
+  const [applyRows, shootRows, auditionRows, listupRows, eventRows, appearanceRows] = await Promise.all([
     sb.get('apply'),
     sb.get('shooting_records'),
     sb.get('audition'),
     sb.get('listup'),
-    sb.get('events').catch(()=>[])  // events 테이블이 없을 수도
+    sb.get('events').catch(()=>[]),  // events 테이블이 없을 수도
+    sb.get('appearance').catch(()=>[])
   ]);
 
   // ── 카드 1: 이번달 지원 (지원 수 / 합격)
@@ -4226,6 +4254,7 @@ async function renderDashboard(){
     }
   });
   eventRows.forEach(r=>addEv(r.date, 'practice', r.title||'무제', r.type||'', r.id));
+  appearanceRows.forEach(r=>addEv(r.air_date, 'appearance', r.title||'무제', r.platform?'· '+r.platform:'출연', r.id));
 
   _dashEventsCache = eventsByDate;
   renderDashCalendar();
@@ -4311,15 +4340,16 @@ function openEventDay(dateStr){
       aud:   {label:'오디션', cls:'dash-tag-aud'},
       shoot: {label:'촬영/송출', cls:'dash-tag-shoot'},
       listup:{label:'리스트업', cls:'dash-tag-listup'},
-      practice:{label:'연습/기타', cls:'dash-tag-practice'}
+      practice:{label:'연습/기타', cls:'dash-tag-practice'},
+      appearance:{label:'출연', cls:'dash-tag-shoot'}
     };
     listBox.innerHTML = '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;">이 날 일정</div>'+
       evs.map(e=>{
         const t = tagMap[e.type] || {label:e.type, cls:''};
         const delBtn = e.type==='practice'
-          ? `<button class="ev-del" onclick="delEvent('${e.id}')">×</button>`
+          ? `<button class="ev-del" onclick="event.stopPropagation();delEvent('${e.id}')">×</button>`
           : '';
-        return `<div class="ev-day-item">
+        return `<div class="ev-day-item" style="cursor:pointer;" onclick="openDayEventDetail('${e.type}','${e.id}')">
           <div class="ev-tag ${t.cls}">${t.label}</div>
           <div class="ev-title">${e.title}${e.meta?' <span style="color:var(--text3);font-weight:400;">· '+e.meta+'</span>':''}</div>
           ${delBtn}
@@ -4333,6 +4363,98 @@ function openEventDay(dateStr){
   document.getElementById('ev-note').value = '';
 
   openModal('m-event');
+}
+
+// 일정 목록의 항목 클릭 → 종류별 상세 데이터를 불러와 읽기 전용 모달로 표시
+async function openDayEventDetail(type, id){
+  const titleEl = document.getElementById('m-day-event-title');
+  const body = document.getElementById('day-event-detail-body');
+  if(!body) return;
+
+  const row = (line)=>`<div style="margin-bottom:4px;">${line}</div>`;
+  const field = (label, value)=>`<div style="margin-top:10px;">${label}<br><span style="color:var(--text2);white-space:pre-wrap;">${(value===null||value===undefined||value==='')?'-':value}</span></div>`;
+
+  try{
+    if(type==='apply'){
+      const rows = await sb.get('apply','&id=eq.'+id);
+      if(!rows.length){ body.innerHTML='<div class="dash-empty">데이터를 찾을 수 없습니다</div>'; openModal('m-day-event-detail'); return; }
+      const r = rows[0];
+      titleEl.textContent = '📋 지원 상세';
+      body.innerHTML =
+        field('🏷️ <b>종류</b>','지원') +
+        field('📋 <b>작품명</b>', r.title) +
+        field('🏢 <b>제작사</b>', r.company) +
+        field('🔗 <b>지원사이트</b>', r.url) +
+        field('📅 <b>지원일</b>', r.apply_date||r.date) +
+        field('💭 <b>메모</b>', r.memo);
+
+    }else if(type==='aud'){
+      const rows = await sb.get('audition','&id=eq.'+id);
+      if(!rows.length){ body.innerHTML='<div class="dash-empty">데이터를 찾을 수 없습니다</div>'; openModal('m-day-event-detail'); return; }
+      const r = rows[0];
+      titleEl.textContent = '🎤 오디션 상세';
+      body.innerHTML =
+        field('🏷️ <b>종류</b>','오디션') +
+        field('📋 <b>작품명</b>', r.title) +
+        field('🗣️ <b>오디션 종류</b>', r.audition_type) +
+        field('📅 <b>오디션 날짜</b>', r.audition_date||r.date) +
+        field('📌 <b>결과</b>', r.result) +
+        field('💭 <b>메모</b>', r.review);
+
+    }else if(type==='shoot'){
+      const rows = await sb.get('shooting_records','&id=eq.'+id);
+      if(!rows.length){ body.innerHTML='<div class="dash-empty">데이터를 찾을 수 없습니다</div>'; openModal('m-day-event-detail'); return; }
+      const r = rows[0];
+      titleEl.textContent = '🎬 촬영 상세';
+      body.innerHTML =
+        field('🏷️ <b>종류</b>','촬영') +
+        field('📋 <b>작품명</b>', r.title) +
+        field('🎭 <b>배역</b>', r.role) +
+        field('⏰ <b>촬영시간</b>', r.calltime) +
+        field('📍 <b>장소</b>', r.place) +
+        field('💭 <b>메모</b>', r.note);
+
+    }else if(type==='appearance'){
+      const rows = await sb.get('appearance','&id=eq.'+id);
+      if(!rows.length){ body.innerHTML='<div class="dash-empty">데이터를 찾을 수 없습니다</div>'; openModal('m-day-event-detail'); return; }
+      const r = rows[0];
+      titleEl.textContent = '🎥 출연 상세';
+      body.innerHTML =
+        field('🏷️ <b>종류</b>','출연') +
+        field('📋 <b>작품명</b>', r.title) +
+        field('📡 <b>플랫폼</b>', r.platform) +
+        field('📅 <b>공개일</b>', r.air_date) +
+        field('💭 <b>메모</b>', r.note||r.memo);
+
+    }else if(type==='listup'){
+      const rows = await sb.get('listup','&id=eq.'+id);
+      if(!rows.length){ body.innerHTML='<div class="dash-empty">데이터를 찾을 수 없습니다</div>'; openModal('m-day-event-detail'); return; }
+      const r = rows[0];
+      titleEl.textContent = '📇 리스트업 상세';
+      body.innerHTML =
+        field('🏷️ <b>종류</b>','리스트업') +
+        field('📋 <b>작품명</b>', r.title) +
+        field('🏢 <b>제작사</b>', r.company) +
+        field('📅 <b>촬영(예정)일</b>', r.shoot_date) +
+        field('💭 <b>메모</b>', r.note);
+
+    }else{ // practice = 직접 추가한 일정
+      const rows = await sb.get('events','&id=eq.'+id);
+      if(!rows.length){ body.innerHTML='<div class="dash-empty">데이터를 찾을 수 없습니다</div>'; openModal('m-day-event-detail'); return; }
+      const r = rows[0];
+      titleEl.textContent = '🗓️ 일정 상세';
+      body.innerHTML =
+        field('🏷️ <b>종류</b>', r.type||'일정') +
+        field('📋 <b>제목</b>', r.title) +
+        field('📅 <b>날짜</b>', r.date) +
+        field('💭 <b>메모</b>', r.note);
+    }
+  }catch(err){
+    console.error(err);
+    body.innerHTML = '<div class="dash-empty">상세 정보를 불러오지 못했습니다</div>';
+  }
+
+  openModal('m-day-event-detail');
 }
 
 async function saveEvent(){
@@ -4913,6 +5035,10 @@ async function editApply(id){
   document.getElementById('ap-email').value=r.email||'';
   document.getElementById('ap-result').value=r.result||'지원';
 
+  // 역할 선택 드롭다운은 수정 모드에서는 숨김 (이미 저장된 단일 역할만 사용)
+  _fmRolesCache = [];
+  const roleWrap=document.getElementById('ap-role-select-wrap'); if(roleWrap)roleWrap.style.display='none';
+
   closeModal('m-apply-detail');
   openModal('m-apply');
 }
@@ -4944,6 +5070,10 @@ function openApplyNew(){
   const ad=document.getElementById('ap-adate'); if(ad)ad.value=todayKR();
   if(document.getElementById('ap-result'))document.getElementById('ap-result').value='지원';
   if(document.getElementById('m-apply-title'))document.getElementById('m-apply-title').textContent='📋 지원기록';
+  // 역할 선택 드롭다운 초기화
+  _fmRolesCache = [];
+  const roleWrap=document.getElementById('ap-role-select-wrap'); if(roleWrap)roleWrap.style.display='none';
+  const roleSel=document.getElementById('ap-role-select'); if(roleSel)roleSel.innerHTML='<option value="">-- 역할을 선택해주세요 --</option>';
   const errEl=document.getElementById('ap-fetch-err'); if(errEl)errEl.style.display='none';
   const okEl=document.getElementById('ap-fetch-ok'); if(okEl)okEl.style.display='none';
   openModal('m-apply');
@@ -5089,11 +5219,10 @@ function applyFilmmakersInfo(info, srcUrl){
   _setVal('ap-dir',   info.director);
   _setVal('ap-co',    info.company);
   _setVal('ap-sdate', info.shoot_date);
-  // 역할·역할 설명은 비워둠 — 배역이 여러 개라 사라가 직접 골라 입력
   _setVal('ap-syn',   info.synopsis);
   _setVal('ap-mgr',   info.manager);
   _setVal('ap-email', info.email);
-  if(info.pay && info.pay > 0) _setVal('ap-pay', info.pay.toLocaleString());
+  if(info.pay && Number(info.pay) > 0) _setVal('ap-pay', String(info.pay).replace(/[^\d]/g,''));
   if(srcUrl) _setVal('ap-url', srcUrl);
 
   const cats = ['상업드라마','웹드라마','숏폼드라마','독립영화','단편영화','상업영화','광고영상','홍보영상','지면촬영','뮤직비디오'];
@@ -5108,7 +5237,62 @@ function applyFilmmakersInfo(info, srcUrl){
       if(catCustom){ catCustom.value=info.category; catCustom.style.display='block'; }
     }
   }
-  return !!(info.title||info.director||info.company||info.shoot_date||info.role||info.synopsis||info.pay);
+
+  // 페이 입력칸은 숫자만 들고 있다가 표시용 포맷으로 재변환
+  const payEl=document.getElementById('ap-pay');
+  if(payEl && payEl.value) formatPay(payEl);
+
+  // ── 역할 목록(roles) 처리: 1개면 즉시 채움, 2개 이상이면 드롭다운으로 선택하게 함
+  const roles = Array.isArray(info.roles) ? info.roles.filter(r=>r && r.name) : [];
+  _fmRolesCache = roles;
+  const wrap = document.getElementById('ap-role-select-wrap');
+  const sel = document.getElementById('ap-role-select');
+  if(roles.length >= 2 && sel && wrap){
+    sel.innerHTML = '<option value="">-- 역할을 선택해주세요 --</option>' +
+      roles.map((r,i)=>`<option value="${i}">${(r.name||'').replace(/"/g,'&quot;')}${r.gender?' ('+r.gender+')':''}</option>`).join('');
+    wrap.style.display = 'block';
+  } else if(roles.length === 1){
+    if(wrap) wrap.style.display = 'none';
+    _fillRoleFields(roles[0]);
+  } else {
+    if(wrap) wrap.style.display = 'none';
+  }
+
+  // ── 분류 못한 추가정보(기획의도·로그라인·장르·오디션안내·계약내용 등)는 기타 메모에 보존
+  const memoEl = document.getElementById('ap-memo');
+  if(memoEl && info.extra_memo){
+    const prev = memoEl.value ? memoEl.value.trim()+'\n\n' : '';
+    memoEl.value = prev + info.extra_memo;
+  }
+
+  return !!(info.title||info.director||info.company||info.shoot_date||roles.length||info.synopsis||info.pay);
+}
+
+// 역할 선택 드롭다운에서 하나를 고르면 해당 역할 정보를 폼에 채움 (_fmRolesCache는 파일 상단에서 선언)
+function applyRoleSelection(){
+  const sel = document.getElementById('ap-role-select');
+  if(!sel || sel.value==='') return;
+  const role = _fmRolesCache[parseInt(sel.value,10)];
+  if(role) _fillRoleFields(role);
+}
+function _fillRoleFields(role){
+  _setVal('ap-role', role.name);
+  const descParts = [];
+  if(role.gender) descParts.push('성별: '+role.gender);
+  if(role.age) descParts.push('연령: '+role.age);
+  if(role.nationality) descParts.push('국적: '+role.nationality);
+  if(role.headcount) descParts.push('인원: '+role.headcount);
+  if(role.description) descParts.push(role.description);
+  const descEl = document.getElementById('ap-role-desc');
+  if(descEl) descEl.value = descParts.join('\n');
+  if(role.pay){
+    const payEl = document.getElementById('ap-pay');
+    if(payEl){ payEl.value = String(role.pay).replace(/[^\d]/g,''); formatPay(payEl); }
+  }
+  if(role.schedule){
+    const memoFld = document.getElementById('ap-sdate-memo');
+    if(memoFld) memoFld.value = role.schedule;
+  }
 }
 
 // ── 붙여넣은 내용에서 추출 (프록시 0 · 항상 작동)
@@ -5122,11 +5306,10 @@ function parsePastedInfo(){
   const raw = (ta?.value||'').trim();
   if(!raw){ if(errEl){ errEl.textContent='먼저 공고 내용을 붙여넣어 주세요.'; errEl.style.display='block'; } return; }
 
-  const info = parseFilmmakers(raw);
-  const filled = applyFilmmakersInfo(info, (document.getElementById('ap-filmmakers-url')?.value||'').trim());
+  const srcUrl = (document.getElementById('ap-filmmakers-url')?.value||'').trim();
+  const btn = document.getElementById('ap-paste-btn');
 
-  if(filled){ if(okEl) okEl.style.display='block'; }
-  else if(errEl){ errEl.textContent='추출된 항목이 없어요. 공고 페이지 글을 전체 복사했는지 확인해 주세요.'; errEl.style.display='block'; }
+  analyzeWithClaude(raw, btn, errEl, okEl, srcUrl);
 }
 
 // ── URL로 자동 시도 (살아있는 프록시) → 실패하면 붙여넣기 안내
@@ -5143,7 +5326,7 @@ async function fetchFilmmakersInfo(){
   if(!url){ if(errEl){ errEl.textContent='URL을 입력해주세요.'; errEl.style.display='block'; } return; }
   if(!url.includes('filmmakers.co.kr')){ if(errEl){ errEl.textContent='필름메이커스 URL만 지원합니다.'; errEl.style.display='block'; } return; }
 
-  if(btn){ btn.textContent='분석중...'; btn.disabled=true; }
+  if(btn){ btn.dataset._origText = btn.textContent; btn.textContent='불러오는 중...'; btn.disabled=true; }
 
   try {
     let html = '';
@@ -5179,22 +5362,147 @@ async function fetchFilmmakersInfo(){
       const pz = document.getElementById('ap-paste-zone');
       if(pz){ pz.style.outline='2px solid var(--p2)'; pz.scrollIntoView({behavior:'smooth',block:'center'});
         setTimeout(()=>{ pz.style.outline='none'; }, 2500); }
+      if(btn){ btn.textContent = btn.dataset._origText || '불러오기'; btn.disabled=false; delete btn.dataset._origText; }
       return;
     }
 
-    const info = parseFilmmakers(html);
-    const filled = applyFilmmakersInfo(info, url);
-
-    if(filled){ if(okEl) okEl.style.display='block'; }
-    else if(errEl){
-      errEl.innerHTML='페이지는 불러왔지만 항목 추출에 실패했어요. 👉 아래 칸에 공고 글을 붙여넣고 추출해 주세요.';
-      errEl.style.display='block';
-    }
+    await analyzeWithClaude(html, btn, errEl, okEl, url, /*isHtml=*/true);
 
   } catch(e) {
     if(errEl){ errEl.textContent = (e.message||'오류') + ' — 아래 붙여넣기로 시도해 주세요.'; errEl.style.display='block'; }
+    if(btn){ btn.textContent = btn.dataset._origText || '불러오기'; btn.disabled=false; delete btn.dataset._origText; }
+  }
+}
+
+// ──────────────────────────────────────────────────────────────
+// Claude API로 공고 본문을 분석해서 폼에 자동입력
+// raw: 붙여넣은 순수 텍스트 또는 fetch해온 raw HTML
+// btn: 분석중 표시할 버튼 엘리먼트
+// errEl/okEl: 상태 표시 영역
+// srcUrl: 지원 URL에 채울 원본 링크
+// isHtml: raw가 HTML인지 여부(텍스트 정제용)
+// ──────────────────────────────────────────────────────────────
+async function analyzeWithClaude(raw, btn, errEl, okEl, srcUrl, isHtml){
+  if(errEl) errEl.style.display='none';
+  if(okEl) okEl.style.display='none';
+
+  // HTML이면 먼저 태그를 정리해 가독성 있는 텍스트로 변환 (메타 설명도 함께 확보)
+  let text = raw;
+  let metaDesc = '';
+  if(isHtml || /<[a-z!][^>]*>/i.test(raw)){
+    const md = raw.match(/<meta[^>]+(?:property=["']og:description["']|name=["']description["'])[^>]+content=["']([^"']+)["']/i);
+    if(md) metaDesc = md[1];
+    text = raw
+      .replace(/<script[\s\S]*?<\/script>/gi,' ')
+      .replace(/<style[\s\S]*?<\/style>/gi,' ')
+      .replace(/<br\s*\/?>/gi,'\n')
+      .replace(/<\/(p|div|li|tr|h\d|dt|dd|td)>/gi,'\n')
+      .replace(/<[^>]+>/g,' ')
+      .replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>')
+      .replace(/&nbsp;/g,' ').replace(/&#\d+;/g,' ')
+      .replace(/[ \t]+/g,' ')
+      .replace(/\n{3,}/g,'\n\n')
+      .trim();
+  }
+  // 너무 길면(메뉴/푸터 등 페이지 전체 복사 시) 본문 추정 구간 위주로 잘라 토큰 절약
+  if(text.length > 12000) text = text.slice(0, 12000);
+
+  if(btn){ if(btn.dataset._origText===undefined) btn.dataset._origText = btn.textContent; btn.textContent='Claude 분석중...'; btn.disabled=true; }
+
+  const prompt = `너는 한국 배우 캐스팅 공고(필름메이커스 등)를 분석하는 어시스턴트야. 아래는 공고 페이지에서 가져온 텍스트야. 사이트 메뉴·로그인·광고·다른 글 목록 같은 무관한 내용도 섞여 있을 수 있으니, 실제 공고 본문만 찾아서 분석해.
+
+[절대 규칙]
+- 추측하지 마. 텍스트에 명시적으로 없는 정보는 절대 만들어내지 마.
+- 내용을 버리지 마. 분류하지 못한 내용은 extra_memo에 모아서 보존해.
+- 게시글 형식이 달라도(라벨:값 구조형이든 자유 서술형이든) 유연하게 읽어.
+- 역할(배역)이 여러 개면 전부 roles 배열에 담아. 절대 하나만 고르지 마.
+
+[추출할 정보]
+구인자정보: 제작사, 감독, 캐스팅 방식, 담당자명, 전화번호, 이메일
+작품정보: 작품명, 촬영지역, 촬영기간, 모집마감일
+작품 추가정보: 시놉시스, 작품소개, 기획의도, 로그라인, 장르
+모집정보: 지원방법, 오디션안내, 계약내용, 촬영안내, 준비사항, 기타안내
+역할정보(모든 역할 각각): 역할명, 성별, 연령, 국적, 인원, 페이, 일정, 역할설명(특이사항 포함)
+
+[출력 형식 — 반드시 아래 JSON만 출력. 다른 말 절대 금지. 코드블록 표시(\`\`\`)도 금지]
+{
+  "title": "작품명 (없으면 빈 문자열)",
+  "director": "감독 (없으면 빈 문자열)",
+  "company": "제작사 (없으면 빈 문자열)",
+  "manager": "담당자명 (없으면 빈 문자열)",
+  "phone": "전화번호 (없으면 빈 문자열)",
+  "email": "이메일 (없으면 빈 문자열)",
+  "category": "다음 중 가장 가까운 하나 또는 빈 문자열: 상업드라마/웹드라마/숏폼드라마/독립영화/단편영화/상업영화/광고영상/홍보영상/지면촬영/뮤직비디오",
+  "shoot_date": "YYYY-MM-DD 형식의 단일 대표 날짜 (확정 날짜가 있으면, 없으면 빈 문자열 — 기간/범위는 넣지 말고 extra_memo의 촬영기간에 적어)",
+  "pay": "숫자만 (예: 100000). 범위면 최저값. 없으면 0",
+  "synopsis": "공고 본문 전체를 최대한 원문 그대로 보존 (시놉시스+작품소개+모집정보 자유본문 등 합쳐서, 4000자 이내)",
+  "roles": [
+    {
+      "name": "역할명",
+      "gender": "성별",
+      "age": "연령",
+      "nationality": "국적",
+      "headcount": "인원",
+      "pay": "숫자만 또는 빈 문자열",
+      "schedule": "그 역할의 촬영 일정/회차",
+      "description": "역할설명+특이사항을 합친 텍스트"
+    }
+  ],
+  "extra_memo": "위 필드로 분류하지 못한 모든 정보 — 촬영기간 원문, 모집마감일, 지원방법, 오디션안내, 계약내용, 촬영안내, 준비사항, 기타안내, 기획의도, 로그라인, 장르 등을 항목별로 줄바꿈해서 정리. 버리지 말 것."
+}
+
+[분석할 공고 텍스트]
+${metaDesc ? metaDesc + '\n\n' : ''}${text}`;
+
+  try {
+    const res = await fetch("https://vbnqscxgufgcktcprqeq.supabase.co/functions/v1/anthropic-proxy", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZibnFzY3hndWZnY2t0Y3BycWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4NTM4MDUsImV4cCI6MjA5NTQyOTgwNX0.SoWxfgB31fHZ-3PVl4s_j0oLUjjpJW6g7YWafkiGzFY"
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-5",
+        max_tokens: 4000,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const rawText = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('').trim();
+
+    // 코드블록으로 감싸져 오는 경우 방어적으로 제거
+    const jsonText = rawText.replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/```\s*$/,'').trim();
+    const parsed = JSON.parse(jsonText);
+
+    // phone은 기존 입력칸이 없으므로 extra_memo 맨 앞에 합쳐줌
+    if(parsed.phone){
+      parsed.extra_memo = '전화번호: ' + parsed.phone + (parsed.extra_memo ? '\n\n' + parsed.extra_memo : '');
+    }
+
+    const filled = applyFilmmakersInfo(parsed, srcUrl);
+    if(filled){
+      if(okEl){ okEl.textContent='✅ Claude 분석 완료! 내용을 확인 후 저장해주세요.'; okEl.style.display='block'; }
+    } else if(errEl){
+      errEl.textContent='분석은 됐지만 추출된 항목이 없어요. 공고 내용을 다시 확인해 주세요.';
+      errEl.style.display='block';
+    }
+  } catch(e){
+    console.error('[Claude 분석 실패]', e);
+    // 폴백: 기존 정규식 파서로 시도 (항상 작동하는 안전망)
+    try {
+      const info = parseFilmmakers(raw);
+      const filled = applyFilmmakersInfo(info, srcUrl);
+      if(filled){
+        if(okEl){ okEl.textContent='✅ 자동기입 완료! (간단 추출 모드 — 내용을 확인 후 저장해주세요)'; okEl.style.display='block'; }
+      } else if(errEl){
+        errEl.textContent='자동 분석에 실패했어요. 직접 입력해 주세요.';
+        errEl.style.display='block';
+      }
+    } catch(e2){
+      if(errEl){ errEl.textContent='분석 중 오류가 났어요. 직접 입력해 주세요.'; errEl.style.display='block'; }
+    }
   } finally {
-    if(btn){ btn.textContent='불러오기'; btn.disabled=false; }
+    if(btn){ btn.textContent = btn.dataset._origText || btn.textContent; btn.disabled=false; delete btn.dataset._origText; }
   }
 }
 
@@ -5559,7 +5867,7 @@ async function renderAuditionList(){
   });
 
   if(!rows.length){
-    box.innerHTML='<tr><td colspan="7" class="sc-empty">조건에 맞는 오디션기록이 없습니다 🎤</td></tr>';
+    box.innerHTML='<tr><td colspan="8" class="sc-empty">조건에 맞는 오디션기록이 없습니다 🎤</td></tr>';
     return;
   }
 
@@ -5573,6 +5881,17 @@ async function renderAuditionList(){
     const s=map[v]||{bg:'#EEE',fg:'#333',bd:'#999'};
     const shadow=(v==='합격'||v==='불합격')?'box-shadow:0 2px 6px '+s.bg+';':'';
     return `<span style="display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:800;background:${s.bg};color:${s.fg};border:1.5px solid ${s.bd};${shadow}">${v||'-'}</span>`;
+  };
+
+  // 오디션 종류별 배지 (null 호환)
+  const typeBadge=(v)=>{
+    if(!v) return '<span style="color:var(--text3);">-</span>';
+    const map={
+      '대면':  {bg:'#E8F0FE', fg:'#1A4FAE', bd:'#A9C4F5'},
+      '비대면':{bg:'#F0E8FE', fg:'#5B2EA6', bd:'#C9A9F5'}
+    };
+    const s=map[v]||{bg:'#EEE',fg:'#333',bd:'#999'};
+    return `<span style="display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:800;background:${s.bg};color:${s.fg};border:1.5px solid ${s.bd};">${v}</span>`;
   };
 
   const scriptCell=(u)=>{
@@ -5590,6 +5909,7 @@ async function renderAuditionList(){
       <td style="font-weight:700;">${r.title||'-'}</td>
       <td>${r.director||'-'}</td>
       <td>${r.company||'-'}</td>
+      <td>${typeBadge(r.audition_type)}</td>
       <td>${scriptCell(r.script_url)}</td>
       <td>${resultBadge(r.result)}</td>
     </tr>
@@ -5598,7 +5918,7 @@ async function renderAuditionList(){
 
 // "+ 오디션 추가" 클릭 시 새 모드 초기화 + 지원내역 드롭다운 채우기
 async function openAuditionNew(){
-  ['au-title','au-director','apr-company','au-date','au-file','au-rev','au-edit-id'].forEach(f=>{const el=document.getElementById(f);if(el)el.value='';});
+  ['au-title','au-director','apr-company','au-date','au-type','au-file','au-rev','au-edit-id'].forEach(f=>{const el=document.getElementById(f);if(el)el.value='';});
   const cat=document.getElementById('apr-category'); if(cat)cat.value='';
   const catC=document.getElementById('apr-category-custom'); if(catC){catC.value='';catC.style.display='none';}
   const res=document.getElementById('au-result'); if(res)res.value='결과 대기';
@@ -5671,6 +5991,7 @@ async function saveAudition(){
     director:(document.getElementById('au-director')?.value||'').trim(),
     company:(document.getElementById('apr-company')?.value||'').trim(),
     audition_date:date,
+    audition_type:document.getElementById('au-type')?.value||'',
     prep:(document.getElementById('au-file')?.value||'').trim(),
     script_url:scriptUrl,
     review:(document.getElementById('au-rev')?.value||'').trim(),
@@ -5713,6 +6034,7 @@ async function editAudition(id){
   document.getElementById('au-director').value=r.director||'';
   document.getElementById('apr-company').value=r.company||'';
   document.getElementById('au-date').value=r.audition_date||r.date||'';
+  document.getElementById('au-type').value=r.audition_type||'';
   document.getElementById('au-file').value=r.prep||'';
   document.getElementById('au-rev').value=r.review||'';
   document.getElementById('au-result').value=r.result||'결과 대기';
@@ -5764,6 +6086,7 @@ async function openAuditionDetail(id){
         <div style="margin-top:10px;">🎬 <b>감독</b><br><span style="color:var(--text2);">${r.director||'-'}</span></div>
         <div style="margin-top:10px;">🏢 <b>제작사</b><br><span style="color:var(--text2);">${r.company||'-'}</span></div>
         <div style="margin-top:10px;">📅 <b>오디션 일자</b><br><span style="color:var(--text2);">${audDate||'-'}</span></div>
+        <div style="margin-top:10px;">🗣️ <b>오디션 종류</b><br><span style="color:var(--text2);">${r.audition_type||'-'}</span></div>
         ${r.prep?`<div style="margin-top:10px;">📝 <b>준비 자료</b><br><span style="color:var(--text2);white-space:pre-wrap;">${r.prep}</span></div>`:''}
         ${scriptLine}
         ${r.review?`<div style="margin-top:10px;">💭 <b>오디션 회고</b><br><span style="color:var(--text2);white-space:pre-wrap;">${r.review}</span></div>`:''}
