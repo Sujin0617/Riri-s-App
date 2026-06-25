@@ -1407,6 +1407,47 @@ display:block;
     width:100%;
   }
 
+  /* ───────── 드라마 편성표 모바일 최적화 ───────── */
+  #ap-drama_schedule .sc-outer{max-height:60vh;}
+  #ap-drama_schedule .sc-tbl{min-width:760px;font-size:10px;}
+  #ap-drama_schedule .sc-tbl thead th{font-size:9px;padding:6px 6px;}
+  #ap-drama_schedule .sc-tbl td{padding:5px 6px;}
+  #ap-drama_schedule .sc-tbl th.ds-col-period,
+  #ap-drama_schedule .sc-tbl td.ds-col-period{width:90px;}
+  #ap-drama_schedule .sc-tbl th.ds-col-broadcast,
+  #ap-drama_schedule .sc-tbl td.ds-col-broadcast{width:48px;}
+  #ap-drama_schedule .sc-tbl th.ds-col-weekday,
+  #ap-drama_schedule .sc-tbl td.ds-col-weekday{width:54px;}
+  #ap-drama_schedule .sc-tbl th.ds-col-title,
+  #ap-drama_schedule .sc-tbl td.ds-col-title{width:110px;}
+  #ap-drama_schedule .sc-tbl th.ds-col-planning,
+  #ap-drama_schedule .sc-tbl td.ds-col-planning{width:90px;}
+  #ap-drama_schedule .sc-tbl th.ds-col-production,
+  #ap-drama_schedule .sc-tbl td.ds-col-production{width:120px;}
+  #ap-drama_schedule .sc-tbl th.ds-col-casting,
+  #ap-drama_schedule .sc-tbl td.ds-col-casting{width:110px;}
+  #ap-drama_schedule .sc-tbl th.ds-col-status,
+  #ap-drama_schedule .sc-tbl td.ds-col-status{width:72px;}
+  #ap-drama_schedule .sc-tbl th.ds-col-memo,
+  #ap-drama_schedule .sc-tbl td.ds-col-memo{width:120px;}
+  #ap-drama_schedule .sc-tbl td.ds-col-status span{font-size:9px!important;padding:2px 6px!important;}
+  /* 가로로 스크롤할 내용이 더 있다는 걸 알려주는 살짝의 안내 (스크롤 가능 영역 오른쪽 페이드) */
+  #ap-drama_schedule .sc-outer{
+    background:linear-gradient(to right, transparent calc(100% - 20px), rgba(0,0,0,0.04));
+    background-repeat:no-repeat;
+    background-size:100% 100%;
+  }
+
+  /* 편성기간 드롭다운(연도탭+월그리드): 좁은 화면에서 월 그리드를 3열로, 탭은 가로 스크롤 */
+  .ms-period-year-tabs{
+    flex-wrap:nowrap !important;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    padding-bottom:2px;
+  }
+  .ms-period-year-tab{flex-shrink:0;}
+  .ms-period-month-grid{grid-template-columns:repeat(3,1fr) !important;}
+
 }
 
 /* tablet */
@@ -1699,6 +1740,36 @@ display:block;
 .ms-tag{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;background:var(--p-light);color:var(--p1);border-radius:999px;font-size:12px;font-weight:700;}
 .ms-tag button{background:none;border:none;cursor:pointer;color:var(--p1);font-size:13px;line-height:1;padding:0 0 0 2px;}
 .ms-tag button:hover{color:var(--coral);}
+/* 드라마 편성표 테이블 — 헤더 고정 + 가로폭 확보 + 칸별 줄바꿈 규칙 (이 패널 안에서만 적용, 다른 메뉴 테이블에는 영향 없음) */
+#ap-drama_schedule .sc-outer{max-height:70vh;overflow-y:auto;overflow-x:auto;}
+#ap-drama_schedule .sc-tbl{table-layout:fixed;min-width:1100px;font-size:11px;}
+#ap-drama_schedule .sc-tbl thead th{position:sticky;top:0;z-index:2;background:var(--bg);white-space:nowrap;font-size:10px;padding:7px 9px;}
+#ap-drama_schedule .sc-tbl td{padding:6px 9px;line-height:1.4;}
+/* 기본: 모든 칸은 한 줄로 강제 + 넘치면 말줄임표 (편성기간만 예외) */
+#ap-drama_schedule .sc-tbl td{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+/* 편성기간만 줄바꿈 허용(두 줄까지 자연스럽게) */
+#ap-drama_schedule .sc-tbl td.ds-col-period{white-space:normal;overflow:visible;text-overflow:initial;}
+/* 칸별 너비 지정 (table-layout:fixed이므로 th에 지정한 너비가 그대로 적용됨) */
+#ap-drama_schedule .sc-tbl th.ds-col-period,
+#ap-drama_schedule .sc-tbl td.ds-col-period{width:120px;}
+#ap-drama_schedule .sc-tbl th.ds-col-broadcast,
+#ap-drama_schedule .sc-tbl td.ds-col-broadcast{width:60px;}
+#ap-drama_schedule .sc-tbl th.ds-col-weekday,
+#ap-drama_schedule .sc-tbl td.ds-col-weekday{width:70px;}
+#ap-drama_schedule .sc-tbl th.ds-col-title,
+#ap-drama_schedule .sc-tbl td.ds-col-title{width:150px;}
+#ap-drama_schedule .sc-tbl th.ds-col-planning,
+#ap-drama_schedule .sc-tbl td.ds-col-planning{width:130px;}
+#ap-drama_schedule .sc-tbl th.ds-col-production,
+#ap-drama_schedule .sc-tbl td.ds-col-production{width:170px;}
+#ap-drama_schedule .sc-tbl th.ds-col-casting,
+#ap-drama_schedule .sc-tbl td.ds-col-casting{width:150px;}
+#ap-drama_schedule .sc-tbl th.ds-col-status,
+#ap-drama_schedule .sc-tbl td.ds-col-status{width:90px;}
+#ap-drama_schedule .sc-tbl th.ds-col-memo,
+#ap-drama_schedule .sc-tbl td.ds-col-memo{width:170px;}
+/* 현재상황 배지도 글씨 줄어든 만큼 살짝 작게 */
+#ap-drama_schedule .sc-tbl td.ds-col-status span{font-size:10px!important;padding:3px 8px!important;}
 /* 편성기간(연도탭 + 월그리드) — 드라마 편성표 "편성기간" 항목용 */
 .ms-period-year-tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
 .ms-period-year-tab{padding:6px 12px;border-radius:999px;border:1.5px solid var(--border);background:var(--white);font-size:12px;font-weight:700;cursor:pointer;color:var(--text2);white-space:nowrap;}
@@ -1722,6 +1793,8 @@ display:block;
 </style>
 
 <link rel="icon" href="data:,">
+<!-- 드라마 편성표 엑셀 다운로드용 (SheetJS) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -2368,6 +2441,8 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
 
             <button class="sc-filter-btn" onclick="toggleFiltersPanel('ds-filters', this)">🎚 필터</button>
 
+            <button class="sc-filter-btn" onclick="downloadDramaScheduleExcel()">⬇ 다운로드</button>
+
             <button class="btn btn-p btn-sm" onclick="openDramaScheduleNew()">+ 추가</button>
           </div>
 
@@ -2398,8 +2473,8 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
             <table class="sc-tbl">
               <thead>
                 <tr>
-                  <th>편성기간</th><th>송출</th><th>방영요일</th>
-                  <th>작품명</th><th>기획</th><th>제작사</th><th>캐스팅담당</th><th>현재상황</th><th>지원유무</th><th>기타</th>
+                  <th class="ds-col-period">편성기간</th><th class="ds-col-broadcast">송출</th><th class="ds-col-weekday">방영요일</th>
+                  <th class="ds-col-title">작품명</th><th class="ds-col-planning">기획</th><th class="ds-col-production">제작사</th><th class="ds-col-casting">캐스팅담당</th><th class="ds-col-status">현재상황</th><th class="ds-col-memo">기타</th>
                 </tr>
               </thead>
               <tbody id="drama-schedule-list"></tbody>
@@ -7167,6 +7242,21 @@ function initDramaScheduleOptions(){
   }
 }
 
+// 지원유무 배지 스타일 (목록에서는 더 이상 사용하지 않지만 상세보기에서 사용)
+function dsApplyStatusStyle(v){
+  const map={
+    '미지원':     {bg:'#EEE', fg:'#777', bd:'#AAA'},
+    '지원예정':   {bg:'#EBF5FB', fg:'#1B5E8A', bd:'#2980B9'},
+    '지원완료':   {bg:'#FFF4D6', fg:'#8B6914', bd:'#C9A030'},
+    '오디션':     {bg:'#FEF3DC', fg:'#7A5400', bd:'#E8A020'},
+    '캐스팅':     {bg:'#27AE60', fg:'#FFFFFF', bd:'#1E8449'},
+    '불합격':     {bg:'#FDECEA', fg:'#A93226', bd:'#E05050'},
+    '보류':       {bg:'#FDF6E3', fg:'#8B6914', bd:'#C9A030'}
+  };
+  const s=map[v]||{bg:'#EEE',fg:'#333',bd:'#999'};
+  return `<span style="display:inline-block;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:800;background:${s.bg};color:${s.fg};border:1.5px solid ${s.bd};white-space:nowrap;">${v||'-'}</span>`;
+}
+
 // ── 편성기간(연도+월) 다중선택 드롭다운 ──────────────────────────
 // "YYYY-MM" 형식 문자열을 값으로 다룬다 (예: "2026-08")
 let _dsPeriodActiveYear = DS_PERIOD_YEARS[1]; // 드롭다운에서 현재 보여주는 연도 탭 (기본 2026)
@@ -7278,14 +7368,11 @@ function dsRemovePeriod(ev, ym){
   renderPeriodDropdownPanel(); // 패널이 열려있다면 체크 상태도 갱신
 }
 
-async function renderDramaScheduleList(){
-  initDramaScheduleOptions();
-  const body=document.getElementById('drama-schedule-list');
-  if(!body)return;
-
+// 검색·필터·정렬이 모두 적용된 drama_schedule row 목록을 반환.
+// renderDramaScheduleList(목록 화면)와 downloadDramaScheduleExcel(엑셀 다운로드)이 동일한 로직을 공유.
+async function getFilteredDramaScheduleRows(){
   let rows=await sb.get('drama_schedule');
 
-  // 검색·필터
   const q=(document.getElementById('ds-search-input')?.value||'').trim().toLowerCase();
   const qCompany=(document.getElementById('ds-search-company')?.value||'').trim().toLowerCase();
   const fBroadcast=document.getElementById('ds-filter-broadcast')?.value||'';
@@ -7297,9 +7384,7 @@ async function renderDramaScheduleList(){
   if(fStatus) rows=rows.filter(r=>r.status===fStatus);
   if(fApplyStatus) rows=rows.filter(r=>r.apply_status===fApplyStatus);
 
-  // 정렬
   const sk=document.getElementById('ds-sort')?.value||'created-desc';
-  // 편성기간 정렬용: row가 가진 "YYYY-MM" 값들 중 가장 빠른 값을 반환 (없으면 맨 뒤로)
   const earliestPeriod=(r)=>{
     const arr = dsGetRowPeriods(r);
     return arr.length ? arr[0] : '9999-99';
@@ -7314,8 +7399,18 @@ async function renderDramaScheduleList(){
     return 0;
   });
 
+  return rows;
+}
+
+async function renderDramaScheduleList(){
+  initDramaScheduleOptions();
+  const body=document.getElementById('drama-schedule-list');
+  if(!body)return;
+
+  const rows = await getFilteredDramaScheduleRows();
+
   if(!rows.length){
-    body.innerHTML='<tr><td colspan="10" class="sc-empty">등록된 편성표가 없습니다 📺</td></tr>';
+    body.innerHTML='<tr><td colspan="9" class="sc-empty">등록된 편성표가 없습니다 📺</td></tr>';
     return;
   }
 
@@ -7331,40 +7426,80 @@ async function renderDramaScheduleList(){
     const s=map[v]||{bg:'#EEE',fg:'#333',bd:'#999'};
     return `<span style="display:inline-block;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:800;background:${s.bg};color:${s.fg};border:1.5px solid ${s.bd};white-space:nowrap;">${v||'-'}</span>`;
   };
-  // 지원유무 배지 스타일
-  const applyStatusStyle=(v)=>{
-    const map={
-      '미지원':     {bg:'#EEE', fg:'#777', bd:'#AAA'},
-      '지원예정':   {bg:'#EBF5FB', fg:'#1B5E8A', bd:'#2980B9'},
-      '지원완료':   {bg:'#FFF4D6', fg:'#8B6914', bd:'#C9A030'},
-      '오디션':     {bg:'#FEF3DC', fg:'#7A5400', bd:'#E8A020'},
-      '캐스팅':     {bg:'#27AE60', fg:'#FFFFFF', bd:'#1E8449'},
-      '불합격':     {bg:'#FDECEA', fg:'#A93226', bd:'#E05050'},
-      '보류':       {bg:'#FDF6E3', fg:'#8B6914', bd:'#C9A030'}
-    };
-    const s=map[v]||{bg:'#EEE',fg:'#333',bd:'#999'};
-    return `<span style="display:inline-block;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:800;background:${s.bg};color:${s.fg};border:1.5px solid ${s.bd};white-space:nowrap;">${v||'-'}</span>`;
-  };
   // 편성기간 표시 — "2026년 8월, 2026년 9월" 형태로 (구버전 데이터도 dsGetRowPeriods가 변환해서 보여줌)
   const periodCell=(r)=>{
     const arr = dsGetRowPeriods(r);
     return formatPeriodList(arr);
   };
+  // 쉼표로 여러 개 적힌 값(제작사·기획·캐스팅담당 등)을 목록에서는 앞 2개만 보여주고 나머지는 "+N개"로 축약.
+  // 전체 내용은 title 속성(마우스 오버 툴팁)으로 그대로 확인 가능.
+  const truncateList=(v)=>{
+    if(!v) return '-';
+    const parts = v.split(',').map(s=>s.trim()).filter(Boolean);
+    if(parts.length<=2) return v;
+    const shown = parts.slice(0,2).join(', ');
+    return `<span title="${v.replace(/"/g,'&quot;')}">${shown} <span style="color:var(--text3);">+${parts.length-2}개</span></span>`;
+  };
 
   body.innerHTML=rows.map(r=>`
     <tr style="cursor:pointer;" onclick="openDramaScheduleDetail('${r.id}')">
-      <td style="white-space:nowrap;">${periodCell(r)}</td>
-      <td>${r.broadcast||'-'}</td>
-      <td>${r.weekday||'-'}</td>
-      <td style="font-weight:700;">${r.title||'-'}</td>
-      <td>${r.planning||'-'}</td>
-      <td>${r.production||'-'}</td>
-      <td>${r.casting_manager||'-'}</td>
-      <td>${statusStyle(r.status)}</td>
-      <td>${applyStatusStyle(r.apply_status)}</td>
-      <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${(r.memo||'').replace(/"/g,'&quot;')}">${r.memo||'-'}</td>
+      <td class="ds-col-period">${periodCell(r)}</td>
+      <td class="ds-col-broadcast">${r.broadcast||'-'}</td>
+      <td class="ds-col-weekday">${r.weekday||'-'}</td>
+      <td class="ds-col-title" style="font-weight:700;">${r.title||'-'}</td>
+      <td class="ds-col-planning">${truncateList(r.planning)}</td>
+      <td class="ds-col-production">${truncateList(r.production)}</td>
+      <td class="ds-col-casting">${truncateList(r.casting_manager)}</td>
+      <td class="ds-col-status">${statusStyle(r.status)}</td>
+      <td class="ds-col-memo" title="${(r.memo||'').replace(/"/g,'&quot;')}">${r.memo||'-'}</td>
     </tr>
   `).join('');
+}
+
+// 현재 화면에 보이는(검색·필터·정렬 적용된) 드라마 편성표를 엑셀(.xlsx) 파일로 다운로드.
+// SheetJS(xlsx.full.min.js)를 사용 — 클라이언트에서 직접 파일을 만들어 다운로드하므로 서버/DB 별도 처리 없음.
+async function downloadDramaScheduleExcel(){
+  if(typeof XLSX === 'undefined'){
+    alert('엑셀 다운로드 기능을 불러오지 못했어요. 인터넷 연결을 확인하고 새로고침 후 다시 시도해주세요.');
+    return;
+  }
+
+  const rows = await getFilteredDramaScheduleRows();
+  if(!rows.length){
+    alert('다운로드할 데이터가 없어요.');
+    return;
+  }
+
+  const sheetData = rows.map(r=>{
+    const periods = dsGetRowPeriods(r);
+    return {
+      '편성기간': periods.map(periodLabel).join(', ') || '-',
+      '송출': r.broadcast || '-',
+      '방영요일': r.weekday || '-',
+      '작품명': r.title || '-',
+      '감/작': r.writer_director || '-',
+      '출연진': r.cast || '-',
+      '기획': r.planning || '-',
+      '제작사': r.production || '-',
+      '캐스팅담당': r.casting_manager || '-',
+      '현재상황': r.status || '-',
+      '지원유무': r.apply_status || '-',
+      '기타': r.memo || ''
+    };
+  });
+
+  const ws = XLSX.utils.json_to_sheet(sheetData);
+  // 컬럼 너비를 보기 좋게 지정 (글자수 기준 대략치)
+  ws['!cols'] = [
+    {wch:16}, {wch:8}, {wch:8}, {wch:22}, {wch:14},
+    {wch:20}, {wch:16}, {wch:24}, {wch:18}, {wch:10}, {wch:10}, {wch:24}
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '드라마편성표');
+
+  const today = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, `드라마편성표_${today}.xlsx`);
 }
 
 function openDramaScheduleNew(){
@@ -7504,7 +7639,7 @@ async function openDramaScheduleDetail(id){
         <div style="margin-top:10px;">🏢 <b>제작사</b><br><span style="color:var(--text2);">${r.production||'-'}</span></div>
         <div style="margin-top:10px;">👤 <b>캐스팅담당</b><br><span style="color:var(--text2);">${r.casting_manager||'-'}</span></div>
         <div style="margin-top:10px;">📌 <b>현재상황</b><br><span style="color:var(--text2);">${r.status||'-'}</span></div>
-        <div style="margin-top:10px;">📝 <b>지원유무</b><br><span style="color:var(--text2);">${r.apply_status||'-'}</span></div>
+        <div style="margin-top:10px;">📝 <b>지원유무</b><br>${dsApplyStatusStyle(r.apply_status)}</div>
         ${r.memo?`<div style="margin-top:10px;">🗒️ <b>기타</b><br><span style="color:var(--text2);white-space:pre-wrap;">${r.memo}</span></div>`:''}
       </div>
       <div class="row" style="gap:10px;">
