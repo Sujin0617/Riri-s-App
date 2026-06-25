@@ -2352,9 +2352,12 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
             <select id="ds-sort" class="sc-sort-select" onchange="renderDramaScheduleList()">
               <option value="created-desc">등록순(최신)</option>
               <option value="created-asc">등록순(오래된)</option>
-              <option value="title-asc">작품명순</option>
+              <option value="title-asc">작품명 ↑ (가나다)</option>
+              <option value="title-desc">작품명 ↓ (가나다)</option>
               <option value="year-desc">연도 ↓</option>
               <option value="year-asc">연도 ↑</option>
+              <option value="month-asc">편성(월) ↑</option>
+              <option value="month-desc">편성(월) ↓</option>
             </select>
 
             <button class="sc-filter-btn" onclick="toggleFiltersPanel('ds-filters', this)">🎚 필터</button>
@@ -2374,9 +2377,8 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
             <label>현재상황</label>
             <select id="ds-filter-status" onchange="renderDramaScheduleList()">
               <option value="">전체</option>
-              <option>기획</option><option>제작준비</option><option>캐스팅중</option>
-              <option>촬영중</option><option>후반작업</option><option>편성확정</option>
-              <option>방영중</option><option>종영</option><option>보류</option><option>취소</option>
+              <option>제작준비</option><option>캐스팅진행중</option><option>촬영진행중</option>
+              <option>촬영종료</option><option>촬영중단</option>
             </select>
             <label>지원유무</label>
             <select id="ds-filter-applystatus" onchange="renderDramaScheduleList()">
@@ -3271,9 +3273,8 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
   <label class="form-label">현재상황</label>
   <select id="ds-status">
     <option value="">선택해주세요</option>
-    <option>기획</option><option>제작준비</option><option>캐스팅중</option>
-    <option>촬영중</option><option>후반작업</option><option>편성확정</option>
-    <option>방영중</option><option>종영</option><option>보류</option><option>취소</option>
+    <option>제작준비</option><option>캐스팅진행중</option><option>촬영진행중</option>
+    <option>촬영종료</option><option>촬영중단</option>
   </select>
 
   <label class="form-label">지원유무</label>
@@ -7249,12 +7250,23 @@ async function renderDramaScheduleList(){
 
   // 정렬
   const sk=document.getElementById('ds-sort')?.value||'created-desc';
+  // 편성(월) 정렬용: row가 가진 월들 중 가장 빠른 월의 인덱스를 반환 (월이 없으면 맨 뒤로)
+  const earliestMonthIdx=(r)=>{
+    let arr=[];
+    try{ arr = Array.isArray(r.program_month) ? r.program_month : JSON.parse(r.program_month||'[]'); }catch(e){ arr=[]; }
+    if(!arr.length) return 999;
+    const idxs = arr.map(m=>DS_MONTHS.indexOf(m)).filter(i=>i>=0);
+    return idxs.length ? Math.min(...idxs) : 999;
+  };
   rows.sort((a,b)=>{
     if(sk==='created-desc') return (b.created_at||'').localeCompare(a.created_at||'');
     if(sk==='created-asc')  return (a.created_at||'').localeCompare(b.created_at||'');
     if(sk==='title-asc')    return (a.title||'').localeCompare(b.title||'','ko');
+    if(sk==='title-desc')   return (b.title||'').localeCompare(a.title||'','ko');
     if(sk==='year-desc')    return (b.year||'').localeCompare(a.year||'');
     if(sk==='year-asc')     return (a.year||'').localeCompare(b.year||'');
+    if(sk==='month-asc')    return earliestMonthIdx(a)-earliestMonthIdx(b);
+    if(sk==='month-desc')   return earliestMonthIdx(b)-earliestMonthIdx(a);
     return 0;
   });
 
@@ -7266,16 +7278,11 @@ async function renderDramaScheduleList(){
   // 현재상황 배지 스타일
   const statusStyle=(v)=>{
     const map={
-      '기획':       {bg:'#EEE', fg:'#555', bd:'#BBB'},
-      '제작준비':   {bg:'#F0EBFB', fg:'#5B3FA0', bd:'#9C7FE0'},
-      '캐스팅중':   {bg:'#FEF3DC', fg:'#7A5400', bd:'#E8A020'},
-      '촬영중':     {bg:'#EAF6F0', fg:'#006a50', bd:'#27AE60'},
-      '후반작업':   {bg:'#EBF5FB', fg:'#1B5E8A', bd:'#2980B9'},
-      '편성확정':   {bg:'#E3F2E1', fg:'#1E7A34', bd:'#3FA85C'},
-      '방영중':     {bg:'#27AE60', fg:'#FFFFFF', bd:'#1E8449'},
-      '종영':       {bg:'#EEE', fg:'#777', bd:'#AAA'},
-      '보류':       {bg:'#FDF6E3', fg:'#8B6914', bd:'#C9A030'},
-      '취소':       {bg:'#FDECEA', fg:'#A93226', bd:'#E05050'}
+      '제작준비':     {bg:'#F0EBFB', fg:'#5B3FA0', bd:'#9C7FE0'},
+      '캐스팅진행중': {bg:'#FEF3DC', fg:'#7A5400', bd:'#E8A020'},
+      '촬영진행중':   {bg:'#EAF6F0', fg:'#006a50', bd:'#27AE60'},
+      '촬영종료':     {bg:'#EEE', fg:'#777', bd:'#AAA'},
+      '촬영중단':     {bg:'#FDECEA', fg:'#A93226', bd:'#E05050'}
     };
     const s=map[v]||{bg:'#EEE',fg:'#333',bd:'#999'};
     return `<span style="display:inline-block;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:800;background:${s.bg};color:${s.fg};border:1.5px solid ${s.bd};white-space:nowrap;">${v||'-'}</span>`;
