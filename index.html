@@ -2399,7 +2399,7 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
               <thead>
                 <tr>
                   <th>편성기간</th><th>송출</th><th>방영요일</th>
-                  <th>작품명</th><th>제작사</th><th>캐스팅담당</th><th>현재상황</th><th>지원유무</th>
+                  <th>작품명</th><th>기획</th><th>제작사</th><th>캐스팅담당</th><th>현재상황</th><th>지원유무</th><th>기타</th>
                 </tr>
               </thead>
               <tbody id="drama-schedule-list"></tbody>
@@ -3271,6 +3271,7 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
   <label class="form-label">작품명 *</label><input id="ds-title" placeholder="작품명">
   <label class="form-label">감/작</label><input id="ds-writer-director" placeholder="감독/작가">
   <label class="form-label">출연진</label><textarea id="ds-cast" placeholder="주요 출연진"></textarea>
+  <label class="form-label">기획</label><input id="ds-planning" placeholder="기획사/기획단체">
   <label class="form-label">제작사</label><input id="ds-production" placeholder="제작사">
   <label class="form-label">캐스팅담당</label><input id="ds-casting-manager" placeholder="캐스팅 담당자">
 
@@ -7176,6 +7177,32 @@ function periodLabel(ym){ // "2026-08" → "2026년 8월"
 }
 function periodSortKey(ym){ return ym; } // "YYYY-MM" 문자열은 그대로 비교해도 시간순 정렬됨
 
+// 편성기간 배열을 화면 표시용으로 압축. 같은 연도 내 "연속된 월"은 범위로 묶음.
+// 예: ["2026-06","2026-07"] → "2026년 6~7월"
+//     ["2026-08","2026-09","2027-01"] → "2026년 8~9월, 2027년 1월"
+//     ["2026-06","2026-09"] → "2026년 6월, 2026년 9월" (연속이 아니므로 따로 표시)
+function formatPeriodList(arr){
+  if(!arr || !arr.length) return '-';
+  const sorted = [...arr].sort();
+
+  const groups = []; // [{year, months:[6,7,...]}]
+  sorted.forEach(ym=>{
+    const [y,m] = ym.split('-');
+    const mi = parseInt(m,10);
+    const last = groups[groups.length-1];
+    if(last && last.year===y && mi===last.months[last.months.length-1]+1){
+      last.months.push(mi);
+    } else {
+      groups.push({year:y, months:[mi]});
+    }
+  });
+
+  return groups.map(g=>{
+    if(g.months.length===1) return `${g.year}년 ${g.months[0]}월`;
+    return `${g.year}년 ${g.months[0]}~${g.months[g.months.length-1]}월`;
+  }).join(', ');
+}
+
 function togglePeriodDropdown(ev){
   if(ev) ev.stopPropagation();
   const dd = document.getElementById('ds-period-dropdown');
@@ -7288,7 +7315,7 @@ async function renderDramaScheduleList(){
   });
 
   if(!rows.length){
-    body.innerHTML='<tr><td colspan="8" class="sc-empty">등록된 편성표가 없습니다 📺</td></tr>';
+    body.innerHTML='<tr><td colspan="10" class="sc-empty">등록된 편성표가 없습니다 📺</td></tr>';
     return;
   }
 
@@ -7321,8 +7348,7 @@ async function renderDramaScheduleList(){
   // 편성기간 표시 — "2026년 8월, 2026년 9월" 형태로 (구버전 데이터도 dsGetRowPeriods가 변환해서 보여줌)
   const periodCell=(r)=>{
     const arr = dsGetRowPeriods(r);
-    if(!arr.length) return '<span style="color:var(--text3);">-</span>';
-    return arr.map(periodLabel).join(', ');
+    return formatPeriodList(arr);
   };
 
   body.innerHTML=rows.map(r=>`
@@ -7331,17 +7357,19 @@ async function renderDramaScheduleList(){
       <td>${r.broadcast||'-'}</td>
       <td>${r.weekday||'-'}</td>
       <td style="font-weight:700;">${r.title||'-'}</td>
+      <td>${r.planning||'-'}</td>
       <td>${r.production||'-'}</td>
       <td>${r.casting_manager||'-'}</td>
       <td>${statusStyle(r.status)}</td>
       <td>${applyStatusStyle(r.apply_status)}</td>
+      <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${(r.memo||'').replace(/"/g,'&quot;')}">${r.memo||'-'}</td>
     </tr>
   `).join('');
 }
 
 function openDramaScheduleNew(){
   initDramaScheduleOptions();
-  ['ds-title','ds-writer-director','ds-cast','ds-production','ds-casting-manager','ds-memo','ds-edit-id'].forEach(f=>{
+  ['ds-title','ds-writer-director','ds-cast','ds-planning','ds-production','ds-casting-manager','ds-memo','ds-edit-id'].forEach(f=>{
     const el=document.getElementById(f); if(el) el.value='';
   });
   const brSel=document.getElementById('ds-broadcast'); if(brSel) brSel.value='';
@@ -7375,6 +7403,7 @@ async function saveDramaSchedule(){
     title,
     writer_director:(document.getElementById('ds-writer-director')?.value||'').trim(),
     cast:(document.getElementById('ds-cast')?.value||'').trim(),
+    planning:(document.getElementById('ds-planning')?.value||'').trim(),
     production:(document.getElementById('ds-production')?.value||'').trim(),
     casting_manager:(document.getElementById('ds-casting-manager')?.value||'').trim(),
     status:document.getElementById('ds-status')?.value||'',
@@ -7414,6 +7443,7 @@ async function editDramaSchedule(id){
   document.getElementById('ds-title').value=r.title||'';
   document.getElementById('ds-writer-director').value=r.writer_director||'';
   document.getElementById('ds-cast').value=r.cast||'';
+  document.getElementById('ds-planning').value=r.planning||'';
   document.getElementById('ds-production').value=r.production||'';
   document.getElementById('ds-casting-manager').value=r.casting_manager||'';
   const statusSel=document.getElementById('ds-status'); if(statusSel) statusSel.value=r.status||'';
@@ -7459,7 +7489,7 @@ async function openDramaScheduleDetail(id){
   if(!body)return;
 
   const periods = dsGetRowPeriods(r);
-  const periodText = periods.length ? periods.map(periodLabel).join(', ') : '-';
+  const periodText = formatPeriodList(periods);
 
   body.innerHTML=`
     <div style="display:flex;flex-direction:column;gap:14px;">
@@ -7470,6 +7500,7 @@ async function openDramaScheduleDetail(id){
         <div style="margin-top:10px;">📋 <b>작품명</b><br><span style="color:var(--text2);font-weight:700;">${r.title||'-'}</span></div>
         <div style="margin-top:10px;">✍️ <b>감/작</b><br><span style="color:var(--text2);">${r.writer_director||'-'}</span></div>
         <div style="margin-top:10px;">🎭 <b>출연진</b><br><span style="color:var(--text2);white-space:pre-wrap;">${r.cast||'-'}</span></div>
+        <div style="margin-top:10px;">🎯 <b>기획</b><br><span style="color:var(--text2);">${r.planning||'-'}</span></div>
         <div style="margin-top:10px;">🏢 <b>제작사</b><br><span style="color:var(--text2);">${r.production||'-'}</span></div>
         <div style="margin-top:10px;">👤 <b>캐스팅담당</b><br><span style="color:var(--text2);">${r.casting_manager||'-'}</span></div>
         <div style="margin-top:10px;">📌 <b>현재상황</b><br><span style="color:var(--text2);">${r.status||'-'}</span></div>
