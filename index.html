@@ -1683,6 +1683,22 @@ display:block;
 .multi-date-add input[type=date]{flex:1;font-family:inherit;font-size:13px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;outline:none;}
 .multi-date-add input[type=date]:focus{border-color:var(--p2);}
 .multi-date-add button{padding:7px 14px;background:var(--p2);color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}
+/* 월 다중선택(체크박스 드롭다운) — 드라마 편성표 "편성" 항목용 */
+.ms-dropdown{position:relative;}
+.ms-dropdown-trigger{width:100%;box-sizing:border-box;text-align:left;padding:11px 12px;border:1.5px solid var(--border);border-radius:12px;font-family:inherit;font-size:14px;background:var(--white);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.ms-dropdown-trigger .ms-arrow{font-size:11px;color:var(--text3);transition:transform .15s;flex-shrink:0;}
+.ms-dropdown.open .ms-dropdown-trigger .ms-arrow{transform:rotate(180deg);}
+.ms-dropdown-trigger .ms-placeholder{color:var(--text3);}
+.ms-dropdown-panel{display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:50;background:#fff;border:1.5px solid var(--border);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.12);padding:8px;max-height:260px;overflow-y:auto;}
+.ms-dropdown.open .ms-dropdown-panel{display:block;}
+.ms-option{display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:8px;cursor:pointer;font-size:13px;}
+.ms-option:hover{background:var(--bg);}
+.ms-option input[type=checkbox]{width:16px;height:16px;flex-shrink:0;accent-color:var(--p2);cursor:pointer;}
+.ms-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;min-height:0;}
+.ms-tags:empty{margin-top:0;}
+.ms-tag{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;background:var(--p-light);color:var(--p1);border-radius:999px;font-size:12px;font-weight:700;}
+.ms-tag button{background:none;border:none;cursor:pointer;color:var(--p1);font-size:13px;line-height:1;padding:0 0 0 2px;}
+.ms-tag button:hover{color:var(--coral);}
 .dash-cal-legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:11px;color:var(--text2);}
 .dash-cal-legend span{display:flex;align-items:center;gap:4px;}
 .dash-cal-legend .lg-dot{width:7px;height:7px;border-radius:50%;}
@@ -1860,6 +1876,7 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
       <button class="am-btn" onclick="switchAct('casting',this)"><div class="am-ico">📇</div><div class="am-lbl">캐스팅연락처</div></button>
       <button class="am-btn" onclick="switchAct('note',this)"><div class="am-ico">📝</div><div class="am-lbl">연기노트</div></button>
       <button class="am-btn" onclick="switchAct('monologue',this)"><div class="am-ico">📚</div><div class="am-lbl">자료보관소</div></button>
+      <button class="am-btn" onclick="switchAct('drama_schedule',this)"><div class="am-ico">📺</div><div class="am-lbl">드라마 편성표</div></button>
     </div>
     <div class="acting-content">
       <!-- 현황 대시보드 -->
@@ -2317,6 +2334,67 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
               <tbody id="monologue-list">
                 <tr><td colspan="4" class="sc-empty">자료보관소가 비어있습니다 📚</td></tr>
               </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 드라마 편성표 패널 -->
+      <div class="at-panel" id="ap-drama_schedule">
+        <div class="sc-wrap">
+          <div class="sc-top">
+            <div class="sc-top-title">📺 드라마 편성표</div>
+            <div class="sc-search-box">
+              <span style="color:var(--text3);font-size:14px;">🔍</span>
+              <input id="ds-search-input" placeholder="작품명 검색" oninput="renderDramaScheduleList()">
+            </div>
+
+            <select id="ds-sort" class="sc-sort-select" onchange="renderDramaScheduleList()">
+              <option value="created-desc">등록순(최신)</option>
+              <option value="created-asc">등록순(오래된)</option>
+              <option value="title-asc">작품명순</option>
+              <option value="year-desc">연도 ↓</option>
+              <option value="year-asc">연도 ↑</option>
+            </select>
+
+            <button class="sc-filter-btn" onclick="toggleFiltersPanel('ds-filters', this)">🎚 필터</button>
+
+            <button class="btn btn-p btn-sm" onclick="openDramaScheduleNew()">+ 추가</button>
+          </div>
+
+          <!-- 토글 필터 -->
+          <div id="ds-filters" class="sc-filters-panel">
+            <label>제작사 검색</label>
+            <input id="ds-search-company" placeholder="제작사명" oninput="renderDramaScheduleList()">
+            <label>송출</label>
+            <select id="ds-filter-broadcast" onchange="renderDramaScheduleList()">
+              <option value="">전체</option>
+              <!-- DS_BROADCASTS 배열로 JS에서 동적으로 채움 -->
+            </select>
+            <label>현재상황</label>
+            <select id="ds-filter-status" onchange="renderDramaScheduleList()">
+              <option value="">전체</option>
+              <option>기획</option><option>제작준비</option><option>캐스팅중</option>
+              <option>촬영중</option><option>후반작업</option><option>편성확정</option>
+              <option>방영중</option><option>종영</option><option>보류</option><option>취소</option>
+            </select>
+            <label>지원유무</label>
+            <select id="ds-filter-applystatus" onchange="renderDramaScheduleList()">
+              <option value="">전체</option>
+              <option>미지원</option><option>지원예정</option><option>지원완료</option>
+              <option>오디션</option><option>캐스팅</option><option>불합격</option><option>보류</option>
+            </select>
+          </div>
+
+          <div class="sc-outer">
+            <table class="sc-tbl">
+              <thead>
+                <tr>
+                  <th>년도</th><th>송출</th><th>편성</th><th>방영요일</th>
+                  <th>작품명</th><th>제작사</th><th>현재상황</th><th>지원유무</th>
+                </tr>
+              </thead>
+              <tbody id="drama-schedule-list"></tbody>
             </table>
           </div>
         </div>
@@ -3151,6 +3229,65 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
   <div class="row" style="gap:10px;margin-top:18px;"><button class="btn btn-outline" style="flex:1;" onclick="closeModal('m-schedule')">취소</button><button class="btn btn-p" style="flex:2;" onclick="saveSchedule()">저장</button></div>
 </div></div>
 
+<!-- ══ 드라마 편성표 입력 모달 ══ -->
+<div class="modal-overlay" id="m-drama-schedule"><div class="modal-box">
+  <div class="modal-handle"></div><div class="modal-title" id="m-drama-schedule-title">📺 드라마 편성표 추가</div>
+  <input type="hidden" id="ds-edit-id" value="">
+
+  <label class="form-label">년도 *</label>
+  <select id="ds-year">
+    <!-- DS_YEARS 배열로 JS에서 동적 채움 -->
+  </select>
+
+  <label class="form-label">송출 *</label>
+  <select id="ds-broadcast">
+    <!-- DS_BROADCASTS 배열로 JS에서 동적 채움 -->
+  </select>
+
+  <label class="form-label">편성 (월 · 복수 선택 가능) *</label>
+  <div class="ms-dropdown" id="ds-month-dropdown">
+    <button type="button" class="ms-dropdown-trigger" onclick="toggleMonthDropdown(event)">
+      <span id="ds-month-trigger-label" class="ms-placeholder">월을 선택해주세요</span>
+      <span class="ms-arrow">▾</span>
+    </button>
+    <div class="ms-dropdown-panel" id="ds-month-panel"></div>
+  </div>
+  <div class="ms-tags" id="ds-month-tags"></div>
+  <input type="hidden" id="ds-month-value" value="[]">
+
+  <label class="form-label">방영요일 *</label>
+  <select id="ds-weekday">
+    <option value="">선택해주세요</option>
+    <option>월화</option><option>수목</option><option>금토</option><option>토일</option>
+    <option>일일</option><option>주말</option><option>월~금</option><option>기타</option>
+  </select>
+
+  <label class="form-label">작품명 *</label><input id="ds-title" placeholder="작품명">
+  <label class="form-label">작/감</label><input id="ds-writer-director" placeholder="작가/감독">
+  <label class="form-label">출연진</label><textarea id="ds-cast" placeholder="주요 출연진"></textarea>
+  <label class="form-label">제작사</label><input id="ds-production" placeholder="제작사">
+  <label class="form-label">캐스팅담당</label><input id="ds-casting-manager" placeholder="캐스팅 담당자">
+
+  <label class="form-label">현재상황</label>
+  <select id="ds-status">
+    <option value="">선택해주세요</option>
+    <option>기획</option><option>제작준비</option><option>캐스팅중</option>
+    <option>촬영중</option><option>후반작업</option><option>편성확정</option>
+    <option>방영중</option><option>종영</option><option>보류</option><option>취소</option>
+  </select>
+
+  <label class="form-label">지원유무</label>
+  <select id="ds-apply-status">
+    <option value="">선택해주세요</option>
+    <option>미지원</option><option>지원예정</option><option>지원완료</option>
+    <option>오디션</option><option>캐스팅</option><option>불합격</option><option>보류</option>
+  </select>
+
+  <label class="form-label">기타</label><textarea id="ds-memo" placeholder="기타 메모"></textarea>
+
+  <div class="row" style="gap:10px;margin-top:18px;"><button class="btn btn-outline" style="flex:1;" onclick="closeModal('m-drama-schedule')">취소</button><button class="btn btn-p" style="flex:2;" onclick="saveDramaSchedule()">저장</button></div>
+</div></div>
+
 <div class="modal-overlay" id="m-note"><div class="modal-box">
   <div class="modal-handle"></div><div class="modal-title">📝 연기노트</div>
   <label class="form-label">종류</label><select id="nt-type"><option>연기연습</option><option>관찰노트</option><option>연기팁</option></select>
@@ -3571,6 +3708,16 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
     <div style="font-size:17px;font-weight:800;margin-bottom:16px;">🎬 촬영기록 상세</div>
     <div id="schedule-detail-body"></div>
     <button class="btn btn-outline" style="width:100%;margin-top:14px;" onclick="closeModal('m-schedule-detail')">닫기</button>
+  </div>
+</div>
+
+<!-- 드라마 편성표 상세 모달 -->
+<div class="modal-overlay" id="m-drama-schedule-detail">
+  <div class="modal-box" style="max-width:520px;border-radius:24px;">
+    <div class="modal-handle"></div>
+    <div style="font-size:17px;font-weight:800;margin-bottom:16px;">📺 드라마 편성표 상세</div>
+    <div id="drama-schedule-detail-body"></div>
+    <button class="btn btn-outline" style="width:100%;margin-top:14px;" onclick="closeModal('m-drama-schedule-detail')">닫기</button>
   </div>
 </div>
 
@@ -4178,7 +4325,7 @@ function switchAct(tab,el){
   renderActTab(tab);
 }
 function renderActTab(tab){
-  const m={dashboard:renderDashboard,watch:renderWatchList,apply:renderApplyList,listup:renderListupList,audition:renderAuditionList,schedule:renderScheduleList,appearance:renderAppearanceList,casting:renderCastingList,note:renderNoteList,monologue:renderMonologueList};
+  const m={dashboard:renderDashboard,watch:renderWatchList,apply:renderApplyList,listup:renderListupList,audition:renderAuditionList,schedule:renderScheduleList,appearance:renderAppearanceList,casting:renderCastingList,note:renderNoteList,monologue:renderMonologueList,drama_schedule:renderDramaScheduleList};
   if(m[tab])m[tab]();
 }
 
@@ -6908,6 +7055,316 @@ async function openScheduleDetail(id){
       </div>
     </div>`;
   openModal('m-schedule-detail');
+}
+
+// ════════════════════════════════════════════════════════════════
+// ── 드라마 편성표 ─────────────────────────────────────────────
+// 기존 촬영기록(schedule)과 동일한 CRUD 패턴(sb.get/insert/update/delete)을 그대로 따름.
+// "편성"(방영 월)만 다중선택이라 JSON 배열로 저장하고, 나머지는 평탄한 컬럼.
+// ════════════════════════════════════════════════════════════════
+
+// 년도·송출 옵션은 배열로 관리 → 추후 손쉽게 추가/변경 가능
+const DS_YEARS = ['2026','2027','2028','2029','2030'];
+const DS_BROADCASTS = ['SBS','KBS1','KBS2','MBC','JTBC','tvN','ENA','채널A','TVING','Wavve','Netflix','Disney+','쿠팡플레이','U+모바일TV','Watcha'];
+const DS_MONTHS = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+
+// select(년도/송출) 옵션을 DS_YEARS/DS_BROADCASTS 배열로부터 채움 — 입력모달 + 필터 select 둘 다
+function initDramaScheduleOptions(){
+  const yearSel = document.getElementById('ds-year');
+  if(yearSel && !yearSel.dataset._inited){
+    yearSel.innerHTML = DS_YEARS.map(y=>`<option value="${y}" ${y==='2026'?'selected':''}>${y}</option>`).join('');
+    yearSel.dataset._inited = '1';
+  }
+  const brSel = document.getElementById('ds-broadcast');
+  if(brSel && !brSel.dataset._inited){
+    brSel.innerHTML = '<option value="">선택해주세요</option>' + DS_BROADCASTS.map(b=>`<option value="${b}">${b}</option>`).join('');
+    brSel.dataset._inited = '1';
+  }
+  const filterBrSel = document.getElementById('ds-filter-broadcast');
+  if(filterBrSel && !filterBrSel.dataset._inited){
+    filterBrSel.innerHTML = '<option value="">전체</option>' + DS_BROADCASTS.map(b=>`<option value="${b}">${b}</option>`).join('');
+    filterBrSel.dataset._inited = '1';
+  }
+}
+
+// ── 편성(월) 다중선택 드롭다운 ──────────────────────────────────
+function toggleMonthDropdown(ev){
+  if(ev) ev.stopPropagation();
+  const dd = document.getElementById('ds-month-dropdown');
+  if(!dd) return;
+  const willOpen = !dd.classList.contains('open');
+  dd.classList.toggle('open', willOpen);
+  if(willOpen) renderMonthDropdownPanel();
+}
+// 드롭다운 바깥을 클릭하면 닫기
+document.addEventListener('click', (ev)=>{
+  const dd = document.getElementById('ds-month-dropdown');
+  if(dd && dd.classList.contains('open') && !dd.contains(ev.target)){
+    dd.classList.remove('open');
+  }
+});
+
+function _dsGetSelectedMonths(){
+  try {
+    const v = JSON.parse(document.getElementById('ds-month-value')?.value || '[]');
+    return Array.isArray(v) ? v : [];
+  } catch(e){ return []; }
+}
+function _dsSetSelectedMonths(arr){
+  const hidden = document.getElementById('ds-month-value');
+  if(hidden) hidden.value = JSON.stringify(arr);
+  // 트리거 라벨 갱신
+  const label = document.getElementById('ds-month-trigger-label');
+  if(label){
+    if(arr.length){ label.textContent = arr.join(', '); label.classList.remove('ms-placeholder'); }
+    else { label.textContent = '월을 선택해주세요'; label.classList.add('ms-placeholder'); }
+  }
+  // 태그 갱신
+  const tags = document.getElementById('ds-month-tags');
+  if(tags){
+    tags.innerHTML = arr.map(m=>`<span class="ms-tag">${m}<button type="button" onclick="dsRemoveMonth(event,'${m}')">✕</button></span>`).join('');
+  }
+}
+function renderMonthDropdownPanel(){
+  const panel = document.getElementById('ds-month-panel');
+  if(!panel) return;
+  const selected = _dsGetSelectedMonths();
+  panel.innerHTML = DS_MONTHS.map(m=>`
+    <label class="ms-option">
+      <input type="checkbox" value="${m}" ${selected.includes(m)?'checked':''} onchange="dsToggleMonth('${m}', this.checked)">
+      <span>${m}</span>
+    </label>
+  `).join('');
+}
+function dsToggleMonth(month, checked){
+  let arr = _dsGetSelectedMonths();
+  if(checked){ if(!arr.includes(month)) arr.push(month); }
+  else { arr = arr.filter(m=>m!==month); }
+  // 월 순서대로 정렬해서 보여주기 (1월~12월 순)
+  arr.sort((a,b)=>DS_MONTHS.indexOf(a)-DS_MONTHS.indexOf(b));
+  _dsSetSelectedMonths(arr);
+}
+function dsRemoveMonth(ev, month){
+  if(ev) ev.stopPropagation();
+  const arr = _dsGetSelectedMonths().filter(m=>m!==month);
+  _dsSetSelectedMonths(arr);
+  renderMonthDropdownPanel(); // 패널이 열려있다면 체크 상태도 갱신
+}
+
+async function renderDramaScheduleList(){
+  initDramaScheduleOptions();
+  const body=document.getElementById('drama-schedule-list');
+  if(!body)return;
+
+  let rows=await sb.get('drama_schedule');
+
+  // 검색·필터
+  const q=(document.getElementById('ds-search-input')?.value||'').trim().toLowerCase();
+  const qCompany=(document.getElementById('ds-search-company')?.value||'').trim().toLowerCase();
+  const fBroadcast=document.getElementById('ds-filter-broadcast')?.value||'';
+  const fStatus=document.getElementById('ds-filter-status')?.value||'';
+  const fApplyStatus=document.getElementById('ds-filter-applystatus')?.value||'';
+  if(q) rows=rows.filter(r=>(r.title||'').toLowerCase().includes(q));
+  if(qCompany) rows=rows.filter(r=>(r.production||'').toLowerCase().includes(qCompany));
+  if(fBroadcast) rows=rows.filter(r=>r.broadcast===fBroadcast);
+  if(fStatus) rows=rows.filter(r=>r.status===fStatus);
+  if(fApplyStatus) rows=rows.filter(r=>r.apply_status===fApplyStatus);
+
+  // 정렬
+  const sk=document.getElementById('ds-sort')?.value||'created-desc';
+  rows.sort((a,b)=>{
+    if(sk==='created-desc') return (b.created_at||'').localeCompare(a.created_at||'');
+    if(sk==='created-asc')  return (a.created_at||'').localeCompare(b.created_at||'');
+    if(sk==='title-asc')    return (a.title||'').localeCompare(b.title||'','ko');
+    if(sk==='year-desc')    return (b.year||'').localeCompare(a.year||'');
+    if(sk==='year-asc')     return (a.year||'').localeCompare(b.year||'');
+    return 0;
+  });
+
+  if(!rows.length){
+    body.innerHTML='<tr><td colspan="8" class="sc-empty">등록된 편성표가 없습니다 📺</td></tr>';
+    return;
+  }
+
+  // 현재상황 배지 스타일
+  const statusStyle=(v)=>{
+    const map={
+      '기획':       {bg:'#EEE', fg:'#555', bd:'#BBB'},
+      '제작준비':   {bg:'#F0EBFB', fg:'#5B3FA0', bd:'#9C7FE0'},
+      '캐스팅중':   {bg:'#FEF3DC', fg:'#7A5400', bd:'#E8A020'},
+      '촬영중':     {bg:'#EAF6F0', fg:'#006a50', bd:'#27AE60'},
+      '후반작업':   {bg:'#EBF5FB', fg:'#1B5E8A', bd:'#2980B9'},
+      '편성확정':   {bg:'#E3F2E1', fg:'#1E7A34', bd:'#3FA85C'},
+      '방영중':     {bg:'#27AE60', fg:'#FFFFFF', bd:'#1E8449'},
+      '종영':       {bg:'#EEE', fg:'#777', bd:'#AAA'},
+      '보류':       {bg:'#FDF6E3', fg:'#8B6914', bd:'#C9A030'},
+      '취소':       {bg:'#FDECEA', fg:'#A93226', bd:'#E05050'}
+    };
+    const s=map[v]||{bg:'#EEE',fg:'#333',bd:'#999'};
+    return `<span style="display:inline-block;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:800;background:${s.bg};color:${s.fg};border:1.5px solid ${s.bd};white-space:nowrap;">${v||'-'}</span>`;
+  };
+  // 지원유무 배지 스타일
+  const applyStatusStyle=(v)=>{
+    const map={
+      '미지원':     {bg:'#EEE', fg:'#777', bd:'#AAA'},
+      '지원예정':   {bg:'#EBF5FB', fg:'#1B5E8A', bd:'#2980B9'},
+      '지원완료':   {bg:'#FFF4D6', fg:'#8B6914', bd:'#C9A030'},
+      '오디션':     {bg:'#FEF3DC', fg:'#7A5400', bd:'#E8A020'},
+      '캐스팅':     {bg:'#27AE60', fg:'#FFFFFF', bd:'#1E8449'},
+      '불합격':     {bg:'#FDECEA', fg:'#A93226', bd:'#E05050'},
+      '보류':       {bg:'#FDF6E3', fg:'#8B6914', bd:'#C9A030'}
+    };
+    const s=map[v]||{bg:'#EEE',fg:'#333',bd:'#999'};
+    return `<span style="display:inline-block;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:800;background:${s.bg};color:${s.fg};border:1.5px solid ${s.bd};white-space:nowrap;">${v||'-'}</span>`;
+  };
+  // 편성(월 배열) 표시
+  const monthsCell=(v)=>{
+    let arr=[];
+    try{ arr = Array.isArray(v) ? v : JSON.parse(v||'[]'); }catch(e){ arr=[]; }
+    if(!arr.length) return '<span style="color:var(--text3);">-</span>';
+    return arr.join(', ');
+  };
+
+  body.innerHTML=rows.map(r=>`
+    <tr style="cursor:pointer;" onclick="openDramaScheduleDetail('${r.id}')">
+      <td style="font-weight:600;">${r.year||'-'}</td>
+      <td>${r.broadcast||'-'}</td>
+      <td style="white-space:nowrap;">${monthsCell(r.program_month)}</td>
+      <td>${r.weekday||'-'}</td>
+      <td style="font-weight:700;">${r.title||'-'}</td>
+      <td>${r.production||'-'}</td>
+      <td>${statusStyle(r.status)}</td>
+      <td>${applyStatusStyle(r.apply_status)}</td>
+    </tr>
+  `).join('');
+}
+
+function openDramaScheduleNew(){
+  initDramaScheduleOptions();
+  ['ds-title','ds-writer-director','ds-cast','ds-production','ds-casting-manager','ds-memo','ds-edit-id'].forEach(f=>{
+    const el=document.getElementById(f); if(el) el.value='';
+  });
+  const yearSel=document.getElementById('ds-year'); if(yearSel) yearSel.value='2026';
+  const brSel=document.getElementById('ds-broadcast'); if(brSel) brSel.value='';
+  const weekdaySel=document.getElementById('ds-weekday'); if(weekdaySel) weekdaySel.value='';
+  const statusSel=document.getElementById('ds-status'); if(statusSel) statusSel.value='';
+  const applyStatusSel=document.getElementById('ds-apply-status'); if(applyStatusSel) applyStatusSel.value='';
+  _dsSetSelectedMonths([]);
+  const dd=document.getElementById('ds-month-dropdown'); if(dd) dd.classList.remove('open');
+
+  const t=document.getElementById('m-drama-schedule-title'); if(t) t.textContent='📺 드라마 편성표 추가';
+  openModal('m-drama-schedule');
+}
+
+async function saveDramaSchedule(){
+  const title=(document.getElementById('ds-title')?.value||'').trim();
+  if(!title){ alert('작품명을 입력해주세요'); return; }
+  const broadcast=document.getElementById('ds-broadcast')?.value||'';
+  if(!broadcast){ alert('송출을 선택해주세요'); return; }
+  const weekday=document.getElementById('ds-weekday')?.value||'';
+  if(!weekday){ alert('방영요일을 선택해주세요'); return; }
+  const programMonth=_dsGetSelectedMonths();
+  if(!programMonth.length){ alert('편성(월)을 1개 이상 선택해주세요'); return; }
+
+  const editId=(document.getElementById('ds-edit-id')?.value||'').trim();
+
+  const data={
+    year:document.getElementById('ds-year')?.value||'2026',
+    broadcast,
+    program_month:programMonth, // JSON 배열 그대로 (예: ["7월","8월"])
+    weekday,
+    title,
+    writer_director:(document.getElementById('ds-writer-director')?.value||'').trim(),
+    cast:(document.getElementById('ds-cast')?.value||'').trim(),
+    production:(document.getElementById('ds-production')?.value||'').trim(),
+    casting_manager:(document.getElementById('ds-casting-manager')?.value||'').trim(),
+    status:document.getElementById('ds-status')?.value||'',
+    apply_status:document.getElementById('ds-apply-status')?.value||'',
+    memo:(document.getElementById('ds-memo')?.value||'').trim()
+  };
+
+  let ok;
+  if(editId){
+    ok=await sb.update('drama_schedule',editId,data);
+  }else{
+    data.id=uid();
+    data.created_at=new Date().toISOString();
+    ok=await sb.insert('drama_schedule',data);
+  }
+  if(!ok)return;
+
+  closeModal('m-drama-schedule');
+  renderDramaScheduleList();
+}
+
+async function delDramaSchedule(id){
+  if(!confirm('이 편성표 항목을 삭제할까요?'))return;
+  await sb.delete('drama_schedule',id);
+  renderDramaScheduleList();
+}
+
+async function editDramaSchedule(id){
+  const rows=await sb.get('drama_schedule','&id=eq.'+id);
+  if(!rows.length)return;
+  const r=rows[0];
+  initDramaScheduleOptions();
+
+  document.getElementById('ds-edit-id').value=r.id;
+  const yearSel=document.getElementById('ds-year'); if(yearSel) yearSel.value=r.year||'2026';
+  const brSel=document.getElementById('ds-broadcast'); if(brSel) brSel.value=r.broadcast||'';
+  const weekdaySel=document.getElementById('ds-weekday'); if(weekdaySel) weekdaySel.value=r.weekday||'';
+  document.getElementById('ds-title').value=r.title||'';
+  document.getElementById('ds-writer-director').value=r.writer_director||'';
+  document.getElementById('ds-cast').value=r.cast||'';
+  document.getElementById('ds-production').value=r.production||'';
+  document.getElementById('ds-casting-manager').value=r.casting_manager||'';
+  const statusSel=document.getElementById('ds-status'); if(statusSel) statusSel.value=r.status||'';
+  const applyStatusSel=document.getElementById('ds-apply-status'); if(applyStatusSel) applyStatusSel.value=r.apply_status||'';
+  document.getElementById('ds-memo').value=r.memo||'';
+
+  // 편성(월) 배열 복원
+  let months=[];
+  try{ months = Array.isArray(r.program_month) ? r.program_month : JSON.parse(r.program_month||'[]'); }catch(e){ months=[]; }
+  _dsSetSelectedMonths(months);
+  const dd=document.getElementById('ds-month-dropdown'); if(dd) dd.classList.remove('open');
+
+  const t=document.getElementById('m-drama-schedule-title'); if(t) t.textContent='✏️ 드라마 편성표 수정';
+  closeModal('m-drama-schedule-detail');
+  openModal('m-drama-schedule');
+}
+
+async function openDramaScheduleDetail(id){
+  const rows=await sb.get('drama_schedule','&id=eq.'+id);
+  if(!rows.length)return;
+  const r=rows[0];
+  const body=document.getElementById('drama-schedule-detail-body');
+  if(!body)return;
+
+  let months=[];
+  try{ months = Array.isArray(r.program_month) ? r.program_month : JSON.parse(r.program_month||'[]'); }catch(e){ months=[]; }
+
+  body.innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div style="background:var(--bg);padding:16px;border-radius:16px;font-size:14px;line-height:2.1;">
+        <div>📅 <b>년도</b><br><span style="color:var(--text2);font-weight:700;">${r.year||'-'}</span></div>
+        <div style="margin-top:10px;">📡 <b>송출</b><br><span style="color:var(--text2);">${r.broadcast||'-'}</span></div>
+        <div style="margin-top:10px;">🗓️ <b>편성</b><br><span style="color:var(--text2);">${months.length?months.join(', '):'-'}</span></div>
+        <div style="margin-top:10px;">📆 <b>방영요일</b><br><span style="color:var(--text2);">${r.weekday||'-'}</span></div>
+        <div style="margin-top:10px;">📋 <b>작품명</b><br><span style="color:var(--text2);font-weight:700;">${r.title||'-'}</span></div>
+        <div style="margin-top:10px;">✍️ <b>작/감</b><br><span style="color:var(--text2);">${r.writer_director||'-'}</span></div>
+        <div style="margin-top:10px;">🎭 <b>출연진</b><br><span style="color:var(--text2);white-space:pre-wrap;">${r.cast||'-'}</span></div>
+        <div style="margin-top:10px;">🏢 <b>제작사</b><br><span style="color:var(--text2);">${r.production||'-'}</span></div>
+        <div style="margin-top:10px;">👤 <b>캐스팅담당</b><br><span style="color:var(--text2);">${r.casting_manager||'-'}</span></div>
+        <div style="margin-top:10px;">📌 <b>현재상황</b><br><span style="color:var(--text2);">${r.status||'-'}</span></div>
+        <div style="margin-top:10px;">📝 <b>지원유무</b><br><span style="color:var(--text2);">${r.apply_status||'-'}</span></div>
+        ${r.memo?`<div style="margin-top:10px;">🗒️ <b>기타</b><br><span style="color:var(--text2);white-space:pre-wrap;">${r.memo}</span></div>`:''}
+      </div>
+      <div class="row" style="gap:10px;">
+        <button style="flex:1;padding:13px;border-radius:14px;border:1.5px solid var(--p2);color:var(--p2);background:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;" onclick="editDramaSchedule('${r.id}')">✏️ 수정</button>
+        <button style="flex:1;padding:13px;border-radius:14px;border:1.5px solid #ffb7b7;color:#d33;background:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;" onclick="delDramaSchedule('${r.id}');closeModal('m-drama-schedule-detail');">🗑️ 삭제</button>
+      </div>
+    </div>`;
+  openModal('m-drama-schedule-detail');
 }
 
 // ── 출연기록 ─────────────────────────────────────
