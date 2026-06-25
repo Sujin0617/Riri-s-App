@@ -2391,7 +2391,7 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
               <thead>
                 <tr>
                   <th>년도</th><th>송출</th><th>편성</th><th>방영요일</th>
-                  <th>작품명</th><th>제작사</th><th>현재상황</th><th>지원유무</th>
+                  <th>작품명</th><th>제작사</th><th>캐스팅담당</th><th>현재상황</th><th>지원유무</th>
                 </tr>
               </thead>
               <tbody id="drama-schedule-list"></tbody>
@@ -7259,7 +7259,7 @@ async function renderDramaScheduleList(){
   });
 
   if(!rows.length){
-    body.innerHTML='<tr><td colspan="8" class="sc-empty">등록된 편성표가 없습니다 📺</td></tr>';
+    body.innerHTML='<tr><td colspan="9" class="sc-empty">등록된 편성표가 없습니다 📺</td></tr>';
     return;
   }
 
@@ -7310,6 +7310,7 @@ async function renderDramaScheduleList(){
       <td>${r.weekday||'-'}</td>
       <td style="font-weight:700;">${r.title||'-'}</td>
       <td>${r.production||'-'}</td>
+      <td>${r.casting_manager||'-'}</td>
       <td>${statusStyle(r.status)}</td>
       <td>${applyStatusStyle(r.apply_status)}</td>
     </tr>
