@@ -5522,6 +5522,24 @@ function _fillRoleFields(role){
 // ════════════════════════════════════════════════════════════════
 let _applyReviewState = null; // { parsed, rawText, rawHtml, srcUrl }
 
+// 필름메이커스 원본 분류(apply_category) → 기존 앱 분류(category) 추천 매핑
+// category 컬럼의 의미·옵션은 그대로 유지하고, 이 매핑은 "추천값"만 미리 선택해주는 용도.
+// 사용자가 select에서 언제든 자유롭게 바꿀 수 있음 (강제 아님).
+const APPLY_CATEGORY_TO_CATEGORY_HINT = {
+  '단편영화': '단편영화',
+  '장편영화': '상업영화',
+  'OTT·TV 시리즈': '상업드라마',
+  'OTT/TV 시리즈': '상업드라마',
+  '웹드라마·숏폼': '웹드라마',
+  '웹드라마/숏폼': '웹드라마',
+  '연극·뮤지컬': '',
+  '연극/뮤지컬': '',
+  '모델·출연자': '',
+  '모델/출연자': '',
+  '배우 알바': '',
+  '기타': ''
+};
+
 function renderApplyReview(parsed, ctx){
   _applyReviewState = { parsed, rawText: ctx.rawText||'', rawHtml: ctx.rawHtml||'', srcUrl: ctx.srcUrl||'' };
   const body = document.getElementById('apply-review-body');
@@ -5539,6 +5557,9 @@ function renderApplyReview(parsed, ctx){
   const labelStyle = 'font-size:11px;font-weight:700;color:var(--text3);margin-bottom:3px;display:block;';
   const rowInput = (id, val, ph) => `<input id="${id}" value="${esc(val)}" placeholder="${ph||''}" style="width:100%;box-sizing:border-box;font-size:13px;padding:7px 9px;border:1px solid var(--border);border-radius:8px;font-family:inherit;margin-bottom:8px;">`;
 
+  // category 추천값: AI가 추출한 apply_category를 보고 기존 체계 중 가까운 값을 미리 선택
+  const recommendedCategory = b.category || APPLY_CATEGORY_TO_CATEGORY_HINT[b.apply_category||''] || '';
+
   let html = '';
 
   // ── 기본정보 카드
@@ -5554,36 +5575,28 @@ function renderApplyReview(parsed, ctx){
     <span style="${labelStyle}">마감일</span>${rowInput('rv-deadline', b.deadline, '모집마감일')}
     <span style="${labelStyle}">지원방법(요약)</span>${rowInput('rv-applymethod', b.apply_method, '지원방법 한 줄 요약')}
     <span style="${labelStyle}">장르</span>${rowInput('rv-genre', b.genre, '장르')}
-    <span style="${labelStyle}">촬영 분류</span>
+    <span style="${labelStyle}">공고 URL</span>${rowInput('rv-url', ctx.srcUrl, 'https://...')}
+    <span style="${labelStyle}">공고 분류 (필름메이커스 원본)</span>
+    <input type="hidden" id="rv-apply-category" value="${esc(b.apply_category||'기타')}">
+    <div style="display:inline-block;padding:5px 12px;border-radius:999px;font-size:12px;font-weight:800;background:var(--p-light);color:var(--p1);border:1.5px solid var(--p3);margin-bottom:8px;">${esc(b.apply_category||'기타')}</div>
+    <span style="${labelStyle}">촬영 분류 <span style="font-weight:400;color:var(--text3);">(공고 분류를 참고해 추천했어요 · 자유롭게 수정 가능)</span></span>
     <select id="rv-category" style="width:100%;padding:8px 9px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;margin-bottom:4px;">
       <option value="">-- 선택 --</option>
-      ${['상업드라마','웹드라마','숏폼드라마','독립영화','단편영화','상업영화','광고영상','홍보영상','지면촬영','뮤직비디오'].map(c=>`<option value="${c}" ${b.category===c?'selected':''}>${c}</option>`).join('')}
+      ${['상업드라마','웹드라마','숏폼드라마','독립영화','단편영화','상업영화','광고영상','홍보영상','지면촬영','뮤직비디오'].map(c=>`<option value="${c}" ${recommendedCategory===c?'selected':''}>${c}</option>`).join('')}
     </select>
   </div>`;
 
-  // ── 역할목록 카드 (다중 선택 체크박스)
+  // ── 역할목록 카드 (Select 드롭다운 — 단일 선택, 선택 시 해당 role 전체를 아래 필드에 자동 입력)
   if(roles.length){
     html += `<div style="${cardStyle}">
-      <div style="font-size:13px;font-weight:800;color:var(--p1);margin-bottom:10px;">🎭 역할목록 <span style="font-size:11px;color:var(--text3);font-weight:400;">(지원할 역할을 선택하세요 · 복수 선택 가능)</span></div>
-      <div id="rv-roles-list">
-      ${roles.map((r,i)=>{
-        const descParts=[];
-        if(r.gender) descParts.push('성별: '+r.gender);
-        if(r.age) descParts.push('연령: '+r.age);
-        if(r.nationality) descParts.push('국적: '+r.nationality);
-        if(r.headcount) descParts.push('인원: '+r.headcount);
-        if(r.pay) descParts.push('페이: '+r.pay);
-        if(r.schedule) descParts.push('일정: '+r.schedule);
-        if(r.description) descParts.push(r.description);
-        return `<label style="display:flex;align-items:flex-start;gap:8px;padding:9px;border:1.5px solid var(--border);border-radius:10px;margin-bottom:7px;cursor:pointer;background:var(--white);">
-          <input type="checkbox" class="rv-role-check" data-idx="${i}" style="margin-top:3px;flex-shrink:0;">
-          <span style="flex:1;">
-            <span style="font-weight:700;font-size:13px;">${esc(r.name)}${r.gender?' ('+esc(r.gender)+')':''}</span>
-            <div style="font-size:12px;color:var(--text2);white-space:pre-wrap;margin-top:3px;">${esc(descParts.join(' · '))}</div>
-          </span>
-        </label>`;
-      }).join('')}
-      </div>
+      <div style="font-size:13px;font-weight:800;color:var(--p1);margin-bottom:10px;">🎭 지원 역할</div>
+      <select id="rv-role-select" onchange="applyReviewRoleSelect()" style="width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;margin-bottom:10px;">
+        <option value="">-- 역할을 선택해주세요 --</option>
+        ${roles.map((r,i)=>`<option value="${i}">${esc(r.name)}</option>`).join('')}
+      </select>
+      <span style="${labelStyle}">역할명</span>${rowInput('rv-role-name', '', '선택 시 자동 입력')}
+      <span style="${labelStyle}">역할 설명 (성별·연령·국적·인원·페이·일정 포함)</span>
+      <textarea id="rv-role-desc" style="width:100%;box-sizing:border-box;min-height:90px;font-size:13px;padding:8px 9px;border:1px solid var(--border);border-radius:8px;font-family:inherit;resize:vertical;margin-bottom:4px;" placeholder="역할을 선택하면 자동으로 채워져요"></textarea>
     </div>`;
   }
 
@@ -5640,6 +5653,31 @@ function renderApplyReview(parsed, ctx){
   openModal('m-apply-review');
 }
 
+// 역할 드롭다운에서 하나를 선택하면 해당 role 객체 전체(성별·연령·국적·인원·페이·일정·설명)를
+// 역할명/역할설명 필드에 자동으로 채워준다. roles[] 전체가 아니라 "선택한 role 하나만" 저장 대상이 됨.
+function applyReviewRoleSelect(){
+  const sel = document.getElementById('rv-role-select');
+  const nameEl = document.getElementById('rv-role-name');
+  const descEl = document.getElementById('rv-role-desc');
+  if(!sel || !nameEl || !descEl) return;
+  if(sel.value===''){ nameEl.value=''; descEl.value=''; return; }
+
+  const roles = Array.isArray(_applyReviewState?.parsed?.roles) ? _applyReviewState.parsed.roles.filter(r=>r&&r.name) : [];
+  const role = roles[parseInt(sel.value, 10)];
+  if(!role) return;
+
+  nameEl.value = role.name || '';
+  const dp = [];
+  if(role.gender) dp.push('성별: '+role.gender);
+  if(role.age) dp.push('연령: '+role.age);
+  if(role.nationality) dp.push('국적: '+role.nationality);
+  if(role.headcount) dp.push('인원: '+role.headcount);
+  if(role.pay) dp.push('페이: '+role.pay);
+  if(role.schedule) dp.push('일정: '+role.schedule);
+  if(role.description) dp.push(role.description);
+  descEl.value = dp.join('\n');
+}
+
 // 리뷰 화면의 입력값을 모아서 실제 저장 (apply 테이블 insert) — saveApply의 AI-분석 경로
 async function confirmApplyReview(){
   if(!_applyReviewState) return;
@@ -5647,26 +5685,14 @@ async function confirmApplyReview(){
   if(!title) return alert('작품명을 입력해주세요');
   const applyDate = document.getElementById('rv-adate')?.value || todayKR();
 
-  // 선택된 역할들 모으기 → selected_roles 배열 (공고 1개 = row 1개 원칙)
-  const roleChecks = document.querySelectorAll('.rv-role-check');
+  // 역할은 드롭다운에서 선택한 "하나"만 저장 (roles[] 전체를 들고 있지 않음)
+  // rv-role-name/rv-role-desc는 applyReviewRoleSelect()가 선택 시 자동으로 채워준 값을 그대로 사용 —
+  // 사용자가 직접 다시 수정했을 수도 있으니 input의 현재 값을 신뢰한다.
   const parsed = _applyReviewState.parsed;
   const rolesSrc = Array.isArray(parsed.roles) ? parsed.roles.filter(r=>r&&r.name) : [];
-  const selectedRoles = [];
-  const selectedRoleDescs = [];
-  roleChecks.forEach(chk=>{
-    if(chk.checked){
-      const idx = parseInt(chk.dataset.idx, 10);
-      const r = rolesSrc[idx];
-      if(r){
-        selectedRoles.push(r.name);
-        const dp=[];
-        if(r.gender) dp.push('성별: '+r.gender);
-        if(r.age) dp.push('연령: '+r.age);
-        if(r.description) dp.push(r.description);
-        selectedRoleDescs.push(`[${r.name}] `+dp.join(' · '));
-      }
-    }
-  });
+  const selectedRoleName = (document.getElementById('rv-role-name')?.value||'').trim();
+  const selectedRoleDesc = (document.getElementById('rv-role-desc')?.value||'').trim();
+  const selectedRoles = selectedRoleName ? [selectedRoleName] : [];
 
   // 섹션 textarea들 다시 모아서 ai_json.sections 최신화 (사용자가 리뷰 화면에서 수정한 내용 반영)
   const sectionEls = document.querySelectorAll('[id^="rv-section-"]');
@@ -5675,15 +5701,19 @@ async function confirmApplyReview(){
   })).filter(s=>s.content);
 
   const categorySel = document.getElementById('rv-category')?.value || '';
+  const applyCategory = (document.getElementById('rv-apply-category')?.value||'').trim() || '기타';
   const sourceVal = document.getElementById('rv-source')?.value || '';
   const sourceCustom = sourceVal === 'etc' ? '' : sourceVal; // 리뷰 화면엔 직접입력 없음(기타 그대로 코드값 사용)
+  const urlVal = (document.getElementById('rv-url')?.value||'').trim();
 
   // synopsis(작품소개) 섹션을 기존 ap-syn(본문 내용) 컬럼 호환용으로 합쳐서 저장
   const synopsisSection = updatedSections.find(s=>s.key==='synopsis');
   const otherSectionsText = updatedSections.filter(s=>s.key!=='synopsis')
     .map(s=>`[${s.label}]\n${s.content}`).join('\n\n');
 
-  // 최종 ai_json — basic은 리뷰 화면에서 수정된 값으로 갱신, roles/contact/meta는 원본 보존 + sections는 최신화
+  // 최종 ai_json — basic은 리뷰 화면에서 수정된 값으로 갱신, roles는 원본 전체 보존(참고용) + sections는 최신화
+  // ※ roles 배열 자체는 ai_json에 참고용으로 남기되, apply 테이블의 role/role_desc/selected_roles는
+  //   사용자가 선택한 역할 하나만 반영한다 (요청사항: "roles[] 전체를 저장하는 것이 아니라 선택한 role만 저장").
   const finalAiJson = {
     basic: {
       title,
@@ -5696,9 +5726,11 @@ async function confirmApplyReview(){
       deadline: (document.getElementById('rv-deadline')?.value||'').trim(),
       apply_method: (document.getElementById('rv-applymethod')?.value||'').trim(),
       genre: (document.getElementById('rv-genre')?.value||'').trim(),
-      category: categorySel
+      category: categorySel,
+      apply_category: applyCategory
     },
-    roles: rolesSrc,
+    selected_role: selectedRoleName ? { name: selectedRoleName, description: selectedRoleDesc } : null,
+    roles: rolesSrc, // 참고용 원본 보존 (재분석/재선택 대비) — apply 평탄화 컬럼에는 영향 없음
     sections: updatedSections,
     contact: {
       manager: (document.getElementById('rv-manager')?.value||'').trim(),
@@ -5719,6 +5751,7 @@ async function confirmApplyReview(){
   const data = {
     apply_date: applyDate,
     category: categorySel,
+    apply_category: applyCategory,
     title,
     company: finalAiJson.basic.company,
     broadcast: finalAiJson.basic.platform_or_media || '',
@@ -5726,10 +5759,10 @@ async function confirmApplyReview(){
     shoot_date: null, // 리뷰 단계에서는 자유 텍스트(shoot_date_text)만 다루므로 정형 날짜 컬럼은 비워둠 (필요시 수정화면에서 보정)
     shoot_date_memo: finalAiJson.basic.shoot_date_text || '',
     director: finalAiJson.basic.director,
-    role: selectedRoles.join(', '),
-    role_desc: selectedRoleDescs.join('\n\n'),
+    role: selectedRoleName,
+    role_desc: selectedRoleDesc,
     pay: payNum,
-    url: _applyReviewState.srcUrl || '',
+    url: urlVal,
     source: sourceCustom,
     result: document.getElementById('rv-result')?.value || '지원',
     synopsis: (synopsisSection ? synopsisSection.content : '') + (otherSectionsText ? (synopsisSection?'\n\n':'') + otherSectionsText : ''),
@@ -5937,6 +5970,7 @@ async function analyzeWithClaude(raw, btn, errEl, okEl, srcUrl, isHtml){
 - 게시글 형식이 달라도(라벨:값 구조형이든 자유 서술형이든) 유연하게 읽어. 사이트마다 항목 이름이 달라도(예: "작품소개" vs "프로젝트 소개" vs "시놉시스") 의미가 비슷하면 같은 section key로 합쳐.
 - 역할(배역)이 여러 개면 전부 roles 배열에 담아. 절대 하나만 고르지 마.
 - sections는 실제로 본문에 내용이 있는 항목만 담아. 없는 섹션은 만들지 마.
+- 필름메이커스 공고는 제목 바로 위에 "단편영화", "장편영화", "OTT/TV 시리즈", "웹드라마/숏폼", "연극/뮤지컬", "모델/출연자", "배우 알바" 같은 분류 라벨이 항상 표시돼. 이 라벨을 찾으면 그대로 apply_category에 넣어. 라벨이 없거나 애매하면 "기타"로 넣어. 이건 절대 추측하지 말고, 텍스트에 실제로 보이는 라벨만 사용해.
 
 [출력 형식 — 반드시 아래 JSON만 출력. 다른 말 절대 금지. 코드블록 표시(\`\`\`)도 금지]
 {
@@ -5951,7 +5985,8 @@ async function analyzeWithClaude(raw, btn, errEl, okEl, srcUrl, isHtml){
     "apply_method": "지원방법 핵심만 한 줄 요약 (상세 내용은 sections의 apply_info에. 없으면 빈 문자열)",
     "genre": "장르 (없으면 빈 문자열)",
     "platform_or_media": "방영처/플랫폼/매체 (예: 'Netflix', 'OCN', '00극단'. 없으면 빈 문자열)",
-    "category": "다음 중 가장 가까운 하나 또는 빈 문자열: 상업드라마/웹드라마/숏폼드라마/독립영화/단편영화/상업영화/광고영상/홍보영상/지면촬영/뮤직비디오"
+    "category": "다음 중 가장 가까운 하나 또는 빈 문자열: 상업드라마/웹드라마/숏폼드라마/독립영화/단편영화/상업영화/광고영상/홍보영상/지면촬영/뮤직비디오",
+    "apply_category": "공고 제목 바로 위에 표시된 분류 라벨을 그대로. 다음 중 하나: 단편영화/장편영화/OTT·TV 시리즈/웹드라마·숏폼/연극·뮤지컬/모델·출연자/배우 알바/기타 — 라벨이 텍스트에 명시적으로 없으면 '기타'"
   },
   "roles": [
     {
@@ -6056,7 +6091,7 @@ function legacyInfoToUniversalSchema(info, srcUrl){
       title: info.title||'', director: info.director||'', company: info.company||'',
       shoot_region: '', shoot_date_text: info.shoot_date||info.shoot_range||'',
       pay_text: info.pay ? String(info.pay) : '', deadline: '', apply_method: '',
-      genre: '', platform_or_media: '', category: info.category||''
+      genre: '', platform_or_media: '', category: info.category||'', apply_category: '기타'
     },
     roles: info.role ? [{ name: info.role, gender:'', age:'', nationality:'', headcount:'', pay: info.pay?String(info.pay):'', schedule:'', description: info.role_desc||'' }] : [],
     sections,
@@ -6219,7 +6254,7 @@ function renderApplyDetailFilmmakers(r, body){
     : '';
 
   const urlLine=r.url
-    ? `<div style="margin-top:6px;">🔗 <a href="${r.url.replace(/"/g,'&quot;')}" target="_blank" rel="noopener" style="color:var(--p2);text-decoration:underline;word-break:break-all;font-size:13px;">${r.url}</a></div>`
+    ? `<div style="margin-top:8px;"><a href="${r.url.replace(/"/g,'&quot;')}" target="_blank" rel="noopener" style="display:inline-block;padding:6px 14px;border-radius:999px;background:var(--p2);color:#1a1a1a;font-weight:700;font-size:12px;text-decoration:none;">🔗 공고 다시 보기</a></div>`
     : '';
 
   let html = `<div style="display:flex;flex-direction:column;gap:10px;">`;
@@ -6237,6 +6272,7 @@ function renderApplyDetailFilmmakers(r, body){
       <div>💰 페이: ${esc(b.pay_text) || payDisplay(r.pay) || '-'}</div>
       ${b.deadline?`<div>⏰ 마감일: ${esc(b.deadline)}</div>`:''}
       ${b.apply_method?`<div>📮 지원방법: ${esc(b.apply_method)}</div>`:''}
+      ${r.apply_category?`<div>🏷️ 공고 분류(원본): ${esc(r.apply_category)}</div>`:''}
       ${r.category?`<div>🎞️ 촬영분류: ${esc(r.category)}</div>`:''}
       ${r.source?`<div>📌 공고페이지: ${sourceLabel(r.source)}</div>`:''}
       ${urlLine}
