@@ -1946,7 +1946,7 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
 
 <button class="sc-filter-btn" onclick="toggleFiltersPanel('apply-filters', this)">🎚 필터</button>
 
-<button class="btn btn-p btn-sm" onclick="openApplyEntry()">+ 추가</button>
+<button class="btn btn-p btn-sm" onclick="openApplyNew()">+ 추가</button>
 </div>
 
 <!-- 토글되는 필터 패널 -->
@@ -2918,13 +2918,26 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
 </div></div>
 
 <div class="modal-overlay" id="m-apply"><div class="modal-box">
-  <div class="modal-handle"></div><div class="modal-title" id="m-apply-title">📋 지원기록 (직접 입력)</div>
+  <div class="modal-handle"></div><div class="modal-title" id="m-apply-title">📋 지원기록</div>
   <input type="hidden" id="ap-edit-id" value="">
-  <input type="hidden" id="ap-record-type" value="general">
 
-  <div style="background:var(--bg);border-radius:12px;padding:10px 12px;margin-bottom:16px;font-size:12px;color:var(--text2);">
-    💡 필름메이커스 공고라면 <a href="javascript:void(0)" onclick="closeModal('m-apply');openApplyEntry();" style="color:var(--p2);font-weight:700;text-decoration:underline;">AI 자동분석으로 전환</a>하면 거의 입력 없이 저장할 수 있어요.
+<!-- 필름메이커스 자동기입 -->
+<div style="background:var(--p-light);border:1.5px solid var(--p3);border-radius:14px;padding:14px 14px 12px;margin-bottom:18px;">
+  <div style="font-size:12px;font-weight:800;color:var(--p1);margin-bottom:8px;">🎬 필름메이커스 공고 자동기입 (Claude AI 분석)</div>
+  <div style="display:flex;gap:7px;align-items:center;">
+    <input id="ap-filmmakers-url" placeholder="https://www.filmmakers.co.kr/actorCasting/..." style="flex:1;font-size:12px;padding:8px 10px;border-radius:9px;border:1px solid var(--border);" oninput="document.getElementById('ap-fetch-err').style.display='none'">
+    <button onclick="fetchFilmmakersInfo()" id="ap-fetch-btn" style="background:var(--p2);border:none;border-radius:9px;padding:8px 13px;font-family:inherit;font-size:12px;font-weight:700;color:#1a1a1a;cursor:pointer;white-space:nowrap;flex-shrink:0;">불러오기</button>
   </div>
+  <div id="ap-fetch-err" style="display:none;font-size:11px;color:var(--coral);margin-top:6px;"></div>
+  <div id="ap-fetch-ok" style="display:none;font-size:11px;color:var(--green);font-weight:700;margin-top:6px;">✅ 자동기입 완료! 내용을 확인 후 저장해주세요.</div>
+
+  <!-- 붙여넣기 fallback -->
+  <div id="ap-paste-zone" style="margin-top:10px;border-top:1px dashed var(--p3);padding-top:10px;">
+    <div style="font-size:11px;color:var(--p1);font-weight:700;margin-bottom:6px;">⌨️ 안 불러와지면 — 공고 페이지 글 전체를 복사해서 붙여넣으세요</div>
+    <textarea id="ap-paste-text" placeholder="필름메이커스 공고 페이지에서 Ctrl+A → Ctrl+C 한 내용을 여기 붙여넣고 아래 버튼을 누르세요." style="width:100%;box-sizing:border-box;min-height:70px;font-size:12px;padding:8px 10px;border-radius:9px;border:1px solid var(--border);font-family:inherit;resize:vertical;"></textarea>
+    <button onclick="parsePastedInfo()" id="ap-paste-btn" style="margin-top:7px;width:100%;background:var(--p3);border:none;border-radius:9px;padding:9px;font-family:inherit;font-size:12px;font-weight:700;color:#1a1a1a;cursor:pointer;">✨ Claude로 분석해서 자동입력</button>
+  </div>
+</div>
 
 <label class="form-label">지원일자 *</label>
 <input id="ap-adate" type="date">
@@ -2967,7 +2980,7 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
   <input type="hidden" id="ap-sdate">
   <label class="form-label">촬영 회차</label><input id="ap-ep" placeholder="예) 1~3회차">
   <label class="form-label">페이</label><input id="ap-pay" placeholder="예) 50000" inputmode="numeric" oninput="formatPay(this)">
-  <label class="form-label">본문 내용</label><textarea id="ap-syn" placeholder="공고 본문 내용 (직접 입력)" style="min-height:120px;"></textarea>
+  <label class="form-label">본문 내용</label><textarea id="ap-syn" placeholder="공고 본문 내용 (자동으로 채워짐)" style="min-height:120px;"></textarea>
   <div id="ap-role-select-wrap" style="display:none;margin-bottom:10px;">
     <label class="form-label">🎭 공고에서 발견된 역할 (선택하면 자동 입력)</label>
     <select id="ap-role-select" onchange="applyRoleSelection()">
@@ -2982,19 +2995,14 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
   <div style="display:flex;flex-direction:column;gap:6px;">
     <select id="ap-source" onchange="toggleApSourceCustom()" style="width:100%;padding:11px 12px;border:1.5px solid var(--border);border-radius:12px;font-family:inherit;font-size:14px;background:var(--white);color:var(--text);">
       <option value="">-- 선택 --</option>
-      <option value="filmmakers">필름메이커스</option>
+      <option value="필메">필메</option>
       <option value="캐스트링크">캐스트링크</option>
       <option value="리플레이">리플레이</option>
       <option value="피플앤아트">피플앤아트</option>
-      <option value="instagram">인스타그램</option>
-      <option value="threads">쓰레드</option>
-      <option value="kakao">카카오톡</option>
-      <option value="openchat">오픈채팅</option>
-      <option value="sms">문자(SMS)</option>
-      <option value="email">이메일</option>
-      <option value="agency">소속사/에이전시</option>
-      <option value="manual">직접 등록</option>
-      <option value="etc">그외 (직접입력)</option>
+      <option value="인스타">인스타</option>
+      <option value="쓰레드">쓰레드</option>
+      <option value="이메일">이메일</option>
+      <option value="기타">그외 (직접입력)</option>
     </select>
     <input id="ap-source-custom" placeholder="직접 입력" style="display:none;">
   </div>
@@ -3497,50 +3505,6 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
     <div style="font-size:17px;font-weight:800;margin-bottom:16px;">📋 지원기록 상세</div>
     <div id="apply-detail-body"></div>
     <button class="btn btn-outline" style="width:100%;margin-top:14px;" onclick="closeModal('m-apply-detail')">닫기</button>
-  </div>
-</div>
-
-<!-- ══ 지원기록 진입 선택 모달 — 어떤 방식으로 등록할지 먼저 선택 ══ -->
-<div class="modal-overlay" id="m-apply-entry">
-  <div class="modal-box" style="max-width:480px;border-radius:24px;">
-    <div class="modal-handle"></div>
-    <div style="font-size:17px;font-weight:800;margin-bottom:6px;">📋 지원기록 추가</div>
-    <div style="font-size:13px;color:var(--text2);margin-bottom:18px;">어떤 방식으로 등록할까요?</div>
-
-    <div style="background:var(--p-light);border:1.5px solid var(--p3);border-radius:16px;padding:16px;margin-bottom:14px;">
-      <div style="font-size:13px;font-weight:800;color:var(--p1);margin-bottom:4px;">🎬 필름메이커스 (AI 자동분석)</div>
-      <div style="font-size:12px;color:var(--text2);margin-bottom:10px;">URL만 넣으면 AI가 정보를 추출해서 보여줘요. 확인 후 거의 그대로 저장하면 끝!</div>
-      <div style="display:flex;gap:7px;align-items:center;margin-bottom:8px;">
-        <input id="ap-filmmakers-url" placeholder="https://www.filmmakers.co.kr/actorCasting/..." style="flex:1;font-size:12px;padding:9px 10px;border-radius:9px;border:1px solid var(--border);" oninput="document.getElementById('ap-fetch-err').style.display='none'">
-        <button onclick="fetchFilmmakersInfo()" id="ap-fetch-btn" style="background:var(--p2);border:none;border-radius:9px;padding:9px 13px;font-family:inherit;font-size:12px;font-weight:700;color:#1a1a1a;cursor:pointer;white-space:nowrap;flex-shrink:0;">불러오기</button>
-      </div>
-      <div id="ap-fetch-err" style="display:none;font-size:11px;color:var(--coral);margin-top:4px;"></div>
-
-      <div id="ap-paste-zone" style="margin-top:10px;border-top:1px dashed var(--p3);padding-top:10px;">
-        <div style="font-size:11px;color:var(--p1);font-weight:700;margin-bottom:6px;">⌨️ 자동으로 안 불러와지면 — 공고 페이지 글 전체를 복사해서 붙여넣으세요</div>
-        <textarea id="ap-paste-text" placeholder="공고 페이지에서 Ctrl+A → Ctrl+C 한 내용을 여기 붙여넣으세요. (필름메이커스 외 다른 공고 텍스트도 OK)" style="width:100%;box-sizing:border-box;min-height:70px;font-size:12px;padding:8px 10px;border-radius:9px;border:1px solid var(--border);font-family:inherit;resize:vertical;"></textarea>
-        <button onclick="parsePastedInfo()" id="ap-paste-btn" style="margin-top:7px;width:100%;background:var(--p3);border:none;border-radius:9px;padding:9px;font-family:inherit;font-size:12px;font-weight:700;color:#1a1a1a;cursor:pointer;">✨ AI로 분석해서 확인화면 보기</button>
-      </div>
-    </div>
-
-    <div style="text-align:center;margin:10px 0;font-size:11px;color:var(--text3);">또는</div>
-
-    <button class="btn btn-outline" style="width:100%;margin-bottom:10px;" onclick="closeModal('m-apply-entry');openApplyManual();">✏️ 직접 입력 (인스타·카톡·문자 등 일반 공고)</button>
-    <button class="btn btn-outline" style="width:100%;" onclick="closeModal('m-apply-entry')">취소</button>
-  </div>
-</div>
-
-<!-- ══ AI 추출 결과 확인 모달 (카드형 리뷰 화면) ══ -->
-<div class="modal-overlay" id="m-apply-review">
-  <div class="modal-box" style="max-width:560px;border-radius:24px;">
-    <div class="modal-handle"></div>
-    <div style="font-size:17px;font-weight:800;margin-bottom:4px;">🔍 AI 추출 결과 확인</div>
-    <div style="font-size:12px;color:var(--text2);margin-bottom:14px;">내용을 확인하고 필요하면 수정한 뒤 저장하세요.</div>
-    <div id="apply-review-body"></div>
-    <div class="row" style="gap:10px;margin-top:18px;">
-      <button class="btn btn-outline" style="flex:1;" onclick="closeModal('m-apply-review')">취소</button>
-      <button class="btn btn-p" style="flex:2;" onclick="confirmApplyReview()">✅ 이대로 저장</button>
-    </div>
   </div>
 </div>
 
@@ -4956,7 +4920,7 @@ function toggleApSourceCustom(){
   const sel=document.getElementById('ap-source');
   const cus=document.getElementById('ap-source-custom');
   if(!sel||!cus)return;
-  if(sel.value==='etc'){
+  if(sel.value==='기타'){
     cus.style.display='block';
     cus.focus();
   } else {
@@ -4964,21 +4928,6 @@ function toggleApSourceCustom(){
     cus.value='';
   }
 }
-
-// source 코드값 ↔ 한글 라벨 매핑 (목록/상세보기 표시용)
-// 기존에 저장된 자유텍스트 값(예: '필메','인스타' 등)도 그대로 표시되도록 fallback 유지
-const SOURCE_LABELS = {
-  filmmakers:'필름메이커스', instagram:'인스타그램', threads:'쓰레드',
-  kakao:'카카오톡', openchat:'오픈채팅', sms:'문자(SMS)', email:'이메일',
-  agency:'소속사/에이전시', manual:'직접 등록', etc:'기타',
-  // 과거 자유텍스트 호환
-  '필메':'필름메이커스', '인스타':'인스타그램', '쓰레드':'쓰레드'
-};
-function sourceLabel(v){
-  if(!v) return '';
-  return SOURCE_LABELS[v] || v; // 매핑에 없으면 저장된 원본 값 그대로
-}
-
 
 async function saveApply(){
   const title=(document.getElementById('ap-title')?.value||'').trim();
@@ -4988,11 +4937,6 @@ async function saveApply(){
   const catEl=document.getElementById('shoot-category');
   const category=catEl?.value==='custom'?(document.getElementById('shoot-category-custom')?.value||''):(catEl?.value||'');
   const editId=(document.getElementById('ap-edit-id')?.value||'').trim();
-
-  // 지원 역할(이름만) 입력칸은 쉼표로 여러 역할을 적을 수 있게 허용 → selected_roles 배열로도 같이 저장
-  // (일반 입력 폼은 체크박스가 없으니 텍스트를 ,/、 기준으로 분리해서 배열화)
-  const roleText = (document.getElementById('ap-role')?.value||'').trim();
-  const selectedRoles = roleText ? roleText.split(/[,，、]/).map(s=>s.trim()).filter(Boolean) : [];
 
   const data={
     apply_date:applyDate,
@@ -5004,20 +4948,17 @@ async function saveApply(){
     shoot_date:document.getElementById('ap-sdate')?.value||null,
     shoot_date_memo:(document.getElementById('ap-sdate-memo')?.value||'').trim(),
     director:(document.getElementById('ap-dir')?.value||'').trim(),
-    role:roleText,
+    role:(document.getElementById('ap-role')?.value||'').trim(),
     pay:payNumber(document.getElementById('ap-pay')?.value||''),
     url:(document.getElementById('ap-url')?.value||'').trim(),
-    source:(document.getElementById('ap-source')?.value==='etc'?(document.getElementById('ap-source-custom')?.value||'').trim():document.getElementById('ap-source')?.value||''),
+    source:(document.getElementById('ap-source')?.value==='기타'?(document.getElementById('ap-source-custom')?.value||'').trim():document.getElementById('ap-source')?.value||''),
     result:document.getElementById('ap-result')?.value||'지원',
     synopsis:(document.getElementById('ap-syn')?.value||'').trim(),
     role_desc:(document.getElementById('ap-role-desc')?.value||'').trim(),
     memo:(document.getElementById('ap-memo')?.value||'').trim(),
     manager:(document.getElementById('ap-mgr')?.value||'').trim(),
-    email:(document.getElementById('ap-email')?.value||'').trim(),
-    selected_roles:selectedRoles
+    email:(document.getElementById('ap-email')?.value||'').trim()
   };
-  // record_type은 신규 작성일 때만 'general'로 지정 (수정 시에는 기존 row의 타입을 그대로 유지하기 위해 건드리지 않음)
-  if(!editId) data.record_type='general';
 
   let ok;
   if(editId){
@@ -5038,7 +4979,7 @@ async function saveApply(){
   if(document.getElementById('shoot-category'))document.getElementById('shoot-category').value='';
   if(document.getElementById('shoot-category-custom')){document.getElementById('shoot-category-custom').value='';document.getElementById('shoot-category-custom').style.display='none';}
   if(document.getElementById('ap-result'))document.getElementById('ap-result').value='지원';
-  if(document.getElementById('m-apply-title'))document.getElementById('m-apply-title').textContent='📋 지원기록 (직접 입력)';
+  if(document.getElementById('m-apply-title'))document.getElementById('m-apply-title').textContent='📋 지원기록';
   closeModal('m-apply');
   renderApplyList();
 }
@@ -5049,8 +4990,7 @@ async function editApply(id){
   if(!rows.length)return;
   const r=rows[0];
   document.getElementById('ap-edit-id').value=r.id;
-  if(document.getElementById('ap-record-type'))document.getElementById('ap-record-type').value=r.record_type||'general';
-  document.getElementById('m-apply-title').textContent = (r.record_type==='filmmakers') ? '✏️ 지원기록 수정 (AI 분석본)' : '✏️ 지원기록 수정';
+  document.getElementById('m-apply-title').textContent='✏️ 지원기록 수정';
 
   // 카테고리 셀렉트 처리
   const catSel=document.getElementById('shoot-category');
@@ -5082,51 +5022,40 @@ async function editApply(id){
   if(document.getElementById('ap-memo'))document.getElementById('ap-memo').value=r.memo||'';
   document.getElementById('ap-url').value=r.url||'';
   {
-    const presets=['filmmakers','캐스트링크','리플레이','피플앤아트','instagram','threads','kakao','openchat','sms','email','agency','manual'];
+    const presets=['필메','캐스트링크','리플레이','피플앤아트','인스타','쓰레드','이메일'];
     const srcSel=document.getElementById('ap-source');
     const srcCus=document.getElementById('ap-source-custom');
     if(srcSel && srcCus){
       if(!r.source){ srcSel.value=''; srcCus.value=''; srcCus.style.display='none'; }
       else if(presets.includes(r.source)){ srcSel.value=r.source; srcCus.value=''; srcCus.style.display='none'; }
-      else { srcSel.value='etc'; srcCus.value=r.source; srcCus.style.display='block'; }
+      else { srcSel.value='기타'; srcCus.value=r.source; srcCus.style.display='block'; }
     }
   }
   document.getElementById('ap-mgr').value=r.manager||'';
   document.getElementById('ap-email').value=r.email||'';
   document.getElementById('ap-result').value=r.result||'지원';
 
-  // 역할 선택 드롭다운은 수정 모드에서는 숨김 (이미 저장된 역할 텍스트만 사용)
+  // 역할 선택 드롭다운은 수정 모드에서는 숨김 (이미 저장된 단일 역할만 사용)
   _fmRolesCache = [];
   const roleWrap=document.getElementById('ap-role-select-wrap'); if(roleWrap)roleWrap.style.display='none';
-
-  // AI 분석본(필름메이커스 등)을 일반 폼으로 열 경우, ai_json/원문이 화면에는 안 보이지만
-  // saveApply에서 record_type을 건드리지 않으므로 DB에는 그대로 보존됨을 알려줌
-  if(r.record_type==='filmmakers'){
-    alert('이 지원기록은 AI 분석으로 등록된 공고입니다.\n여기서는 기본 항목만 수정할 수 있고, 원본 분석 데이터(역할목록·작품소개 등)는 그대로 보존됩니다.');
-  }
 
   closeModal('m-apply-detail');
   openModal('m-apply');
 }
 
-// "+ 지원 추가" 클릭 시 — 먼저 진입 방식(AI 자동분석 vs 직접입력)을 선택하는 모달을 연다
-function openApplyEntry(){
-  const urlInput=document.getElementById('ap-filmmakers-url'); if(urlInput)urlInput.value='';
-  const pasteTa=document.getElementById('ap-paste-text'); if(pasteTa)pasteTa.value='';
-  const errEl=document.getElementById('ap-fetch-err'); if(errEl)errEl.style.display='none';
-  openModal('m-apply-entry');
-}
-
-// 일반(직접입력) 모드로 기존 폼 초기화 후 오픈 — 기존 openApplyNew의 역할 그대로 유지
-function openApplyManual(){
+// "+ 지원 추가" 클릭 시 새 모드로 초기화 (지원일자는 오늘 KR 기본)
+function openApplyNew(){
   // 텍스트·textarea 전부 초기화
   ['ap-title','ap-dir','ap-co','ap-pay','ap-syn','ap-role','ap-role-desc','ap-memo',
-   'ap-url','ap-mgr','ap-email','ap-edit-id','ap-sdate',
-   'ap-ep','ap-sdate-memo'].forEach(f=>{
+   'ap-url','ap-mgr','ap-email','ap-edit-id','ap-sdate','ap-filmmakers-url',
+   'ap-ep','ap-paste-text','ap-sdate-memo'].forEach(f=>{
     const el=document.getElementById(f);if(el)el.value='';
   });
   // 멀티 날짜 리셋
   multiDateReset('ap-sdate');
+  // 공고 페이지 붙여넣기 영역 초기화
+  const pasteZone=document.getElementById('ap-paste-zone');
+  if(pasteZone){const ta=pasteZone.querySelector('textarea');if(ta)ta.value='';}
   // 촬영 분류 초기화
   const cat=document.getElementById('apply-category');
   if(cat){cat.value='';const catC=document.getElementById('apply-category-custom');if(catC){catC.value='';catC.style.display='none';}}
@@ -5140,17 +5069,15 @@ function openApplyManual(){
   // 결과·지원일자
   const ad=document.getElementById('ap-adate'); if(ad)ad.value=todayKR();
   if(document.getElementById('ap-result'))document.getElementById('ap-result').value='지원';
-  if(document.getElementById('m-apply-title'))document.getElementById('m-apply-title').textContent='📋 지원기록 (직접 입력)';
-  if(document.getElementById('ap-record-type'))document.getElementById('ap-record-type').value='general';
-  // 역할 선택 드롭다운 초기화 (일반 폼에서는 사용 안 하지만 잔여 상태 클린업)
+  if(document.getElementById('m-apply-title'))document.getElementById('m-apply-title').textContent='📋 지원기록';
+  // 역할 선택 드롭다운 초기화
   _fmRolesCache = [];
   const roleWrap=document.getElementById('ap-role-select-wrap'); if(roleWrap)roleWrap.style.display='none';
   const roleSel=document.getElementById('ap-role-select'); if(roleSel)roleSel.innerHTML='<option value="">-- 역할을 선택해주세요 --</option>';
+  const errEl=document.getElementById('ap-fetch-err'); if(errEl)errEl.style.display='none';
+  const okEl=document.getElementById('ap-fetch-ok'); if(okEl)okEl.style.display='none';
   openModal('m-apply');
 }
-
-// 하위호환: 과거 코드/메모리에서 openApplyNew를 직접 부르는 경우가 있을 수 있어 별칭 유지
-function openApplyNew(){ openApplyManual(); }
 
 async function delApply(id){
   if(!confirm('이 지원기록을 삭제할까요?'))return;
@@ -5368,245 +5295,6 @@ function _fillRoleFields(role){
   }
 }
 
-// ════════════════════════════════════════════════════════════════
-// AI 추출 결과 확인 화면 (카드형 리뷰) — 범용 스키마(basic/roles/sections/contact/meta) 렌더링
-// 필름메이커스든 OTT/연극/오디션 공고든 동일한 구조로 보여주고, 각 값은 인라인으로 수정 가능.
-// 저장은 confirmApplyReview()에서 이 화면의 입력값을 그대로 읽어서 처리.
-// ════════════════════════════════════════════════════════════════
-let _applyReviewState = null; // { parsed, rawText, rawHtml, srcUrl }
-
-function renderApplyReview(parsed, ctx){
-  _applyReviewState = { parsed, rawText: ctx.rawText||'', rawHtml: ctx.rawHtml||'', srcUrl: ctx.srcUrl||'' };
-  const body = document.getElementById('apply-review-body');
-  if(!body) return;
-
-  const b = parsed.basic || {};
-  const roles = Array.isArray(parsed.roles) ? parsed.roles.filter(r=>r && r.name) : [];
-  const sections = Array.isArray(parsed.sections) ? parsed.sections.filter(s=>s && s.content) : [];
-  const contact = parsed.contact || {};
-  const isFilmmakers = parsed.meta && parsed.meta.source_type === 'filmmakers';
-
-  const esc = (v) => (v||'').toString().replace(/"/g,'&quot;');
-
-  const cardStyle = 'background:var(--bg);border-radius:14px;padding:14px;margin-bottom:12px;';
-  const labelStyle = 'font-size:11px;font-weight:700;color:var(--text3);margin-bottom:3px;display:block;';
-  const rowInput = (id, val, ph) => `<input id="${id}" value="${esc(val)}" placeholder="${ph||''}" style="width:100%;box-sizing:border-box;font-size:13px;padding:7px 9px;border:1px solid var(--border);border-radius:8px;font-family:inherit;margin-bottom:8px;">`;
-
-  let html = '';
-
-  // ── 기본정보 카드
-  html += `<div style="${cardStyle}">
-    <div style="font-size:13px;font-weight:800;color:var(--p1);margin-bottom:10px;">📌 기본정보</div>
-    <span style="${labelStyle}">작품명</span>${rowInput('rv-title', b.title, '작품명')}
-    <span style="${labelStyle}">감독</span>${rowInput('rv-director', b.director, '감독')}
-    <span style="${labelStyle}">제작사</span>${rowInput('rv-company', b.company, '제작사')}
-    <span style="${labelStyle}">방영처/플랫폼</span>${rowInput('rv-platform', b.platform_or_media, '예: Netflix, OCN, OO극단')}
-    <span style="${labelStyle}">촬영지역</span>${rowInput('rv-region', b.shoot_region, '촬영지역')}
-    <span style="${labelStyle}">촬영일/기간</span>${rowInput('rv-shootdate', b.shoot_date_text, '예: 8월 중 2~3일')}
-    <span style="${labelStyle}">페이</span>${rowInput('rv-pay', b.pay_text, '예: 회차당 10만원')}
-    <span style="${labelStyle}">마감일</span>${rowInput('rv-deadline', b.deadline, '모집마감일')}
-    <span style="${labelStyle}">지원방법(요약)</span>${rowInput('rv-applymethod', b.apply_method, '지원방법 한 줄 요약')}
-    <span style="${labelStyle}">장르</span>${rowInput('rv-genre', b.genre, '장르')}
-    <span style="${labelStyle}">촬영 분류</span>
-    <select id="rv-category" style="width:100%;padding:8px 9px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;margin-bottom:4px;">
-      <option value="">-- 선택 --</option>
-      ${['상업드라마','웹드라마','숏폼드라마','독립영화','단편영화','상업영화','광고영상','홍보영상','지면촬영','뮤직비디오'].map(c=>`<option value="${c}" ${b.category===c?'selected':''}>${c}</option>`).join('')}
-    </select>
-  </div>`;
-
-  // ── 역할목록 카드 (다중 선택 체크박스)
-  if(roles.length){
-    html += `<div style="${cardStyle}">
-      <div style="font-size:13px;font-weight:800;color:var(--p1);margin-bottom:10px;">🎭 역할목록 <span style="font-size:11px;color:var(--text3);font-weight:400;">(지원할 역할을 선택하세요 · 복수 선택 가능)</span></div>
-      <div id="rv-roles-list">
-      ${roles.map((r,i)=>{
-        const descParts=[];
-        if(r.gender) descParts.push('성별: '+r.gender);
-        if(r.age) descParts.push('연령: '+r.age);
-        if(r.nationality) descParts.push('국적: '+r.nationality);
-        if(r.headcount) descParts.push('인원: '+r.headcount);
-        if(r.pay) descParts.push('페이: '+r.pay);
-        if(r.schedule) descParts.push('일정: '+r.schedule);
-        if(r.description) descParts.push(r.description);
-        return `<label style="display:flex;align-items:flex-start;gap:8px;padding:9px;border:1.5px solid var(--border);border-radius:10px;margin-bottom:7px;cursor:pointer;background:var(--white);">
-          <input type="checkbox" class="rv-role-check" data-idx="${i}" style="margin-top:3px;flex-shrink:0;">
-          <span style="flex:1;">
-            <span style="font-weight:700;font-size:13px;">${esc(r.name)}${r.gender?' ('+esc(r.gender)+')':''}</span>
-            <div style="font-size:12px;color:var(--text2);white-space:pre-wrap;margin-top:3px;">${esc(descParts.join(' · '))}</div>
-          </span>
-        </label>`;
-      }).join('')}
-      </div>
-    </div>`;
-  }
-
-  // ── 섹션 카드들 (작품소개/감독소개/촬영정보/지원방법/기타 — 있는 것만)
-  if(sections.length){
-    html += sections.map((s,i)=>`
-      <div style="${cardStyle}">
-        <div style="font-size:13px;font-weight:800;color:var(--p1);margin-bottom:8px;">📝 ${esc(s.label||s.key)}</div>
-        <textarea id="rv-section-${i}" data-key="${esc(s.key)}" data-label="${esc(s.label||s.key)}" style="width:100%;box-sizing:border-box;min-height:80px;font-size:13px;padding:8px 9px;border:1px solid var(--border);border-radius:8px;font-family:inherit;resize:vertical;">${esc(s.content)}</textarea>
-      </div>
-    `).join('');
-  }
-
-  // ── 연락처 카드
-  if(contact.manager || contact.phone || contact.email){
-    html += `<div style="${cardStyle}">
-      <div style="font-size:13px;font-weight:800;color:var(--p1);margin-bottom:10px;">📞 담당자 연락처</div>
-      <span style="${labelStyle}">담당자</span>${rowInput('rv-manager', contact.manager, '담당자')}
-      <span style="${labelStyle}">전화번호</span>${rowInput('rv-phone', contact.phone, '전화번호')}
-      <span style="${labelStyle}">이메일</span>${rowInput('rv-email', contact.email, '이메일')}
-    </div>`;
-  } else {
-    html += `<div style="display:none;">
-      ${rowInput('rv-manager','','')}${rowInput('rv-phone','','')}${rowInput('rv-email','','')}
-    </div>`;
-  }
-
-  // ── source 선택 (필름메이커스면 자동, 아니면 선택)
-  html += `<div style="${cardStyle}">
-    <div style="font-size:13px;font-weight:800;color:var(--p1);margin-bottom:10px;">📌 공고페이지 · 지원일자 · 결과</div>
-    <span style="${labelStyle}">공고페이지</span>
-    <select id="rv-source" style="width:100%;padding:8px 9px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;margin-bottom:8px;">
-      <option value="filmmakers" ${isFilmmakers?'selected':''}>필름메이커스</option>
-      <option value="instagram">인스타그램</option>
-      <option value="threads">쓰레드</option>
-      <option value="kakao">카카오톡</option>
-      <option value="openchat">오픈채팅</option>
-      <option value="sms">문자(SMS)</option>
-      <option value="email">이메일</option>
-      <option value="agency">소속사/에이전시</option>
-      <option value="manual">직접 등록</option>
-      <option value="etc">기타</option>
-    </select>
-    <span style="${labelStyle}">지원일자</span>
-    <input id="rv-adate" type="date" value="${todayKR()}" style="width:100%;box-sizing:border-box;font-size:13px;padding:7px 9px;border:1px solid var(--border);border-radius:8px;font-family:inherit;margin-bottom:8px;">
-    <span style="${labelStyle}">결과</span>
-    <select id="rv-result" style="width:100%;padding:8px 9px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;">
-      <option>지원</option><option>리스트업</option><option>오디션</option><option>확정</option><option>탈락</option>
-    </select>
-  </div>`;
-
-  body.innerHTML = html;
-  closeModal('m-apply-entry');
-  openModal('m-apply-review');
-}
-
-// 리뷰 화면의 입력값을 모아서 실제 저장 (apply 테이블 insert) — saveApply의 AI-분석 경로
-async function confirmApplyReview(){
-  if(!_applyReviewState) return;
-  const title = (document.getElementById('rv-title')?.value||'').trim();
-  if(!title) return alert('작품명을 입력해주세요');
-  const applyDate = document.getElementById('rv-adate')?.value || todayKR();
-
-  // 선택된 역할들 모으기 → selected_roles 배열 (공고 1개 = row 1개 원칙)
-  const roleChecks = document.querySelectorAll('.rv-role-check');
-  const parsed = _applyReviewState.parsed;
-  const rolesSrc = Array.isArray(parsed.roles) ? parsed.roles.filter(r=>r&&r.name) : [];
-  const selectedRoles = [];
-  const selectedRoleDescs = [];
-  roleChecks.forEach(chk=>{
-    if(chk.checked){
-      const idx = parseInt(chk.dataset.idx, 10);
-      const r = rolesSrc[idx];
-      if(r){
-        selectedRoles.push(r.name);
-        const dp=[];
-        if(r.gender) dp.push('성별: '+r.gender);
-        if(r.age) dp.push('연령: '+r.age);
-        if(r.description) dp.push(r.description);
-        selectedRoleDescs.push(`[${r.name}] `+dp.join(' · '));
-      }
-    }
-  });
-
-  // 섹션 textarea들 다시 모아서 ai_json.sections 최신화 (사용자가 리뷰 화면에서 수정한 내용 반영)
-  const sectionEls = document.querySelectorAll('[id^="rv-section-"]');
-  const updatedSections = Array.from(sectionEls).map(el=>({
-    key: el.dataset.key, label: el.dataset.label, content: el.value.trim()
-  })).filter(s=>s.content);
-
-  const categorySel = document.getElementById('rv-category')?.value || '';
-  const sourceVal = document.getElementById('rv-source')?.value || '';
-  const sourceCustom = sourceVal === 'etc' ? '' : sourceVal; // 리뷰 화면엔 직접입력 없음(기타 그대로 코드값 사용)
-
-  // synopsis(작품소개) 섹션을 기존 ap-syn(본문 내용) 컬럼 호환용으로 합쳐서 저장
-  const synopsisSection = updatedSections.find(s=>s.key==='synopsis');
-  const otherSectionsText = updatedSections.filter(s=>s.key!=='synopsis')
-    .map(s=>`[${s.label}]\n${s.content}`).join('\n\n');
-
-  // 최종 ai_json — basic은 리뷰 화면에서 수정된 값으로 갱신, roles/contact/meta는 원본 보존 + sections는 최신화
-  const finalAiJson = {
-    basic: {
-      title,
-      director: (document.getElementById('rv-director')?.value||'').trim(),
-      company: (document.getElementById('rv-company')?.value||'').trim(),
-      platform_or_media: (document.getElementById('rv-platform')?.value||'').trim(),
-      shoot_region: (document.getElementById('rv-region')?.value||'').trim(),
-      shoot_date_text: (document.getElementById('rv-shootdate')?.value||'').trim(),
-      pay_text: (document.getElementById('rv-pay')?.value||'').trim(),
-      deadline: (document.getElementById('rv-deadline')?.value||'').trim(),
-      apply_method: (document.getElementById('rv-applymethod')?.value||'').trim(),
-      genre: (document.getElementById('rv-genre')?.value||'').trim(),
-      category: categorySel
-    },
-    roles: rolesSrc,
-    sections: updatedSections,
-    contact: {
-      manager: (document.getElementById('rv-manager')?.value||'').trim(),
-      phone: (document.getElementById('rv-phone')?.value||'').trim(),
-      email: (document.getElementById('rv-email')?.value||'').trim()
-    },
-    meta: parsed.meta || { source_type:'general', confidence:null, analyzed_at:new Date().toISOString(), model:'' }
-  };
-
-  // 페이 텍스트에서 숫자만 추출(요약 컬럼용) — "회차당 10만원" 등에서 첫 숫자+만원 패턴 추정
-  let payNum = 0;
-  const payMatch = (finalAiJson.basic.pay_text||'').match(/(\d[\d,]*)\s*만\s*원/) || (finalAiJson.basic.pay_text||'').match(/(\d[\d,]*)\s*원/);
-  if(payMatch){
-    payNum = parseInt(payMatch[1].replace(/,/g,''), 10);
-    if((finalAiJson.basic.pay_text||'').includes('만')) payNum *= 10000;
-  }
-
-  const data = {
-    apply_date: applyDate,
-    category: categorySel,
-    title,
-    company: finalAiJson.basic.company,
-    broadcast: finalAiJson.basic.platform_or_media || '',
-    apply_method: finalAiJson.basic.apply_method || '',
-    shoot_date: null, // 리뷰 단계에서는 자유 텍스트(shoot_date_text)만 다루므로 정형 날짜 컬럼은 비워둠 (필요시 수정화면에서 보정)
-    shoot_date_memo: finalAiJson.basic.shoot_date_text || '',
-    director: finalAiJson.basic.director,
-    role: selectedRoles.join(', '),
-    role_desc: selectedRoleDescs.join('\n\n'),
-    pay: payNum,
-    url: _applyReviewState.srcUrl || '',
-    source: sourceCustom,
-    result: document.getElementById('rv-result')?.value || '지원',
-    synopsis: (synopsisSection ? synopsisSection.content : '') + (otherSectionsText ? (synopsisSection?'\n\n':'') + otherSectionsText : ''),
-    memo: '',
-    manager: finalAiJson.contact.manager,
-    email: finalAiJson.contact.email,
-    record_type: 'filmmakers',
-    selected_roles: selectedRoles,
-    raw_text: _applyReviewState.rawText || '',
-    raw_html: _applyReviewState.rawHtml || '',
-    ai_json: finalAiJson
-  };
-
-  data.id = uid();
-  data.created_at = new Date().toISOString();
-  const ok = await sb.insert('apply', data);
-  if(!ok) return;
-
-  _applyReviewState = null;
-  closeModal('m-apply-review');
-  renderApplyList();
-}
-
-
 // ── 붙여넣은 내용에서 추출 (프록시 0 · 항상 작동)
 function parsePastedInfo(){
   const ta = document.getElementById('ap-paste-text');
@@ -5714,7 +5402,7 @@ async function fetchFilmmakersInfo(){
 
     if(!html){
       if(errEl){
-        errEl.innerHTML='자동 불러오기가 막혔어요 (필름메이커스가 외부 프록시 접근을 차단하고 있는 것으로 보여요). 👉 아래 칸에 <b>공고 페이지 글을 복사해서 붙여넣고</b> [✨ AI로 분석해서 확인화면 보기]를 눌러주세요. (이 방법은 항상 됩니다)';
+        errEl.innerHTML='자동 불러오기가 막혔어요 (필름메이커스가 외부 프록시 접근을 차단하고 있는 것으로 보여요). 👉 아래 칸에 <b>공고 페이지 글을 복사해서 붙여넣고</b> [Claude로 분석해서 자동입력]을 눌러주세요. (이 방법은 항상 됩니다)';
         errEl.style.display='block';
       }
       const pz = document.getElementById('ap-paste-zone');
@@ -5752,10 +5440,8 @@ async function analyzeWithClaude(raw, btn, errEl, okEl, srcUrl, isHtml){
   if(okEl) okEl.style.display='none';
 
   // HTML이면 먼저 태그를 정리해 가독성 있는 텍스트로 변환 (메타 설명도 함께 확보)
-  // 원본 HTML은 isHtml인 경우 그대로 별도 보관해서 나중에 raw_html로 저장 (재분석/원문 보존용)
   let text = raw;
   let metaDesc = '';
-  const originalHtml = isHtml ? raw : '';
   if(isHtml || /<[a-z!][^>]*>/i.test(raw)){
     const md = raw.match(/<meta[^>]+(?:property=["']og:description["']|name=["']description["'])[^>]+content=["']([^"']+)["']/i);
     if(md) metaDesc = md[1];
@@ -5772,40 +5458,37 @@ async function analyzeWithClaude(raw, btn, errEl, okEl, srcUrl, isHtml){
       .trim();
   }
   // 너무 길면(메뉴/푸터 등 페이지 전체 복사 시) 본문 추정 구간 위주로 잘라 토큰 절약
-  // (raw_text/raw_html에는 원문 전체를 보존하고, 이 잘린 text는 AI 분석 입력에만 사용)
-  const fullText = text; // 저장용 원본 텍스트(자르지 않음)
   if(text.length > 12000) text = text.slice(0, 12000);
 
-  if(btn){ if(btn.dataset._origText===undefined) btn.dataset._origText = btn.textContent; btn.textContent='AI 분석중...'; btn.disabled=true; }
+  if(btn){ if(btn.dataset._origText===undefined) btn.dataset._origText = btn.textContent; btn.textContent='Claude 분석중...'; btn.disabled=true; }
 
-  // ── 범용 공고 분석 프롬프트 ──────────────────────────────────────
-  // 필름메이커스뿐 아니라 OTT/웹드라마/독립영화/상업영화/광고/뮤직비디오/연극/오디션 공고 등
-  // 어떤 형태의 캐스팅 공고에도 적용 가능한 섹션 기반 스키마.
-  // 사이트별 전용 필드 대신 "sections" 배열로 일반화해서, 공고 형식이 달라도 같은 구조로 보존.
-  const prompt = `너는 한국 배우/모델 캐스팅 공고를 분석하는 어시스턴트야. 공고는 필름메이커스뿐 아니라 OTT, 웹드라마, 독립/상업영화, 광고, 뮤직비디오, 연극, 일반 오디션 공고 등 다양한 출처에서 올 수 있어. 아래는 공고 페이지에서 가져온 텍스트야. 사이트 메뉴·로그인·광고·다른 글 목록 같은 무관한 내용도 섞여 있을 수 있으니, 실제 공고 본문만 찾아서 분석해.
+  const prompt = `너는 한국 배우 캐스팅 공고(필름메이커스 등)를 분석하는 어시스턴트야. 아래는 공고 페이지에서 가져온 텍스트야. 사이트 메뉴·로그인·광고·다른 글 목록 같은 무관한 내용도 섞여 있을 수 있으니, 실제 공고 본문만 찾아서 분석해.
 
 [절대 규칙]
 - 추측하지 마. 텍스트에 명시적으로 없는 정보는 절대 만들어내지 마.
-- 내용을 버리지 마. 분류하지 못한 정보는 sections 배열에 key:"extra"로 모아서 보존해.
-- 게시글 형식이 달라도(라벨:값 구조형이든 자유 서술형이든) 유연하게 읽어. 사이트마다 항목 이름이 달라도(예: "작품소개" vs "프로젝트 소개" vs "시놉시스") 의미가 비슷하면 같은 section key로 합쳐.
+- 내용을 버리지 마. 분류하지 못한 내용은 extra_memo에 모아서 보존해.
+- 게시글 형식이 달라도(라벨:값 구조형이든 자유 서술형이든) 유연하게 읽어.
 - 역할(배역)이 여러 개면 전부 roles 배열에 담아. 절대 하나만 고르지 마.
-- sections는 실제로 본문에 내용이 있는 항목만 담아. 없는 섹션은 만들지 마.
+
+[추출할 정보]
+구인자정보: 제작사, 감독, 캐스팅 방식, 담당자명, 전화번호, 이메일
+작품정보: 작품명, 촬영지역, 촬영기간, 모집마감일
+작품 추가정보: 시놉시스, 작품소개, 기획의도, 로그라인, 장르
+모집정보: 지원방법, 오디션안내, 계약내용, 촬영안내, 준비사항, 기타안내
+역할정보(모든 역할 각각): 역할명, 성별, 연령, 국적, 인원, 페이, 일정, 역할설명(특이사항 포함)
 
 [출력 형식 — 반드시 아래 JSON만 출력. 다른 말 절대 금지. 코드블록 표시(\`\`\`)도 금지]
 {
-  "basic": {
-    "title": "작품명/프로젝트명 (없으면 빈 문자열)",
-    "director": "감독/연출 (없으면 빈 문자열)",
-    "company": "제작사/제작팀 (없으면 빈 문자열)",
-    "shoot_region": "촬영지역 (없으면 빈 문자열)",
-    "shoot_date_text": "촬영일/촬영기간 원문 그대로 (예: '8월 중 2~3일', '2026-08-17', 확정 안 됐으면 원문 표현 그대로. 없으면 빈 문자열)",
-    "pay_text": "페이/출연료 원문 그대로 (예: '회차당 10만원', '협의'. 없으면 빈 문자열)",
-    "deadline": "모집마감일 (없으면 빈 문자열)",
-    "apply_method": "지원방법 핵심만 한 줄 요약 (상세 내용은 sections의 apply_info에. 없으면 빈 문자열)",
-    "genre": "장르 (없으면 빈 문자열)",
-    "platform_or_media": "방영처/플랫폼/매체 (예: 'Netflix', 'OCN', '00극단'. 없으면 빈 문자열)",
-    "category": "다음 중 가장 가까운 하나 또는 빈 문자열: 상업드라마/웹드라마/숏폼드라마/독립영화/단편영화/상업영화/광고영상/홍보영상/지면촬영/뮤직비디오"
-  },
+  "title": "작품명 (없으면 빈 문자열)",
+  "director": "감독 (없으면 빈 문자열)",
+  "company": "제작사 (없으면 빈 문자열)",
+  "manager": "담당자명 (없으면 빈 문자열)",
+  "phone": "전화번호 (없으면 빈 문자열)",
+  "email": "이메일 (없으면 빈 문자열)",
+  "category": "다음 중 가장 가까운 하나 또는 빈 문자열: 상업드라마/웹드라마/숏폼드라마/독립영화/단편영화/상업영화/광고영상/홍보영상/지면촬영/뮤직비디오",
+  "shoot_date": "YYYY-MM-DD 형식의 단일 대표 날짜 (확정 날짜가 있으면, 없으면 빈 문자열 — 기간/범위는 넣지 말고 extra_memo의 촬영기간에 적어)",
+  "pay": "숫자만 (예: 100000). 범위면 최저값. 없으면 0",
+  "synopsis": "공고 본문 전체를 최대한 원문 그대로 보존 (시놉시스+작품소개+모집정보 자유본문 등 합쳐서, 4000자 이내)",
   "roles": [
     {
       "name": "역할명",
@@ -5813,23 +5496,12 @@ async function analyzeWithClaude(raw, btn, errEl, okEl, srcUrl, isHtml){
       "age": "연령",
       "nationality": "국적",
       "headcount": "인원",
-      "pay": "그 역할만의 페이 (숫자만, 없으면 빈 문자열)",
+      "pay": "숫자만 또는 빈 문자열",
       "schedule": "그 역할의 촬영 일정/회차",
       "description": "역할설명+특이사항을 합친 텍스트"
     }
   ],
-  "sections": [
-    {"key":"synopsis", "label":"작품소개", "content":"작품 소개·시놉시스·기획의도·로그라인 등을 합친 내용 (있는 경우만)"},
-    {"key":"director_intro", "label":"감독소개", "content":"감독/연출 소개 (있는 경우만)"},
-    {"key":"shoot_info", "label":"촬영정보", "content":"촬영 일정·장소·회차 등 상세 (있는 경우만)"},
-    {"key":"apply_info", "label":"지원방법", "content":"지원방법·오디션안내·계약내용·준비사항 상세 (있는 경우만)"},
-    {"key":"extra", "label":"기타", "content":"위 어디에도 안 맞는 모든 나머지 정보 (있는 경우만)"}
-  ],
-  "contact": {
-    "manager": "담당자명 (없으면 빈 문자열)",
-    "phone": "전화번호 (없으면 빈 문자열)",
-    "email": "이메일 (없으면 빈 문자열)"
-  }
+  "extra_memo": "위 필드로 분류하지 못한 모든 정보 — 촬영기간 원문, 모집마감일, 지원방법, 오디션안내, 계약내용, 촬영안내, 준비사항, 기타안내, 기획의도, 로그라인, 장르 등을 항목별로 줄바꿈해서 정리. 버리지 말 것."
 }
 
 [분석할 공고 텍스트]
@@ -5855,37 +5527,26 @@ ${metaDesc ? metaDesc + '\n\n' : ''}${text}`;
     const jsonText = rawText.replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/```\s*$/,'').trim();
     const parsed = JSON.parse(jsonText);
 
-    // meta 정보(향후 confidence 등 확장 자리) 부착
-    parsed.meta = {
-      source_type: (srcUrl && srcUrl.includes('filmmakers.co.kr')) ? 'filmmakers' : 'general',
-      confidence: null, // 향후 AI confidence(high/medium/low) 도입 시 채울 자리
-      analyzed_at: new Date().toISOString(),
-      model: 'claude-sonnet-4-5'
-    };
+    // phone은 기존 입력칸이 없으므로 extra_memo 맨 앞에 합쳐줌
+    if(parsed.phone){
+      parsed.extra_memo = '전화번호: ' + parsed.phone + (parsed.extra_memo ? '\n\n' + parsed.extra_memo : '');
+    }
 
-    const hasContent = !!(
-      (parsed.basic && (parsed.basic.title||parsed.basic.director||parsed.basic.company||parsed.basic.shoot_date_text||parsed.basic.pay_text)) ||
-      (Array.isArray(parsed.roles) && parsed.roles.length) ||
-      (Array.isArray(parsed.sections) && parsed.sections.some(s=>s && s.content))
-    );
-
-    if(hasContent){
-      if(okEl){ okEl.textContent='✅ AI 분석 완료! 확인화면에서 내용을 확인해주세요.'; okEl.style.display='block'; }
-      renderApplyReview(parsed, { rawText: fullText, rawHtml: originalHtml, srcUrl });
+    const filled = applyFilmmakersInfo(parsed, srcUrl);
+    if(filled){
+      if(okEl){ okEl.textContent='✅ Claude 분석 완료! 내용을 확인 후 저장해주세요.'; okEl.style.display='block'; }
     } else if(errEl){
       errEl.textContent='분석은 됐지만 추출된 항목이 없어요. 공고 내용을 다시 확인해 주세요.';
       errEl.style.display='block';
     }
   } catch(e){
-    console.error('[AI 분석 실패]', e);
-    // 폴백: 기존 정규식 파서로 시도 (항상 작동하는 안전망) → 새 스키마로 변환해서 동일하게 리뷰 화면 사용
+    console.error('[Claude 분석 실패]', e);
+    // 폴백: 기존 정규식 파서로 시도 (항상 작동하는 안전망)
     try {
       const info = parseFilmmakers(raw);
-      const parsed = legacyInfoToUniversalSchema(info, srcUrl);
-      const hasContent = !!(parsed.basic.title||parsed.basic.director||parsed.basic.company||parsed.basic.shoot_date_text||parsed.basic.pay_text||parsed.sections.length);
-      if(hasContent){
-        if(okEl){ okEl.textContent='✅ 자동기입 완료! (간단 추출 모드 — 확인화면에서 내용을 확인해주세요)'; okEl.style.display='block'; }
-        renderApplyReview(parsed, { rawText: fullText, rawHtml: originalHtml, srcUrl });
+      const filled = applyFilmmakersInfo(info, srcUrl);
+      if(filled){
+        if(okEl){ okEl.textContent='✅ 자동기입 완료! (간단 추출 모드 — 내용을 확인 후 저장해주세요)'; okEl.style.display='block'; }
       } else if(errEl){
         errEl.textContent='자동 분석에 실패했어요. 직접 입력해 주세요.';
         errEl.style.display='block';
@@ -5896,31 +5557,6 @@ ${metaDesc ? metaDesc + '\n\n' : ''}${text}`;
   } finally {
     if(btn){ btn.textContent = btn.dataset._origText || btn.textContent; btn.disabled=false; delete btn.dataset._origText; }
   }
-}
-
-// 기존 정규식 폴백 파서(parseFilmmakers)의 평탄한 결과를 새 범용 스키마로 변환하는 어댑터
-// (analyzeWithClaude가 실패했을 때만 쓰이는 안전망 경로, 기존 parseFilmmakers 로직은 그대로 재사용)
-function legacyInfoToUniversalSchema(info, srcUrl){
-  const sections = [];
-  if(info.synopsis) sections.push({key:'synopsis', label:'작품소개', content: info.synopsis});
-  if(info.shoot_range) sections.push({key:'shoot_info', label:'촬영정보', content: '촬영기간: '+info.shoot_range});
-  return {
-    basic: {
-      title: info.title||'', director: info.director||'', company: info.company||'',
-      shoot_region: '', shoot_date_text: info.shoot_date||info.shoot_range||'',
-      pay_text: info.pay ? String(info.pay) : '', deadline: '', apply_method: '',
-      genre: '', platform_or_media: '', category: info.category||''
-    },
-    roles: info.role ? [{ name: info.role, gender:'', age:'', nationality:'', headcount:'', pay: info.pay?String(info.pay):'', schedule:'', description: info.role_desc||'' }] : [],
-    sections,
-    contact: { manager: info.manager||'', phone:'', email: info.email||'' },
-    meta: {
-      source_type: (srcUrl && srcUrl.includes('filmmakers.co.kr')) ? 'filmmakers' : 'general',
-      confidence: 'low', // 정규식 폴백 경로는 AI 분석보다 신뢰도가 낮음을 명시
-      analyzed_at: new Date().toISOString(),
-      model: 'regex-fallback'
-    }
-  };
 }
 
 async function renderApplyList(){
@@ -5977,14 +5613,14 @@ async function renderApplyList(){
     <tr style="cursor:pointer;" onclick="openApplyDetail('${r.id}')">
       <td style="font-weight:600;">${r.apply_date||'-'}</td>
       <td>${r.category||'-'}</td>
-      <td style="font-weight:700;">${r.record_type==='filmmakers'?'🎬 ':'📝 '}${r.title||'-'}</td>
+      <td style="font-weight:700;">${r.title||'-'}</td>
       <td>${r.company||'-'}</td>
       <td>${r.director||'-'}</td>
-      <td>${r.shoot_date||r.shoot_date_memo||'-'}</td>
+      <td>${r.shoot_date||'-'}</td>
       <td style="font-weight:600;">${payDisplay(r.pay)||'-'}</td>
       <td style="white-space:nowrap;" title="${(r.role||'').replace(/"/g,'&quot;')}">${(r.role||'').length>10 ? r.role.slice(0,10)+'…' : (r.role||'-')}</td>
       <td>${urlCell(r.url)}</td>
-      <td style="font-size:12px;color:var(--text2);white-space:nowrap;">${sourceLabel(r.source)||'-'}</td>
+      <td style="font-size:12px;color:var(--text2);white-space:nowrap;">${r.source||'-'}</td>
       <td>${resultStyle(r.result)}</td>
     </tr>
   `).join('');
@@ -5996,16 +5632,7 @@ async function openApplyDetail(id){
   const r=rows[0];
   const body=document.getElementById('apply-detail-body');
 
-  if(r.record_type==='filmmakers'){
-    renderApplyDetailFilmmakers(r, body);
-  } else {
-    renderApplyDetailGeneral(r, body);
-  }
-  openModal('m-apply-detail');
-}
-
-// 결과 배지 스타일 (목록·상세보기 공용)
-function _applyResultBadgeStyle(result){
+  // 결과 배지
   const resultMap={
     '지원':       {bg:'#FFF4D6', fg:'#8B6914', bd:'#C9A030'},
     '리스트업':   {bg:'#EBF5FB', fg:'#1B5E8A', bd:'#2980B9'},
@@ -6013,12 +5640,7 @@ function _applyResultBadgeStyle(result){
     '확정':       {bg:'#27AE60', fg:'#FFFFFF', bd:'#1E8449'},
     '탈락':       {bg:'#E05050', fg:'#FFFFFF', bd:'#A93226'}
   };
-  return resultMap[result]||{bg:'#EEE',fg:'#333',bd:'#999'};
-}
-
-// ── 일반 공고(직접 입력) 상세보기 — 기존 동작 그대로 보존
-function renderApplyDetailGeneral(r, body){
-  const rs=_applyResultBadgeStyle(r.result);
+  const rs=resultMap[r.result]||{bg:'#EEE',fg:'#333',bd:'#999'};
 
   const urlLine=r.url
     ? `<div style="margin-top:10px;">🔗 <b>지원 URL</b><br><a href="${r.url.replace(/"/g,'&quot;')}" target="_blank" rel="noopener" style="color:var(--p2);text-decoration:underline;word-break:break-all;">${r.url}</a></div>`
@@ -6037,7 +5659,7 @@ function renderApplyDetailGeneral(r, body){
         <div style="margin-top:10px;">🎯 <b>촬영일</b><br><span style="color:var(--text2);">${r.shoot_date||'-'}</span></div>
         <div style="margin-top:10px;">💰 <b>페이</b><br><span style="color:var(--text2);font-weight:600;">${payDisplay(r.pay)||'-'}</span></div>
         ${urlLine}
-        ${r.source?`<div style="margin-top:10px;">📌 <b>공고페이지</b><br><span style="color:var(--text2);font-weight:600;">${sourceLabel(r.source)}</span></div>`:''}
+        ${r.source?`<div style="margin-top:10px;">📌 <b>공고페이지</b><br><span style="color:var(--text2);font-weight:600;">${r.source}</span></div>`:''}
         <div style="margin-top:10px;">📌 <b>결과</b><br>
           <span style="display:inline-block;padding:5px 14px;border-radius:999px;font-size:13px;font-weight:800;background:${rs.bg};color:${rs.fg};border:1.5px solid ${rs.bd};">${r.result||'-'}</span>
         </div>
@@ -6051,109 +5673,7 @@ function renderApplyDetailGeneral(r, body){
         <button style="flex:1;padding:13px;border-radius:14px;border:1.5px solid #ffb7b7;color:#d33;background:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;" onclick="delApply('${r.id}');closeModal('m-apply-detail');">🗑️ 삭제</button>
       </div>
     </div>`;
-}
-
-// ── 필름메이커스(AI 분석) 상세보기 — ai_json을 카드형으로 재구성해서 보여줌
-function renderApplyDetailFilmmakers(r, body){
-  const rs=_applyResultBadgeStyle(r.result);
-  const aj = r.ai_json || {};
-  const b = aj.basic || {};
-  const roles = Array.isArray(aj.roles) ? aj.roles.filter(x=>x&&x.name) : [];
-  const sections = Array.isArray(aj.sections) ? aj.sections.filter(s=>s&&s.content) : [];
-  const contact = aj.contact || {};
-  const selectedRoles = Array.isArray(r.selected_roles) ? r.selected_roles : [];
-  const confidence = aj.meta && aj.meta.confidence; // 향후 high/medium/low 표시용 (현재는 대부분 null)
-
-  const cardStyle='background:var(--bg);padding:14px;border-radius:14px;margin-bottom:10px;';
-  const esc=(v)=>(v||'').toString();
-
-  const confBadge = confidence
-    ? `<span style="font-size:10px;padding:2px 8px;border-radius:999px;background:#EEE;color:#666;margin-left:6px;">AI 신뢰도: ${confidence}</span>`
-    : '';
-
-  const urlLine=r.url
-    ? `<div style="margin-top:6px;">🔗 <a href="${r.url.replace(/"/g,'&quot;')}" target="_blank" rel="noopener" style="color:var(--p2);text-decoration:underline;word-break:break-all;font-size:13px;">${r.url}</a></div>`
-    : '';
-
-  let html = `<div style="display:flex;flex-direction:column;gap:10px;">`;
-
-  // 기본정보 카드
-  html += `<div style="${cardStyle}">
-    <div style="font-size:13px;font-weight:800;color:var(--p1);margin-bottom:8px;">📌 기본정보 ${confBadge}</div>
-    <div style="font-size:14px;line-height:1.9;color:var(--text2);">
-      <div>📅 지원일자: <b>${r.apply_date||'-'}</b> &nbsp; 📌 결과: <span style="display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:800;background:${rs.bg};color:${rs.fg};border:1.5px solid ${rs.bd};">${r.result||'-'}</span></div>
-      <div style="margin-top:4px;">📋 작품명: <b>${esc(r.title)||'-'}</b></div>
-      <div>🎬 감독: ${esc(r.director)||'-'} &nbsp; 🏢 제작사: ${esc(r.company)||'-'}</div>
-      ${b.platform_or_media?`<div>📡 방영처/플랫폼: ${esc(b.platform_or_media)}</div>`:''}
-      ${b.shoot_region?`<div>📍 촬영지역: ${esc(b.shoot_region)}</div>`:''}
-      <div>🎯 촬영일/기간: ${esc(r.shoot_date_memo)||'-'}</div>
-      <div>💰 페이: ${esc(b.pay_text) || payDisplay(r.pay) || '-'}</div>
-      ${b.deadline?`<div>⏰ 마감일: ${esc(b.deadline)}</div>`:''}
-      ${b.apply_method?`<div>📮 지원방법: ${esc(b.apply_method)}</div>`:''}
-      ${r.category?`<div>🎞️ 촬영분류: ${esc(r.category)}</div>`:''}
-      ${r.source?`<div>📌 공고페이지: ${sourceLabel(r.source)}</div>`:''}
-      ${urlLine}
-    </div>
-  </div>`;
-
-  // 역할목록 카드
-  if(roles.length){
-    html += `<div style="${cardStyle}">
-      <div style="font-size:13px;font-weight:800;color:var(--p1);margin-bottom:8px;">🎭 역할목록</div>
-      ${roles.map(role=>{
-        const isSelected = selectedRoles.includes(role.name);
-        const dp=[];
-        if(role.gender) dp.push('성별: '+role.gender);
-        if(role.age) dp.push('연령: '+role.age);
-        if(role.nationality) dp.push('국적: '+role.nationality);
-        if(role.headcount) dp.push('인원: '+role.headcount);
-        if(role.pay) dp.push('페이: '+role.pay);
-        if(role.schedule) dp.push('일정: '+role.schedule);
-        return `<div style="padding:9px;border-radius:10px;margin-bottom:6px;background:${isSelected?'var(--p-light)':'var(--white)'};border:1.5px solid ${isSelected?'var(--p3)':'var(--border)'};">
-          <div style="font-weight:700;font-size:13px;">${isSelected?'✅ ':''}${esc(role.name)}${role.gender?' ('+esc(role.gender)+')':''}</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:3px;">${esc(dp.join(' · '))}</div>
-          ${role.description?`<div style="font-size:12px;color:var(--text2);white-space:pre-wrap;margin-top:4px;">${esc(role.description)}</div>`:''}
-        </div>`;
-      }).join('')}
-      ${selectedRoles.length?`<div style="font-size:12px;color:var(--p1);font-weight:700;margin-top:4px;">✅ 지원한 역할: ${esc(selectedRoles.join(', '))}</div>`:''}
-    </div>`;
-  }
-
-  // 섹션 카드들
-  sections.forEach(s=>{
-    html += `<div style="${cardStyle}">
-      <div style="font-size:13px;font-weight:800;color:var(--p1);margin-bottom:6px;">📝 ${esc(s.label||s.key)}</div>
-      <div style="font-size:13px;color:var(--text2);white-space:pre-wrap;line-height:1.7;">${esc(s.content)}</div>
-    </div>`;
-  });
-
-  // 연락처 카드
-  if(contact.manager || contact.phone || contact.email || r.manager || r.email){
-    html += `<div style="${cardStyle}">
-      <div style="font-size:13px;font-weight:800;color:var(--p1);margin-bottom:6px;">📞 담당자 연락처</div>
-      <div style="font-size:13px;color:var(--text2);line-height:1.8;">
-        ${(contact.manager||r.manager)?`<div>👤 ${esc(contact.manager||r.manager)}</div>`:''}
-        ${contact.phone?`<div>☎️ ${esc(contact.phone)}</div>`:''}
-        ${(contact.email||r.email)?`<div>📧 ${esc(contact.email||r.email)}</div>`:''}
-      </div>
-    </div>`;
-  }
-
-  // 원본 보기 (raw_text/raw_html 존재 시 접었다 펼치기)
-  if(r.raw_text || r.raw_html){
-    html += `<details style="${cardStyle}">
-      <summary style="font-size:13px;font-weight:800;color:var(--p1);cursor:pointer;">🗄️ 원본 공고 텍스트 보기</summary>
-      <div style="font-size:12px;color:var(--text2);white-space:pre-wrap;line-height:1.6;margin-top:8px;max-height:300px;overflow-y:auto;">${esc(r.raw_text).slice(0,8000)}</div>
-    </details>`;
-  }
-
-  html += `<div class="row" style="gap:10px;">
-    <button style="flex:1;padding:13px;border-radius:14px;border:1.5px solid var(--p2);color:var(--p2);background:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;" onclick="editApply('${r.id}')">✏️ 기본항목 수정</button>
-    <button style="flex:1;padding:13px;border-radius:14px;border:1.5px solid #ffb7b7;color:#d33;background:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;" onclick="delApply('${r.id}');closeModal('m-apply-detail');">🗑️ 삭제</button>
-  </div>`;
-  html += `</div>`;
-
-  body.innerHTML = html;
+  openModal('m-apply-detail');
 }
 
 
