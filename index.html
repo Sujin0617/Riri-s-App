@@ -1699,6 +1699,14 @@ display:block;
 .ms-tag{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;background:var(--p-light);color:var(--p1);border-radius:999px;font-size:12px;font-weight:700;}
 .ms-tag button{background:none;border:none;cursor:pointer;color:var(--p1);font-size:13px;line-height:1;padding:0 0 0 2px;}
 .ms-tag button:hover{color:var(--coral);}
+/* 편성기간(연도탭 + 월그리드) — 드라마 편성표 "편성기간" 항목용 */
+.ms-period-year-tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
+.ms-period-year-tab{padding:6px 12px;border-radius:999px;border:1.5px solid var(--border);background:var(--white);font-size:12px;font-weight:700;cursor:pointer;color:var(--text2);white-space:nowrap;}
+.ms-period-year-tab.active{background:var(--p2);border-color:var(--p2);color:#1a1a1a;}
+.ms-period-month-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.ms-period-month-cell{display:flex;align-items:center;justify-content:center;gap:4px;padding:9px 4px;border-radius:8px;border:1.5px solid var(--border);background:var(--white);font-size:12px;font-weight:700;cursor:pointer;color:var(--text2);}
+.ms-period-month-cell input[type=checkbox]{accent-color:var(--p2);cursor:pointer;margin:0;}
+.ms-period-month-cell.checked{background:var(--p-light);border-color:var(--p3);color:var(--p1);}
 .dash-cal-legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:11px;color:var(--text2);}
 .dash-cal-legend span{display:flex;align-items:center;gap:4px;}
 .dash-cal-legend .lg-dot{width:7px;height:7px;border-radius:50%;}
@@ -2354,10 +2362,8 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
               <option value="created-asc">등록순(오래된)</option>
               <option value="title-asc">작품명 ↑ (가나다)</option>
               <option value="title-desc">작품명 ↓ (가나다)</option>
-              <option value="year-desc">연도 ↓</option>
-              <option value="year-asc">연도 ↑</option>
-              <option value="month-asc">편성(월) ↑</option>
-              <option value="month-desc">편성(월) ↓</option>
+              <option value="period-asc">편성기간 ↑ (빠른순)</option>
+              <option value="period-desc">편성기간 ↓ (늦은순)</option>
             </select>
 
             <button class="sc-filter-btn" onclick="toggleFiltersPanel('ds-filters', this)">🎚 필터</button>
@@ -2392,7 +2398,7 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
             <table class="sc-tbl">
               <thead>
                 <tr>
-                  <th>년도</th><th>송출</th><th>편성</th><th>방영요일</th>
+                  <th>편성기간</th><th>송출</th><th>방영요일</th>
                   <th>작품명</th><th>제작사</th><th>캐스팅담당</th><th>현재상황</th><th>지원유무</th>
                 </tr>
               </thead>
@@ -3236,26 +3242,24 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
   <div class="modal-handle"></div><div class="modal-title" id="m-drama-schedule-title">📺 드라마 편성표 추가</div>
   <input type="hidden" id="ds-edit-id" value="">
 
-  <label class="form-label">년도 *</label>
-  <select id="ds-year">
-    <!-- DS_YEARS 배열로 JS에서 동적 채움 -->
-  </select>
-
   <label class="form-label">송출 *</label>
   <select id="ds-broadcast">
     <!-- DS_BROADCASTS 배열로 JS에서 동적 채움 -->
   </select>
 
-  <label class="form-label">편성 (월 · 복수 선택 가능) *</label>
-  <div class="ms-dropdown" id="ds-month-dropdown">
-    <button type="button" class="ms-dropdown-trigger" onclick="toggleMonthDropdown(event)">
-      <span id="ds-month-trigger-label" class="ms-placeholder">월을 선택해주세요</span>
+  <label class="form-label">편성기간 (연도+월 · 복수 선택 가능) *</label>
+  <div class="ms-dropdown" id="ds-period-dropdown">
+    <button type="button" class="ms-dropdown-trigger" onclick="togglePeriodDropdown(event)">
+      <span id="ds-period-trigger-label" class="ms-placeholder">편성기간을 선택해주세요</span>
       <span class="ms-arrow">▾</span>
     </button>
-    <div class="ms-dropdown-panel" id="ds-month-panel"></div>
+    <div class="ms-dropdown-panel" id="ds-period-panel">
+      <div class="ms-period-year-tabs" id="ds-period-year-tabs"></div>
+      <div class="ms-period-month-grid" id="ds-period-month-grid"></div>
+    </div>
   </div>
-  <div class="ms-tags" id="ds-month-tags"></div>
-  <input type="hidden" id="ds-month-value" value="[]">
+  <div class="ms-tags" id="ds-period-tags"></div>
+  <input type="hidden" id="ds-period-value" value="[]">
 
   <label class="form-label">방영요일 *</label>
   <select id="ds-weekday">
@@ -3265,7 +3269,7 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
   </select>
 
   <label class="form-label">작품명 *</label><input id="ds-title" placeholder="작품명">
-  <label class="form-label">작/감</label><input id="ds-writer-director" placeholder="작가/감독">
+  <label class="form-label">감/작</label><input id="ds-writer-director" placeholder="감독/작가">
   <label class="form-label">출연진</label><textarea id="ds-cast" placeholder="주요 출연진"></textarea>
   <label class="form-label">제작사</label><input id="ds-production" placeholder="제작사">
   <label class="form-label">캐스팅담당</label><input id="ds-casting-manager" placeholder="캐스팅 담당자">
@@ -7138,21 +7142,18 @@ async function openScheduleDetail(id){
 // ════════════════════════════════════════════════════════════════
 // ── 드라마 편성표 ─────────────────────────────────────────────
 // 기존 촬영기록(schedule)과 동일한 CRUD 패턴(sb.get/insert/update/delete)을 그대로 따름.
-// "편성"(방영 월)만 다중선택이라 JSON 배열로 저장하고, 나머지는 평탄한 컬럼.
+// "편성기간"(연도+월)은 다중선택이라 "YYYY-MM" 문자열 JSON 배열로 저장 (예: ["2026-12","2027-01"]).
+// 연도와 월을 하나로 합쳐서 저장하기 때문에, 연도를 걸치는 편성(예: 2026년 12월~2027년 1월)도 표현 가능.
 // ════════════════════════════════════════════════════════════════
 
-// 년도·송출 옵션은 배열로 관리 → 추후 손쉽게 추가/변경 가능
-const DS_YEARS = ['2026','2027','2028','2029','2030'];
+// 송출 옵션은 배열로 관리 → 추후 손쉽게 추가/변경 가능
 const DS_BROADCASTS = ['SBS','KBS1','KBS2','MBC','JTBC','tvN','ENA','채널A','TVING','Wavve','Netflix','Disney+','쿠팡플레이','U+모바일TV','Watcha'];
 const DS_MONTHS = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+// 편성기간 드롭다운에서 보여줄 연도 탭 범위 (필요하면 이 배열만 늘리면 됨)
+const DS_PERIOD_YEARS = ['2025','2026','2027','2028','2029','2030'];
 
-// select(년도/송출) 옵션을 DS_YEARS/DS_BROADCASTS 배열로부터 채움 — 입력모달 + 필터 select 둘 다
+// select(송출) 옵션을 DS_BROADCASTS 배열로부터 채움 — 입력모달 + 필터 select 둘 다
 function initDramaScheduleOptions(){
-  const yearSel = document.getElementById('ds-year');
-  if(yearSel && !yearSel.dataset._inited){
-    yearSel.innerHTML = DS_YEARS.map(y=>`<option value="${y}" ${y==='2026'?'selected':''}>${y}</option>`).join('');
-    yearSel.dataset._inited = '1';
-  }
   const brSel = document.getElementById('ds-broadcast');
   if(brSel && !brSel.dataset._inited){
     brSel.innerHTML = '<option value="">선택해주세요</option>' + DS_BROADCASTS.map(b=>`<option value="${b}">${b}</option>`).join('');
@@ -7165,68 +7166,89 @@ function initDramaScheduleOptions(){
   }
 }
 
-// ── 편성(월) 다중선택 드롭다운 ──────────────────────────────────
-function toggleMonthDropdown(ev){
+// ── 편성기간(연도+월) 다중선택 드롭다운 ──────────────────────────
+// "YYYY-MM" 형식 문자열을 값으로 다룬다 (예: "2026-08")
+let _dsPeriodActiveYear = DS_PERIOD_YEARS[1]; // 드롭다운에서 현재 보여주는 연도 탭 (기본 2026)
+
+function periodLabel(ym){ // "2026-08" → "2026년 8월"
+  const [y,m] = ym.split('-');
+  return `${y}년 ${parseInt(m,10)}월`;
+}
+function periodSortKey(ym){ return ym; } // "YYYY-MM" 문자열은 그대로 비교해도 시간순 정렬됨
+
+function togglePeriodDropdown(ev){
   if(ev) ev.stopPropagation();
-  const dd = document.getElementById('ds-month-dropdown');
+  const dd = document.getElementById('ds-period-dropdown');
   if(!dd) return;
   const willOpen = !dd.classList.contains('open');
   dd.classList.toggle('open', willOpen);
-  if(willOpen) renderMonthDropdownPanel();
+  if(willOpen) renderPeriodDropdownPanel();
 }
 // 드롭다운 바깥을 클릭하면 닫기
 document.addEventListener('click', (ev)=>{
-  const dd = document.getElementById('ds-month-dropdown');
+  const dd = document.getElementById('ds-period-dropdown');
   if(dd && dd.classList.contains('open') && !dd.contains(ev.target)){
     dd.classList.remove('open');
   }
 });
 
-function _dsGetSelectedMonths(){
+function _dsGetSelectedPeriods(){
   try {
-    const v = JSON.parse(document.getElementById('ds-month-value')?.value || '[]');
+    const v = JSON.parse(document.getElementById('ds-period-value')?.value || '[]');
     return Array.isArray(v) ? v : [];
   } catch(e){ return []; }
 }
-function _dsSetSelectedMonths(arr){
-  const hidden = document.getElementById('ds-month-value');
+function _dsSetSelectedPeriods(arr){
+  arr = [...arr].sort(periodSortKey);
+  const hidden = document.getElementById('ds-period-value');
   if(hidden) hidden.value = JSON.stringify(arr);
   // 트리거 라벨 갱신
-  const label = document.getElementById('ds-month-trigger-label');
+  const label = document.getElementById('ds-period-trigger-label');
   if(label){
-    if(arr.length){ label.textContent = arr.join(', '); label.classList.remove('ms-placeholder'); }
-    else { label.textContent = '월을 선택해주세요'; label.classList.add('ms-placeholder'); }
+    if(arr.length){ label.textContent = arr.map(periodLabel).join(', '); label.classList.remove('ms-placeholder'); }
+    else { label.textContent = '편성기간을 선택해주세요'; label.classList.add('ms-placeholder'); }
   }
   // 태그 갱신
-  const tags = document.getElementById('ds-month-tags');
+  const tags = document.getElementById('ds-period-tags');
   if(tags){
-    tags.innerHTML = arr.map(m=>`<span class="ms-tag">${m}<button type="button" onclick="dsRemoveMonth(event,'${m}')">✕</button></span>`).join('');
+    tags.innerHTML = arr.map(ym=>`<span class="ms-tag">${periodLabel(ym)}<button type="button" onclick="dsRemovePeriod(event,'${ym}')">✕</button></span>`).join('');
   }
 }
-function renderMonthDropdownPanel(){
-  const panel = document.getElementById('ds-month-panel');
-  if(!panel) return;
-  const selected = _dsGetSelectedMonths();
-  panel.innerHTML = DS_MONTHS.map(m=>`
-    <label class="ms-option">
-      <input type="checkbox" value="${m}" ${selected.includes(m)?'checked':''} onchange="dsToggleMonth('${m}', this.checked)">
-      <span>${m}</span>
-    </label>
-  `).join('');
+function renderPeriodDropdownPanel(){
+  const tabsBox = document.getElementById('ds-period-year-tabs');
+  const gridBox = document.getElementById('ds-period-month-grid');
+  if(!tabsBox || !gridBox) return;
+
+  tabsBox.innerHTML = DS_PERIOD_YEARS.map(y=>
+    `<div class="ms-period-year-tab ${y===_dsPeriodActiveYear?'active':''}" onclick="dsSelectPeriodYearTab('${y}')">${y}</div>`
+  ).join('');
+
+  const selected = _dsGetSelectedPeriods();
+  gridBox.innerHTML = DS_MONTHS.map((m,i)=>{
+    const mm = String(i+1).padStart(2,'0');
+    const ym = `${_dsPeriodActiveYear}-${mm}`;
+    const checked = selected.includes(ym);
+    return `<label class="ms-period-month-cell ${checked?'checked':''}">
+      <input type="checkbox" ${checked?'checked':''} onchange="dsTogglePeriod('${ym}', this.checked)">${m}
+    </label>`;
+  }).join('');
 }
-function dsToggleMonth(month, checked){
-  let arr = _dsGetSelectedMonths();
-  if(checked){ if(!arr.includes(month)) arr.push(month); }
-  else { arr = arr.filter(m=>m!==month); }
-  // 월 순서대로 정렬해서 보여주기 (1월~12월 순)
-  arr.sort((a,b)=>DS_MONTHS.indexOf(a)-DS_MONTHS.indexOf(b));
-  _dsSetSelectedMonths(arr);
+function dsSelectPeriodYearTab(year){
+  _dsPeriodActiveYear = year;
+  renderPeriodDropdownPanel();
 }
-function dsRemoveMonth(ev, month){
+function dsTogglePeriod(ym, checked){
+  let arr = _dsGetSelectedPeriods();
+  if(checked){ if(!arr.includes(ym)) arr.push(ym); }
+  else { arr = arr.filter(v=>v!==ym); }
+  _dsSetSelectedPeriods(arr);
+  renderPeriodDropdownPanel(); // 체크 상태(셀 하이라이트) 갱신
+}
+function dsRemovePeriod(ev, ym){
   if(ev) ev.stopPropagation();
-  const arr = _dsGetSelectedMonths().filter(m=>m!==month);
-  _dsSetSelectedMonths(arr);
-  renderMonthDropdownPanel(); // 패널이 열려있다면 체크 상태도 갱신
+  const arr = _dsGetSelectedPeriods().filter(v=>v!==ym);
+  _dsSetSelectedPeriods(arr);
+  renderPeriodDropdownPanel(); // 패널이 열려있다면 체크 상태도 갱신
 }
 
 async function renderDramaScheduleList(){
@@ -7250,28 +7272,23 @@ async function renderDramaScheduleList(){
 
   // 정렬
   const sk=document.getElementById('ds-sort')?.value||'created-desc';
-  // 편성(월) 정렬용: row가 가진 월들 중 가장 빠른 월의 인덱스를 반환 (월이 없으면 맨 뒤로)
-  const earliestMonthIdx=(r)=>{
-    let arr=[];
-    try{ arr = Array.isArray(r.program_month) ? r.program_month : JSON.parse(r.program_month||'[]'); }catch(e){ arr=[]; }
-    if(!arr.length) return 999;
-    const idxs = arr.map(m=>DS_MONTHS.indexOf(m)).filter(i=>i>=0);
-    return idxs.length ? Math.min(...idxs) : 999;
+  // 편성기간 정렬용: row가 가진 "YYYY-MM" 값들 중 가장 빠른 값을 반환 (없으면 맨 뒤로)
+  const earliestPeriod=(r)=>{
+    const arr = dsGetRowPeriods(r);
+    return arr.length ? arr[0] : '9999-99';
   };
   rows.sort((a,b)=>{
     if(sk==='created-desc') return (b.created_at||'').localeCompare(a.created_at||'');
     if(sk==='created-asc')  return (a.created_at||'').localeCompare(b.created_at||'');
     if(sk==='title-asc')    return (a.title||'').localeCompare(b.title||'','ko');
     if(sk==='title-desc')   return (b.title||'').localeCompare(a.title||'','ko');
-    if(sk==='year-desc')    return (b.year||'').localeCompare(a.year||'');
-    if(sk==='year-asc')     return (a.year||'').localeCompare(b.year||'');
-    if(sk==='month-asc')    return earliestMonthIdx(a)-earliestMonthIdx(b);
-    if(sk==='month-desc')   return earliestMonthIdx(b)-earliestMonthIdx(a);
+    if(sk==='period-asc')   return earliestPeriod(a).localeCompare(earliestPeriod(b));
+    if(sk==='period-desc')  return earliestPeriod(b).localeCompare(earliestPeriod(a));
     return 0;
   });
 
   if(!rows.length){
-    body.innerHTML='<tr><td colspan="9" class="sc-empty">등록된 편성표가 없습니다 📺</td></tr>';
+    body.innerHTML='<tr><td colspan="8" class="sc-empty">등록된 편성표가 없습니다 📺</td></tr>';
     return;
   }
 
@@ -7301,19 +7318,17 @@ async function renderDramaScheduleList(){
     const s=map[v]||{bg:'#EEE',fg:'#333',bd:'#999'};
     return `<span style="display:inline-block;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:800;background:${s.bg};color:${s.fg};border:1.5px solid ${s.bd};white-space:nowrap;">${v||'-'}</span>`;
   };
-  // 편성(월 배열) 표시
-  const monthsCell=(v)=>{
-    let arr=[];
-    try{ arr = Array.isArray(v) ? v : JSON.parse(v||'[]'); }catch(e){ arr=[]; }
+  // 편성기간 표시 — "2026년 8월, 2026년 9월" 형태로 (구버전 데이터도 dsGetRowPeriods가 변환해서 보여줌)
+  const periodCell=(r)=>{
+    const arr = dsGetRowPeriods(r);
     if(!arr.length) return '<span style="color:var(--text3);">-</span>';
-    return arr.join(', ');
+    return arr.map(periodLabel).join(', ');
   };
 
   body.innerHTML=rows.map(r=>`
     <tr style="cursor:pointer;" onclick="openDramaScheduleDetail('${r.id}')">
-      <td style="font-weight:600;">${r.year||'-'}</td>
+      <td style="white-space:nowrap;">${periodCell(r)}</td>
       <td>${r.broadcast||'-'}</td>
-      <td style="white-space:nowrap;">${monthsCell(r.program_month)}</td>
       <td>${r.weekday||'-'}</td>
       <td style="font-weight:700;">${r.title||'-'}</td>
       <td>${r.production||'-'}</td>
@@ -7329,13 +7344,13 @@ function openDramaScheduleNew(){
   ['ds-title','ds-writer-director','ds-cast','ds-production','ds-casting-manager','ds-memo','ds-edit-id'].forEach(f=>{
     const el=document.getElementById(f); if(el) el.value='';
   });
-  const yearSel=document.getElementById('ds-year'); if(yearSel) yearSel.value='2026';
   const brSel=document.getElementById('ds-broadcast'); if(brSel) brSel.value='';
   const weekdaySel=document.getElementById('ds-weekday'); if(weekdaySel) weekdaySel.value='';
   const statusSel=document.getElementById('ds-status'); if(statusSel) statusSel.value='';
   const applyStatusSel=document.getElementById('ds-apply-status'); if(applyStatusSel) applyStatusSel.value='';
-  _dsSetSelectedMonths([]);
-  const dd=document.getElementById('ds-month-dropdown'); if(dd) dd.classList.remove('open');
+  _dsSetSelectedPeriods([]);
+  _dsPeriodActiveYear = DS_PERIOD_YEARS[1]; // 기본 연도 탭(2026)으로 리셋
+  const dd=document.getElementById('ds-period-dropdown'); if(dd) dd.classList.remove('open');
 
   const t=document.getElementById('m-drama-schedule-title'); if(t) t.textContent='📺 드라마 편성표 추가';
   openModal('m-drama-schedule');
@@ -7348,15 +7363,14 @@ async function saveDramaSchedule(){
   if(!broadcast){ alert('송출을 선택해주세요'); return; }
   const weekday=document.getElementById('ds-weekday')?.value||'';
   if(!weekday){ alert('방영요일을 선택해주세요'); return; }
-  const programMonth=_dsGetSelectedMonths();
-  if(!programMonth.length){ alert('편성(월)을 1개 이상 선택해주세요'); return; }
+  const programPeriod=_dsGetSelectedPeriods();
+  if(!programPeriod.length){ alert('편성기간을 1개 이상 선택해주세요'); return; }
 
   const editId=(document.getElementById('ds-edit-id')?.value||'').trim();
 
   const data={
-    year:document.getElementById('ds-year')?.value||'2026',
     broadcast,
-    program_month:programMonth, // JSON 배열 그대로 (예: ["7월","8월"])
+    program_period:programPeriod, // JSON 배열 그대로 (예: ["2026-12","2027-01"])
     weekday,
     title,
     writer_director:(document.getElementById('ds-writer-director')?.value||'').trim(),
@@ -7395,7 +7409,6 @@ async function editDramaSchedule(id){
   initDramaScheduleOptions();
 
   document.getElementById('ds-edit-id').value=r.id;
-  const yearSel=document.getElementById('ds-year'); if(yearSel) yearSel.value=r.year||'2026';
   const brSel=document.getElementById('ds-broadcast'); if(brSel) brSel.value=r.broadcast||'';
   const weekdaySel=document.getElementById('ds-weekday'); if(weekdaySel) weekdaySel.value=r.weekday||'';
   document.getElementById('ds-title').value=r.title||'';
@@ -7407,15 +7420,35 @@ async function editDramaSchedule(id){
   const applyStatusSel=document.getElementById('ds-apply-status'); if(applyStatusSel) applyStatusSel.value=r.apply_status||'';
   document.getElementById('ds-memo').value=r.memo||'';
 
-  // 편성(월) 배열 복원
-  let months=[];
-  try{ months = Array.isArray(r.program_month) ? r.program_month : JSON.parse(r.program_month||'[]'); }catch(e){ months=[]; }
-  _dsSetSelectedMonths(months);
-  const dd=document.getElementById('ds-month-dropdown'); if(dd) dd.classList.remove('open');
+  // 편성기간(YYYY-MM) 배열 복원
+  const periods = dsGetRowPeriods(r);
+  _dsSetSelectedPeriods(periods);
+  _dsPeriodActiveYear = periods.length ? periods[0].split('-')[0] : DS_PERIOD_YEARS[1];
+  const dd=document.getElementById('ds-period-dropdown'); if(dd) dd.classList.remove('open');
 
   const t=document.getElementById('m-drama-schedule-title'); if(t) t.textContent='✏️ 드라마 편성표 수정';
   closeModal('m-drama-schedule-detail');
   openModal('m-drama-schedule');
+}
+
+// row에서 편성기간(YYYY-MM 배열)을 가져온다.
+// program_period가 있으면 그대로 쓰고, 없으면 구버전 컬럼(year+program_month)으로부터 변환해서 보여준다.
+// (DB 마이그레이션을 아직 안 돌린 기존 데이터도 화면에서 깨지지 않도록 하는 안전장치)
+function dsGetRowPeriods(r){
+  let periods=[];
+  try{ periods = Array.isArray(r.program_period) ? r.program_period : JSON.parse(r.program_period||'[]'); }catch(e){ periods=[]; }
+  if(periods.length) return periods.slice().sort();
+
+  // fallback: 구버전 year + program_month → "YYYY-MM" 변환
+  if(r.year && r.program_month){
+    let months=[];
+    try{ months = Array.isArray(r.program_month) ? r.program_month : JSON.parse(r.program_month||'[]'); }catch(e){ months=[]; }
+    return months.map(m=>{
+      const mm = String(parseInt(m,10)).padStart(2,'0');
+      return `${r.year}-${mm}`;
+    }).sort();
+  }
+  return [];
 }
 
 async function openDramaScheduleDetail(id){
@@ -7425,18 +7458,17 @@ async function openDramaScheduleDetail(id){
   const body=document.getElementById('drama-schedule-detail-body');
   if(!body)return;
 
-  let months=[];
-  try{ months = Array.isArray(r.program_month) ? r.program_month : JSON.parse(r.program_month||'[]'); }catch(e){ months=[]; }
+  const periods = dsGetRowPeriods(r);
+  const periodText = periods.length ? periods.map(periodLabel).join(', ') : '-';
 
   body.innerHTML=`
     <div style="display:flex;flex-direction:column;gap:14px;">
       <div style="background:var(--bg);padding:16px;border-radius:16px;font-size:14px;line-height:2.1;">
-        <div>📅 <b>년도</b><br><span style="color:var(--text2);font-weight:700;">${r.year||'-'}</span></div>
+        <div>🗓️ <b>편성기간</b><br><span style="color:var(--text2);font-weight:700;">${periodText}</span></div>
         <div style="margin-top:10px;">📡 <b>송출</b><br><span style="color:var(--text2);">${r.broadcast||'-'}</span></div>
-        <div style="margin-top:10px;">🗓️ <b>편성</b><br><span style="color:var(--text2);">${months.length?months.join(', '):'-'}</span></div>
         <div style="margin-top:10px;">📆 <b>방영요일</b><br><span style="color:var(--text2);">${r.weekday||'-'}</span></div>
         <div style="margin-top:10px;">📋 <b>작품명</b><br><span style="color:var(--text2);font-weight:700;">${r.title||'-'}</span></div>
-        <div style="margin-top:10px;">✍️ <b>작/감</b><br><span style="color:var(--text2);">${r.writer_director||'-'}</span></div>
+        <div style="margin-top:10px;">✍️ <b>감/작</b><br><span style="color:var(--text2);">${r.writer_director||'-'}</span></div>
         <div style="margin-top:10px;">🎭 <b>출연진</b><br><span style="color:var(--text2);white-space:pre-wrap;">${r.cast||'-'}</span></div>
         <div style="margin-top:10px;">🏢 <b>제작사</b><br><span style="color:var(--text2);">${r.production||'-'}</span></div>
         <div style="margin-top:10px;">👤 <b>캐스팅담당</b><br><span style="color:var(--text2);">${r.casting_manager||'-'}</span></div>
