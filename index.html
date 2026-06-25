@@ -4329,6 +4329,35 @@ function renderActTab(tab){
   if(m[tab])m[tab]();
 }
 
+// 코드에서 직접 탭을 전환할 때 쓰는 안전한 헬퍼 (switchAct는 클릭된 버튼 엘리먼트가 필요해서 직접 호출이 불편함)
+// 해당 탭의 사이드바 버튼을 찾아서 switchAct에 그대로 넘겨주므로, 버튼의 active 표시 등 기존 동작이 그대로 유지됨
+function goToActTab(tab){
+  const btn = document.querySelector(`.am-btn[onclick*="switchAct('${tab}'"]`);
+  if(btn) switchAct(tab, btn);
+  else renderActTab(tab); // 버튼을 못 찾아도 최소한 데이터는 갱신
+}
+
+// ── 일정(캘린더)에서 "해당 메뉴에서 보기"를 눌렀을 때의 공통 진입점
+// menuType: 'apply' | 'listup' | 'audition' | 'schedule' | 'appearance'
+// 1) 일정 상세 모달을 닫고 2) 연기 활동 화면 + 해당 탭으로 이동한 뒤 3) 그 메뉴의 진짜 상세 모달을 자동으로 연다.
+const _GOTO_MENU_MAP = {
+  apply:      { tab: 'apply',      openFn: id => openApplyDetail(id) },
+  listup:     { tab: 'listup',     openFn: id => openListupDetail(id) },
+  audition:   { tab: 'audition',   openFn: id => openAuditionDetail(id) },
+  schedule:   { tab: 'schedule',   openFn: id => openScheduleDetail(id) },
+  appearance: { tab: 'appearance', openFn: id => openAppearanceDetail(id) }
+};
+function goToMenuDetail(menuType, id){
+  const target = _GOTO_MENU_MAP[menuType];
+  if(!target) return;
+  closeModal('m-day-event-detail');
+  closeModal('m-event');
+  goScreen('acting');
+  goToActTab(target.tab);
+  // 탭 전환 직후 DOM이 그려질 시간을 살짝 두고 상세 모달을 연다
+  setTimeout(()=>{ target.openFn(id); }, 80);
+}
+
 // ── 현황 대시보드 ─────────────────────────────────
 let _dashDate = new Date(); // 달력에 표시 중인 월 (현재 월로 시작)
 let _dashEventsCache = []; // 모든 일정 캐시 (날짜 클릭 모달용)
@@ -4548,82 +4577,58 @@ function openEventDay(dateStr){
   openModal('m-event');
 }
 
-// 일정 목록의 항목 클릭 → 종류별 상세 데이터를 불러와 읽기 전용 모달로 표시
+// 일정 목록의 항목 클릭 → 종류별 상세 데이터를 불러와 "기존 메뉴의 상세 렌더 함수"를 그대로 재사용해서 보여줌.
+// (요약판을 따로 만들지 않고, 각 메뉴 상세보기와 100% 동일한 내용 + "해당 메뉴에서 보기" 버튼만 추가됨)
+// 원본 row를 매번 새로 조회하므로 원본 메뉴에서 수정한 내용이 항상 최신으로 반영됨.
 async function openDayEventDetail(type, id){
   const titleEl = document.getElementById('m-day-event-title');
   const body = document.getElementById('day-event-detail-body');
   if(!body) return;
 
-  const row = (line)=>`<div style="margin-bottom:4px;">${line}</div>`;
-  const field = (label, value)=>`<div style="margin-top:10px;">${label}<br><span style="color:var(--text2);white-space:pre-wrap;">${(value===null||value===undefined||value==='')?'-':value}</span></div>`;
+  const notFound = ()=>{ body.innerHTML='<div class="dash-empty">데이터를 찾을 수 없습니다</div>'; openModal('m-day-event-detail'); };
 
   try{
     if(type==='apply'){
       const rows = await sb.get('apply','&id=eq.'+id);
-      if(!rows.length){ body.innerHTML='<div class="dash-empty">데이터를 찾을 수 없습니다</div>'; openModal('m-day-event-detail'); return; }
+      if(!rows.length) return notFound();
       const r = rows[0];
       titleEl.textContent = '📋 지원 상세';
-      body.innerHTML =
-        field('🏷️ <b>종류</b>','지원') +
-        field('📋 <b>작품명</b>', r.title) +
-        field('🏢 <b>제작사</b>', r.company) +
-        field('🔗 <b>지원사이트</b>', r.url) +
-        field('📅 <b>지원일</b>', r.apply_date||r.date) +
-        field('💭 <b>메모</b>', r.memo);
+      if(r.record_type==='filmmakers') renderApplyDetailFilmmakers(r, body, {fromCalendar:true});
+      else renderApplyDetailGeneral(r, body, {fromCalendar:true});
 
     }else if(type==='aud'){
       const rows = await sb.get('audition','&id=eq.'+id);
-      if(!rows.length){ body.innerHTML='<div class="dash-empty">데이터를 찾을 수 없습니다</div>'; openModal('m-day-event-detail'); return; }
+      if(!rows.length) return notFound();
       const r = rows[0];
       titleEl.textContent = '🎤 오디션 상세';
-      body.innerHTML =
-        field('🏷️ <b>종류</b>','오디션') +
-        field('📋 <b>작품명</b>', r.title) +
-        field('🗣️ <b>오디션 종류</b>', r.audition_type) +
-        field('📅 <b>오디션 날짜</b>', r.audition_date||r.date) +
-        field('📌 <b>결과</b>', r.result) +
-        field('💭 <b>메모</b>', r.review);
+      renderAuditionDetailBody(r, body, {fromCalendar:true});
 
     }else if(type==='shoot'){
       const rows = await sb.get('shooting_records','&id=eq.'+id);
-      if(!rows.length){ body.innerHTML='<div class="dash-empty">데이터를 찾을 수 없습니다</div>'; openModal('m-day-event-detail'); return; }
+      if(!rows.length) return notFound();
       const r = rows[0];
       titleEl.textContent = '🎬 촬영 상세';
-      body.innerHTML =
-        field('🏷️ <b>종류</b>','촬영') +
-        field('📋 <b>작품명</b>', r.title) +
-        field('🎭 <b>배역</b>', r.role) +
-        field('⏰ <b>촬영시간</b>', r.calltime) +
-        field('📍 <b>장소</b>', r.place) +
-        field('💭 <b>메모</b>', r.note);
+      renderScheduleDetailBody(r, body, {fromCalendar:true});
 
     }else if(type==='appearance'){
       const rows = await sb.get('appearance','&id=eq.'+id);
-      if(!rows.length){ body.innerHTML='<div class="dash-empty">데이터를 찾을 수 없습니다</div>'; openModal('m-day-event-detail'); return; }
+      if(!rows.length) return notFound();
       const r = rows[0];
       titleEl.textContent = '🎥 출연 상세';
-      body.innerHTML =
-        field('🏷️ <b>종류</b>','출연') +
-        field('📋 <b>작품명</b>', r.title) +
-        field('📡 <b>플랫폼</b>', r.platform) +
-        field('📅 <b>공개일</b>', r.air_date) +
-        field('💭 <b>메모</b>', r.note||r.memo);
+      renderAppearanceDetailBody(r, body, {fromCalendar:true});
 
     }else if(type==='listup'){
       const rows = await sb.get('listup','&id=eq.'+id);
-      if(!rows.length){ body.innerHTML='<div class="dash-empty">데이터를 찾을 수 없습니다</div>'; openModal('m-day-event-detail'); return; }
+      if(!rows.length) return notFound();
       const r = rows[0];
       titleEl.textContent = '📇 리스트업 상세';
-      body.innerHTML =
-        field('🏷️ <b>종류</b>','리스트업') +
-        field('📋 <b>작품명</b>', r.title) +
-        field('🏢 <b>제작사</b>', r.company) +
-        field('📅 <b>촬영(예정)일</b>', r.shoot_date) +
-        field('💭 <b>메모</b>', r.note);
+      renderListupDetailBody(r, body, {fromCalendar:true});
 
-    }else{ // practice = 직접 추가한 일정
+    }else{ // practice = 직접 추가한 일정 (재사용할 기존 메뉴가 없으므로 자체 표시 그대로 유지)
+      const row2 = (line)=>`<div style="margin-bottom:4px;">${line}</div>`;
+      const field = (label, value)=>`<div style="margin-top:10px;">${label}<br><span style="color:var(--text2);white-space:pre-wrap;">${(value===null||value===undefined||value==='')?'-':value}</span></div>`;
       const rows = await sb.get('events','&id=eq.'+id);
-      if(!rows.length){ body.innerHTML='<div class="dash-empty">데이터를 찾을 수 없습니다</div>'; openModal('m-day-event-detail'); return; }
+      if(!rows.length) return notFound();
       const r = rows[0];
       titleEl.textContent = '🗓️ 일정 상세';
       body.innerHTML =
@@ -6172,16 +6177,16 @@ async function renderApplyList(){
   `).join('');
 }
 
-async function openApplyDetail(id){
+async function openApplyDetail(id, opts={}){
   const rows=await sb.get('apply','&id=eq.'+id);
   if(!rows.length)return;
   const r=rows[0];
   const body=document.getElementById('apply-detail-body');
 
   if(r.record_type==='filmmakers'){
-    renderApplyDetailFilmmakers(r, body);
+    renderApplyDetailFilmmakers(r, body, opts);
   } else {
-    renderApplyDetailGeneral(r, body);
+    renderApplyDetailGeneral(r, body, opts);
   }
   openModal('m-apply-detail');
 }
@@ -6199,11 +6204,15 @@ function _applyResultBadgeStyle(result){
 }
 
 // ── 일반 공고(직접 입력) 상세보기 — 기존 동작 그대로 보존
-function renderApplyDetailGeneral(r, body){
+function renderApplyDetailGeneral(r, body, opts={}){
   const rs=_applyResultBadgeStyle(r.result);
 
   const urlLine=r.url
     ? `<div style="margin-top:10px;">🔗 <b>지원 URL</b><br><a href="${r.url.replace(/"/g,'&quot;')}" target="_blank" rel="noopener" style="color:var(--p2);text-decoration:underline;word-break:break-all;">${r.url}</a></div>`
+    : '';
+
+  const goToMenuBtn = opts.fromCalendar
+    ? `<button style="width:100%;margin-top:10px;padding:13px;border-radius:14px;border:none;background:var(--p2);color:#1a1a1a;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;" onclick="goToMenuDetail('apply','${r.id}')">📋 지원기록에서 보기</button>`
     : '';
 
   body.innerHTML=`
@@ -6232,11 +6241,12 @@ function renderApplyDetailGeneral(r, body){
         <button style="flex:1;padding:13px;border-radius:14px;border:1.5px solid var(--p2);color:var(--p2);background:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;" onclick="editApply('${r.id}')">✏️ 수정</button>
         <button style="flex:1;padding:13px;border-radius:14px;border:1.5px solid #ffb7b7;color:#d33;background:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;" onclick="delApply('${r.id}');closeModal('m-apply-detail');">🗑️ 삭제</button>
       </div>
+      ${goToMenuBtn}
     </div>`;
 }
 
 // ── 필름메이커스(AI 분석) 상세보기 — ai_json을 카드형으로 재구성해서 보여줌
-function renderApplyDetailFilmmakers(r, body){
+function renderApplyDetailFilmmakers(r, body, opts={}){
   const rs=_applyResultBadgeStyle(r.result);
   const aj = r.ai_json || {};
   const b = aj.basic || {};
@@ -6334,6 +6344,9 @@ function renderApplyDetailFilmmakers(r, body){
     <button style="flex:1;padding:13px;border-radius:14px;border:1.5px solid var(--p2);color:var(--p2);background:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;" onclick="editApply('${r.id}')">✏️ 기본항목 수정</button>
     <button style="flex:1;padding:13px;border-radius:14px;border:1.5px solid #ffb7b7;color:#d33;background:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;" onclick="delApply('${r.id}');closeModal('m-apply-detail');">🗑️ 삭제</button>
   </div>`;
+  if(opts.fromCalendar){
+    html += `<button style="width:100%;margin-top:10px;padding:13px;border-radius:14px;border:none;background:var(--p2);color:#1a1a1a;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;" onclick="goToMenuDetail('apply','${r.id}')">📋 지원기록에서 보기</button>`;
+  }
   html += `</div>`;
 
   body.innerHTML = html;
@@ -6461,19 +6474,19 @@ async function editListup(id){
   openModal('m-listup');
 }
 
-async function openListupDetail(id){
-  const rows=await sb.get('listup','&id=eq.'+id);
-  if(!rows.length)return;
-  const r=rows[0];
-  const body=document.getElementById('listup-detail-body');
-  if(!body)return;
-
+// 리스트업 상세 내용을 렌더링 (body 엘리먼트를 받아서 그려줌 — 리스트업 메뉴·일정 모달 양쪽에서 재사용)
+// opts.fromCalendar가 true면 "해당 메뉴에서 보기" 버튼을 추가로 보여줌
+function renderListupDetailBody(r, body, opts={}){
   const statusMap={
     '대기': {bg:'#FEF3DC', fg:'#7A5400', bd:'#E8A020'},
     '픽스': {bg:'#27AE60', fg:'#FFFFFF', bd:'#1E8449'},
     '탈락': {bg:'#E05050', fg:'#FFFFFF', bd:'#A93226'}
   };
   const ss=statusMap[r.status]||{bg:'#EEE',fg:'#333',bd:'#999'};
+
+  const goToMenuBtn = opts.fromCalendar
+    ? `<button style="width:100%;margin-top:10px;padding:13px;border-radius:14px;border:none;background:var(--p2);color:#1a1a1a;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;" onclick="goToMenuDetail('listup','${r.id}')">📞 리스트업연락에서 보기</button>`
+    : '';
 
   body.innerHTML=`
     <div style="display:flex;flex-direction:column;gap:14px;">
@@ -6498,7 +6511,17 @@ async function openListupDetail(id){
         <button style="flex:1;padding:13px;border-radius:14px;border:1.5px solid var(--p2);color:var(--p2);background:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;" onclick="editListup('${r.id}')">✏️ 수정</button>
         <button style="flex:1;padding:13px;border-radius:14px;border:1.5px solid #ffb7b7;color:#d33;background:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;" onclick="delListup('${r.id}');closeModal('m-listup-detail');">🗑️ 삭제</button>
       </div>
+      ${goToMenuBtn}
     </div>`;
+}
+
+async function openListupDetail(id){
+  const rows=await sb.get('listup','&id=eq.'+id);
+  if(!rows.length)return;
+  const r=rows[0];
+  const body=document.getElementById('listup-detail-body');
+  if(!body)return;
+  renderListupDetailBody(r, body);
   openModal('m-listup-detail');
 }
 
@@ -6775,13 +6798,8 @@ async function editAudition(id){
   openModal('m-audition');
 }
 
-async function openAuditionDetail(id){
-  const rows=await sb.get('audition','&id=eq.'+id);
-  if(!rows.length)return;
-  const r=rows[0];
-  const body=document.getElementById('audition-detail-body');
-  if(!body)return;
-
+// 오디션 상세 내용을 렌더링 (오디션기록 메뉴·일정 모달 양쪽에서 재사용)
+function renderAuditionDetailBody(r, body, opts={}){
   const resultMap={
     '결과 대기': {bg:'#FEF3DC', fg:'#7A5400', bd:'#E8A020'},
     '합격':     {bg:'#27AE60', fg:'#FFFFFF', bd:'#1E8449'},
@@ -6792,6 +6810,10 @@ async function openAuditionDetail(id){
 
   const scriptLine=r.script_url
     ? `<div style="margin-top:10px;">📎 <b>대본 파일</b><br><a href="${r.script_url.replace(/"/g,'&quot;')}" target="_blank" rel="noopener" style="color:var(--p2);text-decoration:underline;word-break:break-all;">${decodeURIComponent(r.script_url.split('/').pop().split('?')[0])}</a></div>`
+    : '';
+
+  const goToMenuBtn = opts.fromCalendar
+    ? `<button style="width:100%;margin-top:10px;padding:13px;border-radius:14px;border:none;background:var(--p2);color:#1a1a1a;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;" onclick="goToMenuDetail('audition','${r.id}')">🎤 오디션기록에서 보기</button>`
     : '';
 
   body.innerHTML=`
@@ -6814,7 +6836,17 @@ async function openAuditionDetail(id){
         <button style="flex:1;padding:13px;border-radius:14px;border:1.5px solid var(--p2);color:var(--p2);background:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;" onclick="editAudition('${r.id}')">✏️ 수정</button>
         <button style="flex:1;padding:13px;border-radius:14px;border:1.5px solid #ffb7b7;color:#d33;background:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;" onclick="delAudition('${r.id}');closeModal('m-audition-detail');">🗑️ 삭제</button>
       </div>
+      ${goToMenuBtn}
     </div>`;
+}
+
+async function openAuditionDetail(id){
+  const rows=await sb.get('audition','&id=eq.'+id);
+  if(!rows.length)return;
+  const r=rows[0];
+  const body=document.getElementById('audition-detail-body');
+  if(!body)return;
+  renderAuditionDetailBody(r, body);
   openModal('m-audition-detail');
 }
 
@@ -7053,16 +7085,15 @@ async function editSchedule(id){
   openModal('m-schedule');
 }
 
-async function openScheduleDetail(id){
-  const rows=await sb.get('shooting_records','&id=eq.'+id);
-  if(!rows.length)return;
-  const r=rows[0];
-  const body=document.getElementById('schedule-detail-body');
-  if(!body)return;
-
+// 촬영기록 상세 내용을 렌더링 (촬영기록 메뉴·일정 모달 양쪽에서 재사용)
+function renderScheduleDetailBody(r, body, opts={}){
   const paidBadge=r.pay_paid==='지급완료'
     ? `<span style="display:inline-block;padding:5px 14px;border-radius:999px;font-size:13px;font-weight:800;background:#27AE60;color:#fff;border:1.5px solid #1E8449;">✓ 지급완료</span>`
     : `<span style="display:inline-block;padding:5px 14px;border-radius:999px;font-size:13px;font-weight:800;background:#FDECEA;color:#A93226;border:1.5px solid #E05050;">⏳ 미지급</span>`;
+
+  const goToMenuBtn = opts.fromCalendar
+    ? `<button style="width:100%;margin-top:10px;padding:13px;border-radius:14px;border:none;background:var(--p2);color:#1a1a1a;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;" onclick="goToMenuDetail('schedule','${r.id}')">🎬 촬영기록에서 보기</button>`
+    : '';
 
   body.innerHTML=`
     <div style="display:flex;flex-direction:column;gap:14px;">
@@ -7089,7 +7120,17 @@ async function openScheduleDetail(id){
         <button style="flex:1;padding:13px;border-radius:14px;border:1.5px solid var(--p2);color:var(--p2);background:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;" onclick="editSchedule('${r.id}')">✏️ 수정</button>
         <button style="flex:1;padding:13px;border-radius:14px;border:1.5px solid #ffb7b7;color:#d33;background:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;" onclick="delSchedule('${r.id}');closeModal('m-schedule-detail');">🗑️ 삭제</button>
       </div>
+      ${goToMenuBtn}
     </div>`;
+}
+
+async function openScheduleDetail(id){
+  const rows=await sb.get('shooting_records','&id=eq.'+id);
+  if(!rows.length)return;
+  const r=rows[0];
+  const body=document.getElementById('schedule-detail-body');
+  if(!body)return;
+  renderScheduleDetailBody(r, body);
   openModal('m-schedule-detail');
 }
 
@@ -7624,13 +7665,8 @@ async function editAppearance(id){
   openModal('m-appearance');
 }
 
-async function openAppearanceDetail(id){
-  const rows=await sb.get('appearance','&id=eq.'+id);
-  if(!rows.length)return;
-  const r=rows[0];
-  const body=document.getElementById('appearance-detail-body');
-  if(!body)return;
-
+// 출연기록 상세 내용을 렌더링 (출연기록 메뉴·일정 모달 양쪽에서 재사용)
+function renderAppearanceDetailBody(r, body, opts={}){
   const contracts=Array.isArray(r.contracts)?r.contracts:[];
   const contractList=contracts.length
     ? contracts.map((u,i)=>{
@@ -7640,6 +7676,10 @@ async function openAppearanceDetail(id){
     : '<span style="color:var(--text3);">계약서 없음</span>';
 
   const airDate=r.air_date||r.date||'';
+
+  const goToMenuBtn = opts.fromCalendar
+    ? `<button style="width:100%;margin-top:10px;padding:13px;border-radius:14px;border:none;background:var(--p2);color:#1a1a1a;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;" onclick="goToMenuDetail('appearance','${r.id}')">🎥 출연기록에서 보기</button>`
+    : '';
 
   body.innerHTML=`
     <div style="display:flex;flex-direction:column;gap:14px;">
@@ -7658,7 +7698,17 @@ async function openAppearanceDetail(id){
         <button style="flex:1;padding:13px;border-radius:14px;border:1.5px solid var(--p2);color:var(--p2);background:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;" onclick="editAppearance('${r.id}')">✏️ 수정</button>
         <button style="flex:1;padding:13px;border-radius:14px;border:1.5px solid #ffb7b7;color:#d33;background:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;" onclick="delAppearance('${r.id}');closeModal('m-appearance-detail');">🗑️ 삭제</button>
       </div>
+      ${goToMenuBtn}
     </div>`;
+}
+
+async function openAppearanceDetail(id){
+  const rows=await sb.get('appearance','&id=eq.'+id);
+  if(!rows.length)return;
+  const r=rows[0];
+  const body=document.getElementById('appearance-detail-body');
+  if(!body)return;
+  renderAppearanceDetailBody(r, body);
   openModal('m-appearance-detail');
 }
 
