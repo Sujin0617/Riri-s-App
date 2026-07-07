@@ -8350,7 +8350,7 @@ async function openCastingDetail(id){
     ? `<span style="display:inline-block;margin-left:6px;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:800;background:var(--p-light);color:var(--p1);border:1px solid var(--p3);">총 ${cs.count}회 연락</span>`
     : '';
   const contactTags = cs.dates.length
-    ? cs.dates.slice().reverse().map(d=>`<span style="display:inline-flex;align-items:center;gap:4px;background:var(--white);border:1px solid var(--border);border-radius:999px;padding:4px 10px;font-size:12px;margin:3px 4px 3px 0;">${d}<button onclick="castingRemoveContactDate('${r.id}','${d}')" style="border:none;background:none;color:var(--text3);cursor:pointer;font-size:12px;padding:0;line-height:1;" title="이 날짜 삭제">×</button></span>`).join('')
+    ? cs.dates.map((d,idx)=>({d,idx})).reverse().map(({d,idx})=>`<span style="display:inline-flex;align-items:center;gap:4px;background:var(--white);border:1px solid var(--border);border-radius:999px;padding:4px 10px;font-size:12px;margin:3px 4px 3px 0;">${d}<button onclick="castingRemoveContactIndex('${r.id}',${idx})" style="border:none;background:none;color:var(--text3);cursor:pointer;font-size:12px;padding:0;line-height:1;" title="이 기록 삭제">×</button></span>`).join('')
     : '<span style="color:var(--text3);">기록 없음</span>';
 
   body.innerHTML=`
@@ -8379,13 +8379,13 @@ async function openCastingDetail(id){
 }
 
 // 상세보기에서 바로 "오늘 연락함"을 1건 누적 기록 (전체 수정 모달을 열지 않고 빠르게 기록)
+// 같은 날 여러 번 연락한 경우도 실제 횟수를 셀 수 있도록, 이미 오늘 날짜가 있어도 매번 새로 추가한다.
 async function castingQuickLogContact(id){
   const rows=await sb.get('casting_contacts','&id=eq.'+id);
   if(!rows.length)return;
   const r=rows[0];
-  const dates=castingContactDatesOf(r).split(',').map(s=>s.trim()).filter(Boolean);
-  const today=todayKR();
-  if(!dates.includes(today)) dates.push(today);
+  const dates=castingContactStats(castingContactDatesOf(r)).dates.slice();
+  dates.push(todayKR());
   dates.sort();
   const ok=await sb.update('casting_contacts', id, {contact_log: dates.join(','), latest_contact: dates[dates.length-1]||null});
   if(!ok)return;
@@ -8393,12 +8393,14 @@ async function castingQuickLogContact(id){
   renderCastingList();
 }
 
-// 상세보기에서 특정 연락 기록 하나만 삭제 (잘못 추가한 날짜 정정용)
-async function castingRemoveContactDate(id, date){
+// 상세보기에서 특정 연락 기록 하나만 삭제 (같은 날짜에 여러 번 기록된 경우에도 그 중 하나만 정확히 삭제)
+async function castingRemoveContactIndex(id, idx){
   const rows=await sb.get('casting_contacts','&id=eq.'+id);
   if(!rows.length)return;
   const r=rows[0];
-  const dates=castingContactDatesOf(r).split(',').map(s=>s.trim()).filter(Boolean).filter(d=>d!==date);
+  const dates=castingContactStats(castingContactDatesOf(r)).dates.slice();
+  if(idx<0||idx>=dates.length)return;
+  dates.splice(idx,1);
   const ok=await sb.update('casting_contacts', id, {contact_log: dates.join(',')||null, latest_contact: dates.length?dates[dates.length-1]:null});
   if(!ok)return;
   await openCastingDetail(id);
