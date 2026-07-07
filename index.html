@@ -2055,7 +2055,7 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
     <option>상업드라마</option><option>웹드라마</option><option>숏폼드라마</option>
     <option>독립영화</option><option>단편영화</option><option>상업영화</option>
     <option>광고영상</option><option>홍보영상</option><option>지면촬영</option>
-  <option>뮤직비디오</option>
+  <option>뮤직비디오</option><option>프로필투어</option>
   </select>
   <label>결과</label>
   <select id="apply-filter-result" onchange="renderApplyList()">
@@ -3087,8 +3087,10 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
     💡 필름메이커스 공고라면 <a href="javascript:void(0)" onclick="closeModal('m-apply');openApplyEntry();" style="color:var(--p2);font-weight:700;text-decoration:underline;">AI 자동분석으로 전환</a>하면 거의 입력 없이 저장할 수 있어요.
   </div>
 
+<div id="ap-adate-wrap">
 <label class="form-label">지원일자 *</label>
 <input id="ap-adate" type="date">
+</div>
 
 <label class="form-label">촬영 분류</label>
 
@@ -3104,6 +3106,7 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
   <option>홍보영상</option>
   <option>지면촬영</option>
   <option>뮤직비디오</option>
+  <option>프로필투어</option>
   <option value="custom">그외촬영 (직접작성)</option>
 </select>
 
@@ -3112,6 +3115,7 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
   placeholder="직접 입력"
   style="display:none;margin-top:8px;">
 
+<div id="ap-general-fields">
   <label class="form-label">작품명 *</label><input id="ap-title" placeholder="작품명">
   <label class="form-label">감독</label><input id="ap-dir" placeholder="감독 이름">
   <label class="form-label">제작사</label><input id="ap-co" placeholder="제작사">
@@ -3159,11 +3163,29 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
     </select>
     <input id="ap-source-custom" placeholder="직접 입력" style="display:none;">
   </div>
+  <label class="form-label">지원 방식</label>
+  <select id="ap-meettype"><option value="">선택안함</option><option value="비대면">비대면</option><option value="대면">대면</option></select>
   <label class="form-label">담당자</label><input id="ap-mgr" placeholder="담당자 이름">
   <label class="form-label">이메일</label><input id="ap-email" type="email" placeholder="담당자 이메일">
   <label class="form-label">결과</label><select id="ap-result"><option>지원</option><option>리스트업</option><option>오디션</option><option>확정</option><option>탈락</option></select>
+</div>
+
+<div id="ap-profiletour-fields" style="display:none;">
+  <div style="background:var(--bg);border-radius:12px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:var(--text2);line-height:1.6;">
+    📸 프로필투어는 여러 곳에 동시에 지원하는 경우가 많아요. 아래 지원목록에 줄을 추가하며 입력하면, <b>저장 시 각 줄이 각각 하나의 독립된 지원기록으로 저장</b>됩니다.
+  </div>
+  <label class="form-label">등록일</label>
+  <input id="apt-regdate-display" disabled style="background:var(--bg);color:var(--text2);">
+  <label class="form-label">메모 (선택, 전체 공통)</label>
+  <textarea id="apt-memo" placeholder="프로필투어 전체에 대한 메모 (선택)"></textarea>
+  <label class="form-label" style="margin-top:18px;">지원목록</label>
+  <div id="apt-rows"></div>
+  <button type="button" class="btn btn-outline" style="width:100%;margin-top:4px;" onclick="aptAddRow()">+ 지원 추가</button>
+</div>
+
   <div class="row" style="gap:10px;margin-top:18px;"><button class="btn btn-outline" style="flex:1;" onclick="closeModal('m-apply')">취소</button><button class="btn btn-p" style="flex:2;" onclick="saveApply()">저장</button></div>
 </div></div>
+
 
 <div class="modal-overlay" id="m-audition"><div class="modal-box">
   <div class="modal-handle"></div><div class="modal-title" id="m-audition-title">🎤 오디션기록</div>
@@ -5122,6 +5144,126 @@ function toggleShootCategory(){
   const s=document.getElementById('shoot-category');
   const c=document.getElementById('shoot-category-custom');
   if(s&&c)c.style.display=s.value==='custom'?'block':'none';
+  updateApplyFormMode();
+}
+
+// 촬영분류가 "프로필투어"이고 신규 작성(수정이 아님)일 때만 프로필투어 전용 일괄입력 화면으로 전환.
+// 이미 저장된 지원기록(프로필투어 포함)을 수정할 때는 다른 지원기록과 동일하게 일반 수정폼을 그대로 사용한다.
+function updateApplyFormMode(){
+  const s=document.getElementById('shoot-category');
+  const isEditing=!!(document.getElementById('ap-edit-id')?.value||'').trim();
+  const isProfileTourNew=(s?.value==='프로필투어') && !isEditing;
+
+  const generalWrap=document.getElementById('ap-general-fields');
+  const ptWrap=document.getElementById('ap-profiletour-fields');
+  const adateWrap=document.getElementById('ap-adate-wrap');
+
+  if(generalWrap) generalWrap.style.display = isProfileTourNew ? 'none' : '';
+  if(ptWrap) ptWrap.style.display = isProfileTourNew ? '' : 'none';
+  if(adateWrap) adateWrap.style.display = isProfileTourNew ? 'none' : '';
+
+  if(isProfileTourNew){
+    const regEl=document.getElementById('apt-regdate-display');
+    if(regEl) regEl.value=todayKR();
+    const rowsWrap=document.getElementById('apt-rows');
+    if(rowsWrap && !rowsWrap.children.length) aptAddRow();
+  }
+}
+
+// 프로필투어 지원목록에 줄(Row) 추가
+function aptAddRow(){
+  const wrap=document.getElementById('apt-rows');
+  if(!wrap)return;
+  const today=todayKR();
+  const div=document.createElement('div');
+  div.className='apt-row';
+  div.style.cssText='border:1.5px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px;background:var(--bg);';
+  div.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <span style="font-size:12px;font-weight:800;color:var(--p1);">📍 지원 항목</span>
+      <button type="button" onclick="aptRemoveRow(this)" style="border:none;background:none;color:#d33;font-weight:700;font-size:12px;cursor:pointer;padding:2px 4px;">🗑️ 삭제</button>
+    </div>
+    <input class="apt-title" placeholder="지원작품명 *" style="margin-bottom:6px;">
+    <input class="apt-place" placeholder="지원장소 (예: 카카오, 이메일, 압구정)" style="margin-bottom:6px;">
+    <select class="apt-type" style="margin-bottom:6px;">
+      <option value="비대면">비대면</option>
+      <option value="대면">대면</option>
+    </select>
+    <input class="apt-profile" placeholder="제출프로필 (예: 기본프로필, 영화프로필)" style="margin-bottom:6px;">
+    <label style="font-size:11px;color:var(--text3);font-weight:700;display:block;margin-bottom:4px;">제출일시</label>
+    <input type="date" class="apt-date" value="${today}">
+  `;
+  wrap.appendChild(div);
+}
+
+// 프로필투어 지원목록에서 줄(Row) 삭제 — 최소 1줄은 유지
+function aptRemoveRow(btn){
+  const wrap=document.getElementById('apt-rows');
+  const row=btn.closest('.apt-row');
+  if(!wrap||!row)return;
+  if(wrap.children.length<=1){ alert('최소 1개의 지원 항목은 있어야 합니다.'); return; }
+  row.remove();
+}
+
+// 프로필투어 지원목록을 각각의 독립된 지원기록으로 일괄 저장
+// (사용자는 한 번만 저장하지만, 실제로는 지원목록의 줄 수만큼 apply 테이블에 레코드가 생성됨)
+async function saveApplyProfileTourBatch(){
+  const commonMemo=(document.getElementById('apt-memo')?.value||'').trim();
+  const rowEls=Array.from(document.querySelectorAll('#apt-rows .apt-row'));
+
+  const records=[];
+  for(const row of rowEls){
+    const title=(row.querySelector('.apt-title')?.value||'').trim();
+    if(!title) continue; // 작품명이 비어있는 줄은 저장하지 않음
+    const place=(row.querySelector('.apt-place')?.value||'').trim();
+    const type=row.querySelector('.apt-type')?.value||'비대면';
+    const profile=(row.querySelector('.apt-profile')?.value||'').trim();
+    const date=row.querySelector('.apt-date')?.value||todayKR();
+    records.push({
+      id:uid(),
+      created_at:new Date().toISOString(),
+      apply_date:date,
+      category:'프로필투어',
+      record_type:'general',
+      title,
+      company:'',
+      broadcast:'',
+      apply_method:type,
+      shoot_date:null,
+      shoot_date_memo:'',
+      director:'',
+      role:profile,
+      role_desc:'',
+      pay:0,
+      url:'',
+      source:place,
+      result:'지원',
+      synopsis:'',
+      memo:commonMemo,
+      manager:'',
+      email:'',
+      selected_roles:[]
+    });
+  }
+
+  if(!records.length) return alert('지원작품명을 1개 이상 입력해주세요');
+
+  for(const rec of records){
+    const ok=await sb.insert('apply', rec);
+    if(!ok){ alert('저장 중 일부 항목이 실패했습니다. 목록을 확인 후 다시 시도해주세요.'); renderApplyList(); return; }
+  }
+
+  alert(`프로필투어 지원기록 ${records.length}건이 각각 저장되었습니다.`);
+
+  // 폼 초기화
+  if(document.getElementById('apt-memo')) document.getElementById('apt-memo').value='';
+  const rowsWrap=document.getElementById('apt-rows');
+  if(rowsWrap){ rowsWrap.innerHTML=''; aptAddRow(); }
+  if(document.getElementById('shoot-category')) document.getElementById('shoot-category').value='';
+  updateApplyFormMode();
+
+  closeModal('m-apply');
+  renderApplyList();
 }
 
 function toggleAprCategory(){
@@ -5214,13 +5356,20 @@ function sourceLabel(v){
 
 
 async function saveApply(){
+  const editId=(document.getElementById('ap-edit-id')?.value||'').trim();
+
+  // 촬영분류가 "프로필투어"이고 신규 작성 상태면 일반 저장 대신 지원목록을 각각의 지원기록으로 일괄 저장
+  const shootCatEl=document.getElementById('shoot-category');
+  if(!editId && shootCatEl?.value==='프로필투어' && document.getElementById('ap-profiletour-fields')?.style.display!=='none'){
+    return saveApplyProfileTourBatch();
+  }
+
   const title=(document.getElementById('ap-title')?.value||'').trim();
   if(!title)return alert('작품명을 입력해주세요');
   const applyDate=document.getElementById('ap-adate')?.value||null;
   if(!applyDate)return alert('지원일자를 입력해주세요');
   const catEl=document.getElementById('shoot-category');
   const category=catEl?.value==='custom'?(document.getElementById('shoot-category-custom')?.value||''):(catEl?.value||'');
-  const editId=(document.getElementById('ap-edit-id')?.value||'').trim();
 
   // 지원 역할(이름만) 입력칸은 쉼표로 여러 역할을 적을 수 있게 허용 → selected_roles 배열로도 같이 저장
   // (일반 입력 폼은 체크박스가 없으니 텍스트를 ,/、 기준으로 분리해서 배열화)
@@ -5233,7 +5382,7 @@ async function saveApply(){
     title,
     company:(document.getElementById('ap-co')?.value||'').trim(),
     broadcast:'',
-    apply_method:'',
+    apply_method:(document.getElementById('ap-meettype')?.value||''),
     shoot_date:document.getElementById('ap-sdate')?.value||null,
     shoot_date_memo:(document.getElementById('ap-sdate-memo')?.value||'').trim(),
     director:(document.getElementById('ap-dir')?.value||'').trim(),
@@ -5271,7 +5420,9 @@ async function saveApply(){
   if(document.getElementById('shoot-category'))document.getElementById('shoot-category').value='';
   if(document.getElementById('shoot-category-custom')){document.getElementById('shoot-category-custom').value='';document.getElementById('shoot-category-custom').style.display='none';}
   if(document.getElementById('ap-result'))document.getElementById('ap-result').value='지원';
+  if(document.getElementById('ap-meettype'))document.getElementById('ap-meettype').value='';
   if(document.getElementById('m-apply-title'))document.getElementById('m-apply-title').textContent='📋 지원기록 (직접 입력)';
+  updateApplyFormMode();
   closeModal('m-apply');
   renderApplyList();
 }
@@ -5283,12 +5434,12 @@ async function editApply(id){
   const r=rows[0];
   document.getElementById('ap-edit-id').value=r.id;
   if(document.getElementById('ap-record-type'))document.getElementById('ap-record-type').value=r.record_type||'general';
-  document.getElementById('m-apply-title').textContent = (r.record_type==='filmmakers') ? '✏️ 지원기록 수정 (AI 분석본)' : '✏️ 지원기록 수정';
+  document.getElementById('m-apply-title').textContent = '✏️ 지원기록 수정';
 
   // 카테고리 셀렉트 처리
   const catSel=document.getElementById('shoot-category');
   const catCustom=document.getElementById('shoot-category-custom');
-  const cats=['상업드라마','웹드라마','숏폼드라마','독립영화','단편영화','상업영화','광고영상','홍보영상','지면촬영','뮤직비디오'];
+  const cats=['상업드라마','웹드라마','숏폼드라마','독립영화','단편영화','상업영화','광고영상','홍보영상','지면촬영','뮤직비디오','프로필투어'];
   if(r.category && cats.includes(r.category)){
     catSel.value=r.category;
     catCustom.style.display='none';
@@ -5327,16 +5478,17 @@ async function editApply(id){
   document.getElementById('ap-mgr').value=r.manager||'';
   document.getElementById('ap-email').value=r.email||'';
   document.getElementById('ap-result').value=r.result||'지원';
+  if(document.getElementById('ap-meettype'))document.getElementById('ap-meettype').value=r.apply_method||'';
+
+  // 수정 모드에서는 촬영분류가 "프로필투어"여도 일반 지원기록과 동일한 수정폼을 사용 (일괄입력 화면 아님)
+  updateApplyFormMode();
 
   // 역할 선택 드롭다운은 수정 모드에서는 숨김 (이미 저장된 역할 텍스트만 사용)
   _fmRolesCache = [];
   const roleWrap=document.getElementById('ap-role-select-wrap'); if(roleWrap)roleWrap.style.display='none';
 
-  // AI 분석본(필름메이커스 등)을 일반 폼으로 열 경우, ai_json/원문이 화면에는 안 보이지만
-  // saveApply에서 record_type을 건드리지 않으므로 DB에는 그대로 보존됨을 알려줌
-  if(r.record_type==='filmmakers'){
-    alert('이 지원기록은 AI 분석으로 등록된 공고입니다.\n여기서는 기본 항목만 수정할 수 있고, 원본 분석 데이터(역할목록·작품소개 등)는 그대로 보존됩니다.');
-  }
+  // AI 분석본(필름메이커스 등)도 일반 지원기록과 동일하게 모든 항목을 자유롭게 수정할 수 있음.
+  // saveApply에서 record_type과 ai_json은 건드리지 않으므로 원본 분석 데이터는 DB에 그대로 보존됨.
 
   closeModal('m-apply-detail');
   openModal('m-apply');
@@ -5379,6 +5531,8 @@ function openApplyManual(){
   _fmRolesCache = [];
   const roleWrap=document.getElementById('ap-role-select-wrap'); if(roleWrap)roleWrap.style.display='none';
   const roleSel=document.getElementById('ap-role-select'); if(roleSel)roleSel.innerHTML='<option value="">-- 역할을 선택해주세요 --</option>';
+  if(document.getElementById('ap-meettype'))document.getElementById('ap-meettype').value='';
+  updateApplyFormMode();
   openModal('m-apply');
 }
 
@@ -5531,7 +5685,7 @@ function applyFilmmakersInfo(info, srcUrl){
   if(info.pay && Number(info.pay) > 0) _setVal('ap-pay', String(info.pay).replace(/[^\d]/g,''));
   if(srcUrl) _setVal('ap-url', srcUrl);
 
-  const cats = ['상업드라마','웹드라마','숏폼드라마','독립영화','단편영화','상업영화','광고영상','홍보영상','지면촬영','뮤직비디오'];
+  const cats = ['상업드라마','웹드라마','숏폼드라마','독립영화','단편영화','상업영화','광고영상','홍보영상','지면촬영','뮤직비디오','프로필투어'];
   const catSel = document.getElementById('shoot-category');
   const catCustom = document.getElementById('shoot-category-custom');
   if(catSel && info.category){
@@ -5668,7 +5822,7 @@ function renderApplyReview(parsed, ctx){
     <span style="${labelStyle}">촬영 분류 <span style="font-weight:400;color:var(--text3);">(공고 분류를 참고해 추천했어요 · 자유롭게 수정 가능)</span></span>
     <select id="rv-category" style="width:100%;padding:8px 9px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;margin-bottom:4px;">
       <option value="">-- 선택 --</option>
-      ${['상업드라마','웹드라마','숏폼드라마','독립영화','단편영화','상업영화','광고영상','홍보영상','지면촬영','뮤직비디오'].map(c=>`<option value="${c}" ${recommendedCategory===c?'selected':''}>${c}</option>`).join('')}
+      ${['상업드라마','웹드라마','숏폼드라마','독립영화','단편영화','상업영화','광고영상','홍보영상','지면촬영','뮤직비디오','프로필투어'].map(c=>`<option value="${c}" ${recommendedCategory===c?'selected':''}>${c}</option>`).join('')}
     </select>
   </div>`;
 
@@ -6071,7 +6225,7 @@ async function analyzeWithClaude(raw, btn, errEl, okEl, srcUrl, isHtml){
     "apply_method": "지원방법 핵심만 한 줄 요약 (상세 내용은 sections의 apply_info에. 없으면 빈 문자열)",
     "genre": "장르 (없으면 빈 문자열)",
     "platform_or_media": "방영처/플랫폼/매체 (예: 'Netflix', 'OCN', '00극단'. 없으면 빈 문자열)",
-    "category": "다음 중 가장 가까운 하나 또는 빈 문자열: 상업드라마/웹드라마/숏폼드라마/독립영화/단편영화/상업영화/광고영상/홍보영상/지면촬영/뮤직비디오",
+    "category": "다음 중 가장 가까운 하나 또는 빈 문자열: 상업드라마/웹드라마/숏폼드라마/독립영화/단편영화/상업영화/광고영상/홍보영상/지면촬영/뮤직비디오/프로필투어",
     "apply_category": "공고 제목 바로 위에 표시된 분류 라벨을 그대로. 다음 중 하나: 단편영화/장편영화/OTT·TV 시리즈/웹드라마·숏폼/연극·뮤지컬/모델·출연자/배우 알바/기타 — 라벨이 텍스트에 명시적으로 없으면 '기타'"
   },
   "roles": [
@@ -6245,7 +6399,7 @@ async function renderApplyList(){
     <tr style="cursor:pointer;" onclick="openApplyDetail('${r.id}')">
       <td style="font-weight:600;">${r.apply_date||'-'}</td>
       <td>${r.category||'-'}</td>
-      <td style="font-weight:700;">${r.record_type==='filmmakers'?'🎬 ':'📝 '}${r.title||'-'}</td>
+      <td style="font-weight:700;">${applyCategoryIcon(r.category)} ${r.title||'-'}</td>
       <td>${r.company||'-'}</td>
       <td>${r.director||'-'}</td>
       <td>${r.shoot_date||r.shoot_date_memo||'-'}</td>
@@ -6284,9 +6438,26 @@ function _applyResultBadgeStyle(result){
   return resultMap[result]||{bg:'#EEE',fg:'#333',bd:'#999'};
 }
 
+// 촬영분류 기준 아이콘 (AI 분석/직접 입력 여부와 무관하게 category 기준으로 통일)
+function applyCategoryIcon(category){
+  const map={
+    '단편영화':'🎬','장편영화':'🎬','독립영화':'🎬','상업영화':'🎬',
+    '상업드라마':'📺','드라마':'📺',
+    '웹드라마':'📱','숏폼드라마':'📱','숏폼':'📱',
+    '광고영상':'📢','광고':'📢',
+    '뮤직비디오':'🎵',
+    '홍보영상':'📹','홍보':'📹',
+    '유튜브':'▶️',
+    '지면촬영':'📸',
+    '프로필투어':'📸'
+  };
+  return map[category] || '📁';
+}
+
 // ── 일반 공고(직접 입력) 상세보기 — 기존 동작 그대로 보존
 function renderApplyDetailGeneral(r, body, opts={}){
   const rs=_applyResultBadgeStyle(r.result);
+  const isProfileTour = r.category==='프로필투어';
 
   const urlLine=r.url
     ? `<div style="margin-top:10px;">🔗 <b>지원 URL</b><br><a href="${r.url.replace(/"/g,'&quot;')}" target="_blank" rel="noopener" style="color:var(--p2);text-decoration:underline;word-break:break-all;">${r.url}</a></div>`
@@ -6302,14 +6473,15 @@ function renderApplyDetailGeneral(r, body, opts={}){
         <div>📅 <b>지원일자</b><br><span style="color:var(--text2);font-weight:700;">${r.apply_date||'-'}</span></div>
         <div style="margin-top:10px;">🎬 <b>촬영분류</b><br><span style="color:var(--text2);">${r.category||'-'}</span></div>
         <div style="margin-top:10px;">📋 <b>작품명</b><br><span style="color:var(--text2);font-weight:700;">${r.title||'-'}</span></div>
-        <div style="margin-top:10px;">🏢 <b>제작사</b><br><span style="color:var(--text2);">${r.company||'-'}</span></div>
-        <div style="margin-top:10px;">🎭 <b>지원 역할</b><br><span style="color:var(--text2);">${r.role||'-'}</span></div>
+        ${isProfileTour ? '' : `<div style="margin-top:10px;">🏢 <b>제작사</b><br><span style="color:var(--text2);">${r.company||'-'}</span></div>`}
+        <div style="margin-top:10px;">${isProfileTour?'📄 <b>제출프로필</b>':'🎭 <b>지원 역할</b>'}<br><span style="color:var(--text2);">${r.role||'-'}</span></div>
         ${r.role_desc?`<div style="margin-top:10px;">🧩 <b>역할 설명</b><br><span style="color:var(--text2);white-space:pre-wrap;">${r.role_desc}</span></div>`:''}
-        <div style="margin-top:10px;">🎬 <b>감독</b><br><span style="color:var(--text2);">${r.director||'-'}</span></div>
-        <div style="margin-top:10px;">🎯 <b>촬영일</b><br><span style="color:var(--text2);">${r.shoot_date||'-'}</span></div>
-        <div style="margin-top:10px;">💰 <b>페이</b><br><span style="color:var(--text2);font-weight:600;">${payDisplay(r.pay)||'-'}</span></div>
+        ${isProfileTour ? '' : `<div style="margin-top:10px;">🎬 <b>감독</b><br><span style="color:var(--text2);">${r.director||'-'}</span></div>`}
+        ${isProfileTour ? '' : `<div style="margin-top:10px;">🎯 <b>촬영일</b><br><span style="color:var(--text2);">${r.shoot_date||'-'}</span></div>`}
+        ${r.apply_method?`<div style="margin-top:10px;">🙋 <b>지원 방식</b><br><span style="color:var(--text2);">${r.apply_method}</span></div>`:''}
+        ${isProfileTour ? '' : `<div style="margin-top:10px;">💰 <b>페이</b><br><span style="color:var(--text2);font-weight:600;">${payDisplay(r.pay)||'-'}</span></div>`}
         ${urlLine}
-        ${r.source?`<div style="margin-top:10px;">📌 <b>공고페이지</b><br><span style="color:var(--text2);font-weight:600;">${sourceLabel(r.source)}</span></div>`:''}
+        ${r.source?`<div style="margin-top:10px;">${isProfileTour?'📍 <b>지원장소</b>':'📌 <b>공고페이지</b>'}<br><span style="color:var(--text2);font-weight:600;">${isProfileTour?r.source:sourceLabel(r.source)}</span></div>`:''}
         <div style="margin-top:10px;">📌 <b>결과</b><br>
           <span style="display:inline-block;padding:5px 14px;border-radius:999px;font-size:13px;font-weight:800;background:${rs.bg};color:${rs.fg};border:1.5px solid ${rs.bd};">${r.result||'-'}</span>
         </div>
@@ -6422,7 +6594,7 @@ function renderApplyDetailFilmmakers(r, body, opts={}){
   }
 
   html += `<div class="row" style="gap:10px;">
-    <button style="flex:1;padding:13px;border-radius:14px;border:1.5px solid var(--p2);color:var(--p2);background:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;" onclick="editApply('${r.id}')">✏️ 기본항목 수정</button>
+    <button style="flex:1;padding:13px;border-radius:14px;border:1.5px solid var(--p2);color:var(--p2);background:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;" onclick="editApply('${r.id}')">✏️ 수정</button>
     <button style="flex:1;padding:13px;border-radius:14px;border:1.5px solid #ffb7b7;color:#d33;background:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;" onclick="delApply('${r.id}');closeModal('m-apply-detail');">🗑️ 삭제</button>
   </div>`;
   if(opts.fromCalendar){
