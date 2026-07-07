@@ -3677,8 +3677,15 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
 
 
 
-  <label class="form-label">최신 연락일</label>
-  <input id="cast-date" type="date">
+  <label class="form-label">연락 기록 <span style="font-weight:400;color:var(--text3);font-size:11px;">(연락할 때마다 날짜를 추가해주세요 · 누적 기록됩니다)</span></label>
+  <div class="multi-date-wrap" id="cast-cdate-wrap">
+    <div class="multi-date-tags" id="cast-cdate-tags"><span class="multi-date-empty">날짜를 추가해주세요</span></div>
+    <div class="multi-date-add">
+      <input type="date" id="cast-cdate-input">
+      <button onclick="multiDateAdd('cast-cdate')">+ 추가</button>
+    </div>
+  </div>
+  <input type="hidden" id="cast-cdate">
 
   <label class="form-label">기타 특이사항</label>
   <textarea id="cast-note" placeholder="메모"></textarea>
@@ -8090,7 +8097,22 @@ async function openAppearanceDetail(id){
   openModal('m-appearance-detail');
 }
 
-let _castingSort = { key: null, dir: 'asc' }; // key: 'name' | 'date' | null
+let _castingSort = { key: 'name', dir: 'asc' }; // key: 'name' | 'date' | null — 기본은 이름(가나다) 오름차순
+
+// ⚠️ Supabase에 아래 컬럼 추가가 필요합니다 (한 번만 실행):
+//   ALTER TABLE casting_contacts ADD COLUMN contact_log text;
+// - latest_contact(date 타입)에는 "가장 최근 연락일" 하나만 저장 (기존 컬럼 타입 그대로 유지)
+// - contact_log(text 타입, 신규)에는 "2026-06-09,2026-07-07"처럼 연락일 전체 이력을 콤마로 이어붙여 저장
+// contact_log가 아직 없는 기존 레코드는 latest_contact 하나만 있는 걸로 간주해 자동 호환된다.
+function castingContactDatesOf(r){
+  const log=(r?.contact_log||'').trim();
+  if(log) return log;
+  return r?.latest_contact||'';
+}
+function castingContactStats(v){
+  const dates=(v||'').split(',').map(s=>s.trim()).filter(Boolean).sort();
+  return { dates, count: dates.length, latest: dates.length ? dates[dates.length-1] : '' };
+}
 
 function toggleCastingSort(key){
   if(_castingSort.key === key){
@@ -8135,7 +8157,7 @@ async function renderCastingList(){
     });
   } else if(_castingSort.key === 'date'){
     rows.sort((a,b)=>{
-      const da=a.latest_contact||'', db=b.latest_contact||'';
+      const da=castingContactStats(castingContactDatesOf(a)).latest, db=castingContactStats(castingContactDatesOf(b)).latest;
       const cmp=da.localeCompare(db);
       return _castingSort.dir==='asc' ? cmp : -cmp;
     });
@@ -8148,7 +8170,12 @@ async function renderCastingList(){
     return;
   }
 
-  body.innerHTML=rows.map(r=>`
+  body.innerHTML=rows.map(r=>{
+    const cs=castingContactStats(castingContactDatesOf(r));
+    const dateCell = cs.latest
+      ? `${cs.latest}${cs.count>1?` <span style="display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:800;background:var(--p-light);color:var(--p1);border:1px solid var(--p3);">총 ${cs.count}회</span>`:''}`
+      : '-';
+    return `
     <tr style="cursor:pointer;" onclick="openCastingDetail('${r.id}')">
       <td style="font-weight:700;">${r.name||'-'}</td>
       <td>${r.company||'-'}</td>
@@ -8157,9 +8184,9 @@ async function renderCastingList(){
       <td>${r.phone||'-'}</td>
       <td>${r.worked||'-'}</td>
       <td>${r.work_title||'-'}</td>
-      <td>${r.latest_contact||'-'}</td>
+      <td>${dateCell}</td>
     </tr>
-  `).join('');
+  `;}).join('');
 }
 
 // 작업작품 드롭다운 채우기 (출연기록 + 촬영기록 통합)
@@ -8209,7 +8236,7 @@ function openCastingNew(){
   const catSel=document.getElementById('cast-category');
   if(catSel) [...catSel.options].forEach(o=>o.selected=false);
   const workEl=document.getElementById('cast-worked'); if(workEl)workEl.value='O';
-  const cd=document.getElementById('cast-date'); if(cd)cd.value=todayKR();
+  multiDateReset('cast-cdate'); multiDateLoad('cast-cdate', todayKR());
   const t=document.getElementById('m-casting-title'); if(t)t.textContent='📇 캐스팅연락처 추가';
   loadCastWorkOptions();
   openModal('m-casting');
@@ -8229,6 +8256,9 @@ async function saveCasting(){
 
   const editId=(document.getElementById('cast-edit-id')?.value||'').trim();
 
+  const cdateCsv=(document.getElementById('cast-cdate')?.value||'').trim();
+  const cdateStats=castingContactStats(cdateCsv);
+
   const data={
     name,
     company:(document.getElementById('cast-company')?.value||'').trim(),
@@ -8238,7 +8268,8 @@ async function saveCasting(){
     email:(document.getElementById('cast-email')?.value||'').trim(),
     worked:(document.getElementById('cast-worked')?.value||'').trim(),
     work_title:workTitle,
-    latest_contact:document.getElementById('cast-date')?.value||null,
+    latest_contact:cdateStats.latest||null,
+    contact_log:cdateCsv||null,
     note:(document.getElementById('cast-note')?.value||'').trim()
   };
 
@@ -8272,7 +8303,7 @@ async function editCasting(id){
   document.getElementById('cast-phone').value=r.phone||'';
   document.getElementById('cast-email').value=r.email||'';
   document.getElementById('cast-worked').value=r.worked||'O';
-  document.getElementById('cast-date').value=r.latest_contact||'';
+  multiDateLoad('cast-cdate', castingContactDatesOf(r));
   document.getElementById('cast-note').value=r.note||'';
 
   // 분야 (멀티)
@@ -8314,6 +8345,14 @@ async function openCastingDetail(id){
     ? `<span style="display:inline-block;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:800;background:var(--teal-l);color:var(--teal);border:1.5px solid var(--teal);">✓ 작업함</span>`
     : `<span style="display:inline-block;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:800;background:#FCEBD5;color:#7A5400;border:1.5px solid var(--amber);">- 미작업</span>`;
 
+  const cs=castingContactStats(castingContactDatesOf(r));
+  const contactBadge = cs.count
+    ? `<span style="display:inline-block;margin-left:6px;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:800;background:var(--p-light);color:var(--p1);border:1px solid var(--p3);">총 ${cs.count}회 연락</span>`
+    : '';
+  const contactTags = cs.dates.length
+    ? cs.dates.slice().reverse().map(d=>`<span style="display:inline-flex;align-items:center;gap:4px;background:var(--white);border:1px solid var(--border);border-radius:999px;padding:4px 10px;font-size:12px;margin:3px 4px 3px 0;">${d}<button onclick="castingRemoveContactDate('${r.id}','${d}')" style="border:none;background:none;color:var(--text3);cursor:pointer;font-size:12px;padding:0;line-height:1;" title="이 날짜 삭제">×</button></span>`).join('')
+    : '<span style="color:var(--text3);">기록 없음</span>';
+
   body.innerHTML=`
     <div style="display:flex;flex-direction:column;gap:14px;">
       <div style="background:var(--bg);padding:16px;border-radius:16px;font-size:14px;line-height:2.1;">
@@ -8325,7 +8364,10 @@ async function openCastingDetail(id){
         ${r.email?`<div style="margin-top:10px;">📧 <b>이메일</b><br><span style="color:var(--text2);">${r.email}</span></div>`:''}
         <div style="margin-top:10px;">📌 <b>작업유무</b><br>${workedBadge}</div>
         <div style="margin-top:10px;">🎞️ <b>작업작품</b><br><span style="color:var(--text2);font-weight:600;">${r.work_title||'-'}</span></div>
-        <div style="margin-top:10px;">📅 <b>최신 연락일</b><br><span style="color:var(--text2);">${r.latest_contact||'-'}</span></div>
+        <div style="margin-top:10px;">📅 <b>최신 연락일</b><br><span style="color:var(--text2);font-weight:700;">${cs.latest||'-'}</span>${contactBadge}
+          <div style="margin-top:8px;">${contactTags}</div>
+          <button type="button" onclick="castingQuickLogContact('${r.id}')" style="margin-top:8px;padding:8px 14px;border-radius:999px;border:1.5px solid var(--p2);background:var(--white);color:var(--p2);font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;">+ 오늘 연락 기록 추가</button>
+        </div>
         ${r.note?`<div style="margin-top:10px;">📝 <b>특이사항</b><br><span style="color:var(--text2);white-space:pre-wrap;">${r.note}</span></div>`:''}
       </div>
       <div class="row" style="gap:10px;">
@@ -8334,6 +8376,33 @@ async function openCastingDetail(id){
       </div>
     </div>`;
   openModal('m-casting-detail');
+}
+
+// 상세보기에서 바로 "오늘 연락함"을 1건 누적 기록 (전체 수정 모달을 열지 않고 빠르게 기록)
+async function castingQuickLogContact(id){
+  const rows=await sb.get('casting_contacts','&id=eq.'+id);
+  if(!rows.length)return;
+  const r=rows[0];
+  const dates=castingContactDatesOf(r).split(',').map(s=>s.trim()).filter(Boolean);
+  const today=todayKR();
+  if(!dates.includes(today)) dates.push(today);
+  dates.sort();
+  const ok=await sb.update('casting_contacts', id, {contact_log: dates.join(','), latest_contact: dates[dates.length-1]||null});
+  if(!ok)return;
+  await openCastingDetail(id);
+  renderCastingList();
+}
+
+// 상세보기에서 특정 연락 기록 하나만 삭제 (잘못 추가한 날짜 정정용)
+async function castingRemoveContactDate(id, date){
+  const rows=await sb.get('casting_contacts','&id=eq.'+id);
+  if(!rows.length)return;
+  const r=rows[0];
+  const dates=castingContactDatesOf(r).split(',').map(s=>s.trim()).filter(Boolean).filter(d=>d!==date);
+  const ok=await sb.update('casting_contacts', id, {contact_log: dates.join(',')||null, latest_contact: dates.length?dates[dates.length-1]:null});
+  if(!ok)return;
+  await openCastingDetail(id);
+  renderCastingList();
 }
 
 async function loadCastingManagers(){
