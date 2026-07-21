@@ -9663,6 +9663,93 @@ function renderSidejob(){
       const workroomStyle = document.createElement("style");
       workroomStyle.textContent = ".sidebar{display:none!important}.app-shell{display:block}.workspace{max-width:none;margin:0;padding:0;background:transparent}.liri-workroom-head{display:none}.liri-workroom-layout{display:flex;flex:1;overflow:hidden;height:calc(100vh - 126px);min-height:620px}.liri-side-menu{width:80px;background:#fff;border-right:1px solid #EFEDE8;display:flex;flex-direction:column;padding:10px 0;flex-shrink:0;overflow-y:auto}.liri-side-btn{background:none;border:none;border-left:3px solid transparent;padding:11px 5px;cursor:pointer;font-family:inherit;color:#8A8680;display:flex;flex-direction:column;align-items:center;gap:5px;transition:all .15s}.liri-side-btn:hover{background:#FFF7E8;color:#B8860B}.liri-side-btn.is-active{background:#FFF7E8;color:#B8860B;border-left-color:#D4A017}.liri-side-ico{font-size:22px;line-height:1}.liri-side-lbl{font-size:11px;font-weight:800;line-height:1.2}.liri-main-area{flex:1;min-width:0;overflow-y:auto;padding:14px;background:#F8F6F1}.liri-content-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:12px}.liri-content-title{margin:0;font-size:20px;font-weight:900;color:#2D2926}.liri-content-sub{margin:4px 0 0;color:#8A8680;font-size:13px}.liri-tabs{display:none}.liri-subtabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}.liri-subtab{min-height:36px;padding:0 13px;border-radius:12px;background:#fff;border:1px solid #EFEDE8;color:#6B665F;font-weight:850}.liri-subtab.is-active{background:#FFF7E8;border-color:#D4A017;color:#B8860B}.liri-work-panel,.liri-subpanel{display:none}.liri-work-panel.is-active,.liri-subpanel.is-active{display:block}.liri-ready-card{display:grid;gap:12px;padding:18px;border:1px solid #EFEDE8;border-radius:18px;background:#fff;box-shadow:0 6px 16px rgba(184,134,11,.06)}.liri-ready-card h2{margin:0;font-size:18px}.liri-ready-card p{margin:0;color:#6B665F;line-height:1.6}.liri-task-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:14px}.liri-task-form .field-card:last-of-type{grid-column:1/-1}.liri-task-list{display:grid;gap:10px}.liri-task-card{display:grid;gap:10px;padding:15px;border:1px solid #EFEDE8;border-radius:16px;background:#fff}.liri-task-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.liri-task-title{margin:0;font-size:15px;font-weight:900}.liri-task-meta{display:flex;gap:8px;flex-wrap:wrap;color:#8A8680;font-size:12px}.liri-task-status{padding:6px 9px;border-radius:999px;background:#FFF7E8;color:#B8860B;font-size:11px;font-weight:900}.liri-task-actions{display:flex;gap:8px;flex-wrap:wrap}.liri-hidden-dev{display:none!important}.progress-card{padding:10px 12px!important;margin-bottom:12px}.step-panel{padding:14px!important}.step-heading{margin-bottom:12px!important}.step-heading h2{font-size:19px!important}.page-head,.home-hero,.quick-grid,.recent-section{display:none!important}@media(min-width:900px){.liri-side-menu{width:92px}.liri-main-area{padding:18px 24px}}@media(max-width:720px){.liri-workroom-layout{height:auto;min-height:auto;display:block}.liri-side-menu{width:100%;height:auto;flex-direction:row;border-right:0;border-bottom:1px solid #EFEDE8}.liri-side-btn{flex:1;border-left:0;border-bottom:3px solid transparent}.liri-side-btn.is-active{border-bottom-color:#D4A017}.liri-task-form{grid-template-columns:1fr}.liri-main-area{padding:14px}}";
       root.appendChild(workroomStyle);
+      const liriSlotStyle = document.createElement("style");
+      liriSlotStyle.textContent = `
+        #writer > .page-head,
+        #writer > .writer-layout { display:none!important; }
+        .liri-workroom-layout { height:auto!important; min-height:0!important; overflow:visible!important; }
+        .liri-main-area { overflow:visible!important; }
+        .liri-slot-writer { display:grid; gap:12px; }
+        .liri-slot-flow { display:flex; align-items:center; gap:6px; overflow-x:auto; padding:7px; border:1px solid #EFEDE8; border-radius:14px; background:#fff; }
+        .liri-slot-step-btn { flex:0 0 auto; min-height:30px; padding:0 11px; border:1px solid transparent; border-radius:999px; background:transparent; color:#8A8680; font-size:12px; font-weight:900; cursor:pointer; white-space:nowrap; }
+        .liri-slot-step-btn.is-active { background:#FFF7E8; border-color:#F0D798; color:#B8860B; }
+        .liri-slot-panel { display:none; }
+        .liri-slot-panel.is-active { display:grid; gap:12px; }
+        .liri-slot-card { padding:14px; border:1px solid #EFEDE8; border-radius:16px; background:#fff; box-shadow:0 6px 16px rgba(184,134,11,.05); }
+        .liri-slot-card h3 { margin:0 0 8px; font-size:16px; font-weight:900; color:#2D2926; }
+        .liri-slot-note { margin:0 0 10px; color:#8A8680; font-size:12px; line-height:1.55; }
+        .liri-category-tabs { display:flex; gap:7px; overflow-x:auto; padding-bottom:2px; }
+        .liri-category-tab { flex:0 0 auto; min-height:32px; padding:0 12px; border:1px solid #EFEDE8; border-radius:999px; background:#fff; color:#6B665F; font-size:12px; font-weight:900; cursor:pointer; }
+        .liri-category-tab.is-active { background:#FFF7E8; border-color:#D4A017; color:#B8860B; }
+        .liri-compact-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+        .liri-slot-actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        .liri-slot-status { min-height:18px; color:#8A8680; font-size:12px; }
+        .liri-slot-board { display:grid; gap:10px; }
+        .liri-slot-board { grid-template-columns:minmax(0,1fr) 220px; align-items:start; }
+        .liri-slot-progress { display:flex; gap:6px; overflow-x:auto; padding:6px; border:1px solid #EFEDE8; border-radius:14px; background:#fff; }
+        .liri-slot-progress button { flex:0 0 auto; min-height:28px; padding:0 10px; border:1px solid #EFEDE8; border-radius:999px; background:#fff; color:#8A8680; font-size:11px; font-weight:900; }
+        .liri-slot-progress button.is-active { background:#FFF7E8; border-color:#D4A017; color:#B8860B; }
+        .liri-slot-progress button.is-done { color:#328A6F; border-color:#BFE7D9; }
+        .liri-slot-progress button.is-skipped { color:#9A9288; background:#F3F0E8; }
+        .liri-slot-current { display:grid; gap:12px; padding:16px; border:1px solid #EFEDE8; border-radius:18px; background:#fff; box-shadow:0 6px 16px rgba(184,134,11,.05); }
+        .liri-slot-current-head { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
+        .liri-slot-current-head h4 { margin:0; font-size:20px; font-weight:950; color:#2D2926; }
+        .liri-slot-current-head p { margin:5px 0 0; color:#8A8680; font-size:12px; }
+        .liri-slot-side-progress { display:grid; gap:8px; padding:14px; border:1px solid #EFEDE8; border-radius:16px; background:#fff; position:sticky; top:12px; }
+        .liri-slot-side-progress h4 { margin:0; font-size:13px; font-weight:950; color:#2D2926; }
+        .liri-slot-side-item { display:flex; justify-content:space-between; gap:8px; padding:8px 0; border-top:1px solid #F4F1EA; color:#6B665F; font-size:12px; font-weight:850; }
+        .liri-slot-side-item:first-of-type { border-top:0; }
+        .liri-slot-side-item.is-active { color:#B8860B; }
+        .liri-slot-side-item.is-done span:last-child { color:#328A6F; }
+        .liri-slot-side-item.is-skipped span:last-child { color:#9A9288; }
+        .liri-slot-comment { display:grid; gap:7px; }
+        .liri-slot-comment label { color:#2D2926; font-size:13px; font-weight:900; }
+        .liri-slot-comment textarea { min-height:104px; }
+        .liri-slot-nav-actions { display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+        .liri-slot-nav-actions > div { display:flex; gap:8px; flex-wrap:wrap; }
+        .liri-flow-slot { border:1px solid #EFEDE8; border-radius:16px; background:#fff; overflow:hidden; }
+        .liri-flow-slot.is-dragover { border-color:#D4A017; box-shadow:0 0 0 3px rgba(212,160,23,.13); }
+        .liri-flow-slot-head { display:flex; justify-content:space-between; gap:10px; align-items:center; padding:11px 12px; background:#FFFCF5; border-bottom:1px solid #EFEDE8; }
+        .liri-flow-slot-title { margin:0; font-size:14px; font-weight:950; color:#2D2926; }
+        .liri-flow-slot-count { color:#B8860B; font-size:11px; font-weight:900; }
+        .liri-flow-slot-drop { display:grid; gap:10px; padding:12px; }
+        .liri-slot-upload { min-height:58px; display:grid; place-items:center; border:1px dashed #E6D6AE; border-radius:13px; background:#FFFDF8; color:#8A8680; font-size:12px; font-weight:850; cursor:pointer; }
+        .liri-slot-photo-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:10px; }
+        .liri-slot-photo { display:grid; gap:8px; padding:10px; border:1px solid #EFEDE8; border-radius:14px; background:#fff; }
+        .liri-slot-thumb { aspect-ratio:4/3; display:grid; place-items:center; border-radius:12px; background:#F3F0E8; overflow:hidden; color:#9A9288; font-size:12px; font-weight:850; }
+        .liri-slot-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+        .liri-slot-photo-top { display:flex; align-items:center; justify-content:space-between; gap:8px; color:#8A8680; font-size:11px; font-weight:850; }
+        .liri-slot-photo textarea { min-height:58px; resize:vertical; }
+        .liri-slot-photo .textarea { display:none; }
+        .liri-slot-check { display:flex; align-items:center; gap:7px; min-height:28px; color:#6B665F; font-size:12px; font-weight:850; }
+        .liri-slot-analysis { padding:9px; border-radius:11px; background:#F8F6F1; color:#6B665F; font-size:12px; line-height:1.55; }
+        .liri-slot-analysis summary { cursor:pointer; font-weight:900; color:#8A6A18; }
+        .liri-comment-board { display:grid; grid-template-columns:230px minmax(0,1fr); gap:12px; align-items:start; }
+        .liri-comment-list { display:grid; gap:5px; padding:9px; border:1px solid #EFEDE8; border-radius:16px; background:#fff; position:sticky; top:12px; }
+        .liri-comment-list button { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:38px; padding:0 10px; border:1px solid transparent; border-radius:10px; background:transparent; color:#6B665F; font-size:12px; font-weight:850; text-align:left; }
+        .liri-comment-list button.is-active { background:#FFF7E8; border-color:#F0D798; color:#B8860B; }
+        .liri-comment-list button.is-done span:last-child { color:#328A6F; }
+        .liri-comment-list button.is-skipped { color:#9A9288; text-decoration:line-through; }
+        .liri-comment-editor { display:grid; gap:14px; padding:18px; border:1px solid #EFEDE8; border-radius:18px; background:#fff; box-shadow:0 6px 16px rgba(184,134,11,.05); }
+        .liri-comment-editor h4 { margin:0; color:#2D2926; font-size:21px; font-weight:950; }
+        .liri-comment-editor textarea { min-height:190px; }
+        .liri-comment-overview { margin-top:10px; padding:12px; border:1px solid #EFEDE8; border-radius:14px; background:#fff; }
+        .liri-comment-overview summary { cursor:pointer; color:#8A6A18; font-size:12px; font-weight:900; }
+        .liri-comment-overview-list { display:grid; gap:9px; margin-top:11px; }
+        .liri-comment-overview-item { padding:10px 12px; border-radius:11px; background:#F8F6F1; color:#6B665F; font-size:12px; line-height:1.55; white-space:pre-wrap; }
+        .liri-comment-overview-item strong { display:block; margin-bottom:3px; color:#2D2926; }
+        .liri-reference-upload { display:grid; place-items:center; min-height:116px; margin-bottom:12px; border:1px dashed #E6D6AE; border-radius:15px; background:#FFFDF8; color:#8A8680; font-size:13px; font-weight:850; cursor:pointer; }
+        .liri-slot-card.is-dragover { border-color:#D4A017; box-shadow:0 0 0 3px rgba(212,160,23,.13); }
+        .liri-reference-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px; }
+        .liri-reference-card { display:grid; gap:9px; padding:10px; border:1px solid #EFEDE8; border-radius:14px; background:#fff; }
+        .liri-reference-card .select { min-height:38px; padding:8px 10px; font-size:12px; }
+        .liri-reference-empty { padding:24px 14px; border:1px dashed #E6D6AE; border-radius:14px; background:#FFFDF8; color:#8A8680; font-size:12px; text-align:center; }
+        .liri-blog-result-box { width:100%; min-height:430px; padding:16px; border:1px solid #EFEDE8; border-radius:16px; background:#fff; color:#2D2926; font:inherit; line-height:1.75; resize:vertical; white-space:pre-wrap; }
+        @media(min-width:900px){ .liri-main-area{padding:14px 26px!important}.liri-slot-writer{max-width:1320px;margin:0 auto}.liri-content-head{margin-bottom:8px} }
+        @media(max-width:900px){ .liri-slot-board,.liri-comment-board{grid-template-columns:1fr}.liri-slot-side-progress,.liri-comment-list{position:static} }
+        @media(max-width:720px){ .liri-compact-grid{grid-template-columns:1fr}.liri-slot-photo-list{grid-template-columns:1fr}.liri-slot-card{padding:12px} }
+      `;
+      root.appendChild(liriSlotStyle);
       (function injectLiriVisionControls(){
         const controls = '<div class="photo-analysis-actions"><button class="primary-button" type="button" data-photo-analyze-selected>선택 사진 AI 분석</button><button class="secondary-button" type="button" data-photo-analyze-all>전체 사진 AI 분석</button></div>';
         const photoEmpty = document.querySelector("[data-photo-empty]");
@@ -9887,6 +9974,8 @@ function renderSidejob(){
         public_url: photo.publicUrl || photo.previewUrl || "",
         sort_order: Number(photo.sortOrder) || 0,
         section: photo.section || "body",
+        slot_key: photo.slotKey || photo.slot_key || "",
+        slot_label: photo.slotLabel || photo.slot_label || photo.type || "",
         photo_type: photo.type || "기타",
         memo: photo.memo || "",
         is_analysis_target: photo.isAnalysisTarget !== false,
@@ -9894,6 +9983,30 @@ function renderSidejob(){
         analysis_status: photo.analysisStatus || "none",
         analysis_error: photo.analysisError || "",
         updated_at: new Date().toISOString()
+      };
+    }
+
+    function liriProjectSlotToRow(projectId, slot) {
+      return {
+        id: slot.id || `${projectId}-${slot.slotKey || slot.slot_key || "slot"}`,
+        project_id: projectId,
+        slot_key: slot.slotKey || slot.slot_key || "",
+        slot_label: slot.slotLabel || slot.slot_label || "",
+        slot_order: Number(slot.slotOrder ?? slot.slot_order) || 0,
+        slot_comment: slot.slotComment || slot.slot_comment || "",
+        is_skipped: Boolean(slot.isSkipped ?? slot.is_skipped),
+        updated_at: new Date().toISOString()
+      };
+    }
+
+    function liriRowToProjectSlot(row) {
+      return {
+        id: row.id || "",
+        slotKey: row.slot_key || "",
+        slotLabel: row.slot_label || "",
+        slotOrder: Number(row.slot_order) || 0,
+        slotComment: row.slot_comment || "",
+        isSkipped: Boolean(row.is_skipped)
       };
     }
 
@@ -9928,6 +10041,8 @@ function renderSidejob(){
           storagePath: photo.storage_path || "",
           sortOrder: Number.isFinite(Number(photo.sort_order)) ? Number(photo.sort_order) : index,
           section: photo.section || "body",
+          slotKey: photo.slot_key || "",
+          slotLabel: photo.slot_label || photo.photo_type || "",
           type: photo.photo_type || "기타",
           memo: photo.memo || "",
           isRepresentative: index === 0,
@@ -9938,6 +10053,7 @@ function renderSidejob(){
           analysisUsage: null,
           analyzedAt: photo.updated_at || ""
         })),
+        slots: [],
         answers: [],
         aiOptions: { style: "박리리", seo: true, emotional: true, informative: true, emoji: true, lineBreak: true, titleRecommend: true, tagRecommend: true },
         generatedPost: result?.content || "",
@@ -9952,11 +10068,16 @@ function renderSidejob(){
       const projects = await liriSupabaseFetch("/rest/v1/liri_projects?select=*&order=updated_at.desc");
       const photos = await liriSupabaseFetch("/rest/v1/liri_photos?select=*&order=sort_order.asc");
       const results = await liriSupabaseFetch("/rest/v1/liri_results?select=*&order=updated_at.desc");
-      return (projects || []).map((project) => liriRowToProject(
-        project,
-        (photos || []).filter((photo) => photo.project_id === project.id),
-        (results || []).find((result) => result.project_id === project.id)
-      ));
+      const slots = await liriSupabaseFetch("/rest/v1/liri_project_slots?select=*&order=slot_order.asc").catch(() => []);
+      return (projects || []).map((project) => {
+        const model = liriRowToProject(
+          project,
+          (photos || []).filter((photo) => photo.project_id === project.id),
+          (results || []).find((result) => result.project_id === project.id)
+        );
+        model.slots = (slots || []).filter((slot) => slot.project_id === project.id).map(liriRowToProjectSlot);
+        return model;
+      });
     }
 
     async function liriSaveProjectToSupabase(project) {
@@ -9971,6 +10092,14 @@ function renderSidejob(){
           method: "POST",
           headers: { "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" },
           body: JSON.stringify(photos)
+        });
+      }
+      const slots = (project.slots || []).map((slot) => liriProjectSlotToRow(project.id, slot));
+      if (slots.length) {
+        await liriSupabaseFetch("/rest/v1/liri_project_slots?on_conflict=id", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" },
+          body: JSON.stringify(slots)
         });
       }
       if (project.generatedResult?.content) {
@@ -10101,6 +10230,8 @@ function renderSidejob(){
           type: photo.type || "Unknown",
           memo: photo.memo || "",
           section: photo.section || "body",
+          slotKey: photo.slotKey || photo.slot_key || "",
+          slotLabel: photo.slotLabel || photo.slot_label || "",
           publicUrl: photo.publicUrl || photo.previewUrl || "",
           storagePath: photo.storagePath || "",
           isAnalysisTarget: photo.isAnalysisTarget !== false,
@@ -10148,6 +10279,7 @@ function renderSidejob(){
           progress: Number.isFinite(Number(raw.progress)) ? Number(raw.progress) : model.progress,
           placeInfo: { ...model.placeInfo, ...(raw.placeInfo || {}) , keywords: Array.isArray(raw.placeInfo?.keywords) ? raw.placeInfo.keywords : [] },
           photos: Array.isArray(raw.photos) ? raw.photos.map(normalizePhotoData).sort((a, b) => a.sortOrder - b.sortOrder) : [],
+          slots: Array.isArray(raw.slots) ? raw.slots : [],
           answers: Array.isArray(raw.answers) ? raw.answers.filter(Boolean) : [],
           aiOptions: { ...model.aiOptions, ...(raw.aiOptions || {}) },
           generatedPost: raw.generatedPost || "",
@@ -10708,6 +10840,8 @@ function renderSidejob(){
           type: getValidPhotoType(photo.type, category),
           memo: photo.memo || "",
           section: ["intro", "body", "closing"].includes(photo.section) ? photo.section : "body",
+          slotKey: photo.slotKey || "",
+          slotLabel: photo.slotLabel || "",
           publicUrl: photo.publicUrl || photo.previewUrl || "",
           storagePath: photo.storagePath || "",
           isAnalysisTarget: photo.isAnalysisTarget !== false,
@@ -11130,32 +11264,22 @@ function renderSidejob(){
     }
 
     function mockPlaceSearch(query) {
-      return new Promise((resolve, reject) => {
-        window.setTimeout(() => {
-          const normalizedQuery = query.toLowerCase();
-          if (normalizedQuery.includes("없는") || normalizedQuery.includes("실패") || normalizedQuery.includes("not found")) {
-            reject(new Error("PLACE_NOT_FOUND"));
-            return;
-          }
-
-          if (normalizedQuery.includes("미야지다케") || normalizedQuery.includes("후쿠오카")) {
-            resolve({ name: "후쿠오카 미야지다케 신사", address: "후쿠오카현 후쿠츠시 미야지모토모토마치 7-1", phone: "+81-940-52-0018", website: "공식 안내 페이지 확인 예정", openingHours: "06:00 - 18:00", keywords: ["후쿠오카 여행", "신사", "미야지다케"], description: "바다와 산을 함께 바라볼 수 있는 후쿠오카의 대표적인 여행지입니다.", mapImage: "mock-map-fukuoka", category: "여행" });
-            return;
-          }
-
-          if (normalizedQuery.includes("어니언")) {
-            resolve({ name: "성수 어니언", address: "서울 성동구 아차산로9길 8", phone: "02-1234-5678", website: "공식 채널 확인 예정", openingHours: "매일 08:00 - 22:00", keywords: ["성수 카페", "베이커리"], description: "오래된 공장 건물의 결을 살린 공간에서 베이커리와 커피를 즐길 수 있는 성수동 카페입니다.", mapImage: "mock-map-seongsu", category: "카페" });
-            return;
-          }
-
-          resolve({ name: query, address: "Mock Data Provider가 준비한 주소입니다.", phone: "02-0000-0000", website: "공식 홈페이지 확인 예정", openingHours: "매일 10:00 - 20:00", keywords: ["장소 추천", "방문 후기"], description: "입력한 장소를 바탕으로 향후 API가 채워갈 대표 설명입니다.", mapImage: "mock-map-default", category: "장소" });
-        }, 520);
+      return Promise.resolve({
+        name: liriIsNaverMapUrl(query) ? "" : query,
+        address: "",
+        phone: "",
+        website: liriIsNaverMapUrl(query) ? query : "",
+        openingHours: "",
+        keywords: [],
+        description: "",
+        mapImage: "",
+        category: ""
       });
     }
 
     function renderPlaceResult(placeInfo) {
       const keywords = Array.isArray(placeInfo.keywords) ? placeInfo.keywords.join(" · ") : "";
-      placeResult.innerHTML = `<div class="place-result-head"><div><h3>${projectManager.escapeHtml(placeInfo.name)}</h3><p class="ai-note">Mock Data Provider가 장소 정보를 준비했어요.</p></div><span class="ai-badge">검색 성공</span></div><div class="place-info-grid"><div class="info-card"><small>주소</small><p>${projectManager.escapeHtml(placeInfo.address)}</p></div><div class="info-card"><small>전화번호</small><p>${projectManager.escapeHtml(placeInfo.phone)}</p></div><div class="info-card"><small>운영시간</small><p>${projectManager.escapeHtml(placeInfo.openingHours)}</p></div><div class="info-card"><small>홈페이지</small><p>${projectManager.escapeHtml(placeInfo.website)}</p></div><div class="info-card"><small>대표 키워드</small><p>${projectManager.escapeHtml(keywords)}</p></div><div class="info-card"><small>카테고리</small><p>${projectManager.escapeHtml(placeInfo.category)}</p></div></div><div class="info-card"><small>대표 설명</small><p>${projectManager.escapeHtml(placeInfo.description)}</p></div><div class="map-preview"><svg class="icon" viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>${projectManager.escapeHtml(placeInfo.mapImage)} · 지도 미리보기</div><div class="step-actions" style="margin-top:0;"><button class="secondary-button" type="button" data-place-edit>수정</button><button class="primary-button" type="button" data-place-confirm>확인</button></div>`;
+      placeResult.innerHTML = `<div class="place-result-head"><div><h3>${projectManager.escapeHtml(placeInfo.name || "장소정보 직접 확인")}</h3><p class="ai-note">입력한 링크 또는 장소명을 저장했습니다. 확인한 정보만 직접 입력해주세요.</p></div><span class="ai-badge">수동 입력</span></div><div class="place-info-grid"><div class="info-card"><small>주소</small><p>${projectManager.escapeHtml(placeInfo.address || "입력 없음")}</p></div><div class="info-card"><small>전화번호</small><p>${projectManager.escapeHtml(placeInfo.phone || "입력 없음")}</p></div><div class="info-card"><small>운영시간</small><p>${projectManager.escapeHtml(placeInfo.openingHours || "입력 없음")}</p></div><div class="info-card"><small>링크</small><p>${projectManager.escapeHtml(placeInfo.website || "입력 없음")}</p></div></div><div class="map-preview">${placeInfo.website ? "네이버지도 링크만 저장합니다." : "자동 장소 추출은 V1.7에서 분리됩니다."}</div><div class="step-actions" style="margin-top:0;"><button class="secondary-button" type="button" data-place-edit>수정</button><button class="primary-button" type="button" data-place-confirm>확인</button></div>`;
       placeResult.hidden = false;
       placeResult.querySelector("[data-place-confirm]").addEventListener("click", () => setLookupState("장소 정보가 프로젝트에 저장되었습니다. 다음 단계로 이동해주세요."));
       placeResult.querySelector("[data-place-edit]").addEventListener("click", () => { placeSearchInput.focus(); placeSearchInput.select(); });
@@ -11741,6 +11865,33 @@ ${tags.join(" ")}`;
       return `[사진 흐름]\n\n${body || "사진 정보 없음"}`;
     }
 
+    function liriBuildSlotPhotoFlowPrompt(project) {
+      const slots = typeof liriGetSlotList === "function" ? liriGetSlotList(project.category) : [];
+      const photos = [...(project.photos || [])].sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0));
+      const blocks = slots.map((slot) => {
+        const slotPhotos = photos.filter((photo) => (photo.slotKey || "") === slot.key || (!photo.slotKey && (photo.slotLabel === slot.label || photo.type === slot.label)));
+        if (!slotPhotos.length) return "";
+        const lines = slotPhotos.map((photo) => {
+          const memo = liriCleanPromptValue(photo.memo);
+          const analysis = liriCleanPromptValue(photo.analysisText);
+          return [memo ? `- 메모: ${memo}` : "", analysis ? `- AI 분석: ${analysis}` : ""].filter(Boolean).join("\n");
+        }).filter(Boolean);
+        return lines.length ? `${slot.label}\n${lines.join("\n")}` : "";
+      }).filter(Boolean);
+      const orphanBlocks = photos
+        .filter((photo) => !photo.slotKey && !slots.some((slot) => photo.type === slot.label || photo.slotLabel === slot.label))
+        .map((photo) => {
+          const label = photo.slotLabel || photo.type || "기타";
+          const memo = liriCleanPromptValue(photo.memo);
+          const analysis = liriCleanPromptValue(photo.analysisText);
+          const lines = [memo ? `- 메모: ${memo}` : "", analysis ? `- AI 분석: ${analysis}` : ""].filter(Boolean);
+          return lines.length ? `${label}\n${lines.join("\n")}` : "";
+        })
+        .filter(Boolean);
+      const output = [...blocks, ...orphanBlocks].join("\n\n");
+      return `[사진 흐름]\n\n${output || "사진 흐름 정보 없음"}`;
+    }
+
     function liriBuildNaverBlogPrompt(project) {
       const place = project.placeInfo || {};
       const answers = (project.answers || [])
@@ -11783,13 +11934,19 @@ ${tags.join(" ")}`;
 기본정보는 사용자가 입력한 정보만 사용하고, 없는 정보는 만들지 않는다.
 Mock Data Provider, 02-0000-0000, 공식 홈페이지 확인 예정 같은 문구는 절대 쓰지 않는다.
 정보가 부족하면 "정확한 운영시간과 예약 정보는 방문 전 네이버지도에서 한 번 더 확인해보시는 걸 추천드려요." 정도로만 쓴다.
-서론 사진은 첫인상과 도입부에, 본문 사진은 방문 흐름과 체험 과정에, 결론 사진은 마무리와 추천 문단에 활용한다.
+사용자의 구성별 멘트를 글의 중심으로 삼고, 참고사진 분석은 분위기와 보이는 사실을 보완하는 자료로만 활용한다.
 사진 번호, "사진에는", "AI 사진 분석" 같은 표현을 직접 쓰지 않는다.
 분석 결과는 블로그 문장으로 자연스럽게 녹인다.
-사용자가 쓴 메모와 답변의 감정을 우선한다.
+사용자가 쓴 구성별 멘트와 답변의 감정을 우선한다.
 이용 팁과 추천 대상은 확인 가능한 내용만 자연스럽게 정리한다.
 마무리는 광고처럼 끝내지 말고 "오늘도 읽어주셔서 감사합니다 :)"처럼 부드럽게 끝낸다.
-마지막에 SEO 태그 10~15개를 작성한다.`;
+마지막에 SEO 태그 10~15개를 작성한다.
+
+[글 길이 규칙]
+- 최종 본문은 SEO 태그를 제외하고 최소 2500자 이상 작성한다.
+- 사진이 적어도 사용자가 입력한 구성별 멘트와 장소정보를 바탕으로 충분히 풍성하게 풀어쓴다.
+- 단, 없는 사실은 만들지 않는다.
+- 정보가 부족한 부분은 단정하지 않고 자연스럽게 안내한다.`;
 
       return [
         "너는 네이버 블로그 글을 작성하는 박리리 전용 블로그 에디터다.",
@@ -11800,7 +11957,7 @@ Mock Data Provider, 02-0000-0000, 공식 홈페이지 확인 예정 같은 문�
         "",
         projectInfo,
         "",
-        liriBuildPhotoFlowBySection(project),
+        liriBuildSlotPhotoFlowPrompt(project),
         "",
         answers ? `[사용자 답변]\n${answers}` : "[사용자 답변]\n입력된 답변 없음",
         "",
@@ -11950,6 +12107,750 @@ Mock Data Provider, 02-0000-0000, 공식 홈페이지 확인 예정 같은 문�
     copyResultButtons.forEach((button) => {
       button.addEventListener("click", () => copyResult(button.dataset.copyResult));
     });
+
+    /* =========================================================
+       LIRI Slot Writing Flow
+       ========================================================= */
+    const LIRI_PLACE_FUNCTION_NAME = "fetch-liri-place-info";
+    const liriSlotCategories = [
+      { key: "travel", label: "여행" },
+      { key: "restaurant", label: "맛집" },
+      { key: "cafe", label: "카페" },
+      { key: "stay", label: "숙소" },
+      { key: "experience", label: "체험" },
+      { key: "tip", label: "알뜰살뜰TIP" },
+      { key: "daily", label: "일상" }
+    ];
+    const liriSlotDefinitions = {
+      experience: ["대표사진 / 도입", "외관", "입구", "내부", "체험공간", "자리 / 세팅", "설명 / 안내", "진행과정", "중간결과", "완성결과", "패키지 / 포장", "포토존", "마무리"],
+      restaurant: ["대표사진 / 도입", "외관", "입구", "내부", "좌석 / 분위기", "메뉴판", "주문 메뉴", "음식 상세", "맛 후기", "사이드 / 음료", "계산 / 영수증", "마무리"],
+      cafe: ["대표사진 / 도입", "외관", "입구", "내부", "좌석", "메뉴판", "주문 음료", "디저트", "포토존", "작업 / 대화하기 좋은 자리", "마무리"],
+      travel: ["대표사진 / 도입", "가는 길", "입구 / 도착", "동선", "볼거리", "포토존", "풍경", "이동 팁", "주변 장소", "마무리"],
+      stay: ["대표사진 / 도입", "외관", "로비", "체크인", "객실 입구", "침대", "욕실", "어메니티", "뷰", "부대시설", "조식", "마무리"],
+      tip: ["대표사진 / 도입", "상품 / 서비스", "가격", "혜택", "사용 방법", "구매 / 신청 방법", "주의사항", "추천 대상", "마무리"],
+      daily: ["대표사진 / 도입", "하루 시작", "장소", "먹은 것", "본 것", "기록하고 싶은 순간", "좋았던 점", "마무리"]
+    };
+
+    function liriSlotKey(label) {
+      return String(label || "slot").trim().toLowerCase().replace(/[^\w가-힣]+/g, "-").replace(/^-+|-+$/g, "") || "slot";
+    }
+
+    function liriGetSlotList(category) {
+      const key = getCategoryKey(category || "experience");
+      return (liriSlotDefinitions[key] || liriSlotDefinitions.experience).map((label) => ({ key: liriSlotKey(label), label }));
+    }
+
+    function liriEnsureSlotProject() {
+      let project = projectManager.getActive();
+      if (!project) project = projectManager.createFromTask({ title: "새 블로그 포스팅", category: "experience", placeName: "" });
+      return project;
+    }
+
+    function liriSlotSectionForIndex(slotIndex, slotCount) {
+      if (slotIndex <= 1) return "intro";
+      if (slotIndex >= slotCount - 2) return "closing";
+      return "body";
+    }
+
+    function liriSortedSlotPhotos(project, slot) {
+      return (project.photos || [])
+        .filter((photo) => (photo.slotKey || "") === slot.key || (!photo.slotKey && photo.type === slot.label))
+        .sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0));
+    }
+
+    function liriSlotPhotoPreview(photo) {
+      const url = photo.publicUrl || photo.previewUrl || "";
+      if (liriIsInvalidPreviewUrl(url)) return "미리보기 없음";
+      return `<img src="${projectManager.escapeHtml(url)}" alt="${projectManager.escapeHtml(photo.fileName || "사진")}" onerror="this.parentElement.textContent='미리보기 만료';">`;
+    }
+
+    function liriSlotRenderShell() {
+      const writer = document.querySelector("#writer");
+      if (!writer || writer.querySelector("[data-liri-slot-writer]")) return;
+      writer.insertAdjacentHTML("afterbegin", `
+        <section class="liri-slot-writer" data-liri-slot-writer>
+          <nav class="liri-slot-flow" aria-label="블로그 글쓰기 단계">
+            <button class="liri-slot-step-btn is-active" type="button" data-liri-slot-step-target="1">1 기본설정</button>
+            <button class="liri-slot-step-btn" type="button" data-liri-slot-step-target="2">2 장소정보</button>
+            <button class="liri-slot-step-btn" type="button" data-liri-slot-step-target="3">3 구성별 멘트</button>
+            <button class="liri-slot-step-btn" type="button" data-liri-slot-step-target="4">4 참고사진 분석</button>
+            <button class="liri-slot-step-btn" type="button" data-liri-slot-step-target="5">5 글보기</button>
+          </nav>
+
+          <section class="liri-slot-panel is-active" data-liri-slot-step="1">
+            <div class="liri-slot-card">
+              <h3>기본설정</h3>
+              <p class="liri-slot-note">프로젝트명과 카테고리만 먼저 정합니다. 카테고리에 따라 다음 단계의 사진 구성 슬롯이 자동으로 바뀝니다.</p>
+              <div class="field-card"><label>프로젝트명</label><input class="input" data-liri-slot-title placeholder="예: 성수 닷노트 향수공방 후기"></div>
+              <div class="liri-category-tabs" data-liri-slot-categories></div>
+            </div>
+          </section>
+
+          <section class="liri-slot-panel" data-liri-slot-step="2">
+            <div class="liri-slot-card">
+              <h3>장소정보</h3>
+              <p class="liri-slot-note">네이버지도 URL 또는 장소명을 넣으면 자동조회를 먼저 시도합니다. 실패하면 직접 입력한 정보만 글에 사용합니다.</p>
+              <div class="liri-compact-grid">
+                <div class="field-card"><label>네이버지도 URL 또는 장소명</label><input class="input" data-liri-place-query placeholder="https://map.naver.com/... 또는 성수 닷노트"></div>
+                <div class="field-card"><label>조회 상태</label><div class="liri-slot-status" data-liri-place-status>대기 중</div></div>
+              </div>
+              <div class="liri-slot-actions">
+                <button class="primary-button" type="button" data-liri-place-lookup>장소정보 자동조회</button>
+                <button class="secondary-button" type="button" data-liri-place-open>네이버지도 링크 열기</button>
+              </div>
+              <div class="liri-compact-grid" data-liri-place-fields></div>
+            </div>
+          </section>
+
+          <section class="liri-slot-panel" data-liri-slot-step="3">
+            <div class="liri-slot-card">
+              <h3>구성별 멘트</h3>
+              <p class="liri-slot-note">사진을 먼저 정리하지 않아도 괜찮아요. 글에 꼭 들어갔으면 하는 내용을 구성별로 짧게 적어주세요. 비워둔 구성은 자연스럽게 건너뛰어 글을 작성합니다.</p>
+            </div>
+            <div class="liri-slot-board" data-liri-slot-board></div>
+          </section>
+
+          <section class="liri-slot-panel" data-liri-slot-step="4">
+            <div class="liri-slot-card" data-liri-reference-drop>
+              <h3>참고사진 분석</h3>
+              <p class="liri-slot-note">글에 분위기와 실제 장면을 더하고 싶은 사진만 넣어주세요. 모든 사진을 넣을 필요는 없고, 대표사진 몇 장만 분석해도 충분합니다.</p>
+              <button class="liri-reference-upload" type="button" data-liri-slot-pick="reference">사진 추가 / 이곳에 드래그</button>
+              <input type="file" accept="image/*" multiple hidden data-liri-slot-file="reference">
+              <div class="liri-reference-grid" data-liri-reference-grid></div>
+              <div class="liri-slot-actions">
+                <button class="primary-button" type="button" data-liri-analyze-selected>선택한 사진 AI 분석</button>
+                <button class="secondary-button" type="button" data-liri-analyze-all>전체 사진 AI 분석</button>
+              </div>
+              <div class="liri-slot-nav-actions">
+                <button class="secondary-button" type="button" data-liri-flow-prev>이전</button>
+                <div><button class="primary-button" type="button" data-liri-flow-next>다음: 글보기</button></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="liri-slot-panel" data-liri-slot-step="5">
+            <div class="liri-slot-card">
+              <h3>블로그 글 보기</h3>
+              <p class="liri-slot-note">내부 Prompt나 비용 정보는 숨기고, 네이버 블로그에 붙여넣을 완성글만 보여줍니다.</p>
+              <div class="liri-slot-actions">
+                <button class="primary-button" type="button" data-liri-slot-generate>블로그 글 만들기</button>
+                <button class="secondary-button" type="button" data-liri-slot-copy>복사</button>
+              </div>
+              <div class="liri-slot-status" data-liri-slot-result-status>글 생성 대기 중</div>
+              <textarea class="liri-blog-result-box" data-liri-slot-result placeholder="블로그 글 만들기를 누르면 완성글이 표시됩니다."></textarea>
+              <div class="liri-slot-nav-actions">
+                <button class="secondary-button" type="button" data-liri-flow-prev>이전</button>
+                <div></div>
+              </div>
+            </div>
+          </section>
+        </section>
+      `);
+    }
+
+    function liriSlotSetStep(step) {
+      document.querySelectorAll("[data-liri-slot-step-target]").forEach((button) => button.classList.toggle("is-active", button.dataset.liriSlotStepTarget === String(step)));
+      document.querySelectorAll("[data-liri-slot-step]").forEach((panel) => panel.classList.toggle("is-active", panel.dataset.liriSlotStep === String(step)));
+    }
+
+    function liriSlotRenderCategories(project) {
+      const holder = document.querySelector("[data-liri-slot-categories]");
+      if (!holder) return;
+      const activeKey = getCategoryKey(project.category || "experience");
+      holder.innerHTML = liriSlotCategories.map((category) => `<button class="liri-category-tab${category.key === activeKey ? " is-active" : ""}" type="button" data-liri-slot-category="${category.key}">${projectManager.escapeHtml(category.label)}</button>`).join("");
+    }
+
+    function liriSlotRenderPlaceFields(project) {
+      const place = project.placeInfo || {};
+      const fields = [
+        ["name", "장소명", "성수 닷노트"],
+        ["address", "주소", "확인한 주소를 입력"],
+        ["openingHours", "운영시간", "확인한 운영시간을 입력"],
+        ["phone", "전화번호", "확인한 전화번호를 입력"],
+        ["price", "가격", "확인한 가격을 입력"],
+        ["parking", "주차", "주차 가능 여부"],
+        ["website", "링크", "네이버지도 URL 또는 홈페이지"],
+        ["memo", "장소 메모", "글에 반영할 장소 메모"]
+      ];
+      const holder = document.querySelector("[data-liri-place-fields]");
+      if (!holder) return;
+      holder.innerHTML = fields.map(([key, label, placeholder]) => {
+        const value = place[key] || "";
+        const input = key === "memo"
+          ? `<textarea class="textarea" rows="3" data-liri-place-field="${key}" placeholder="${projectManager.escapeHtml(placeholder)}">${projectManager.escapeHtml(value)}</textarea>`
+          : `<input class="input" data-liri-place-field="${key}" value="${projectManager.escapeHtml(value)}" placeholder="${projectManager.escapeHtml(placeholder)}">`;
+        return `<div class="field-card"><label>${projectManager.escapeHtml(label)}</label>${input}</div>`;
+      }).join("");
+      const query = document.querySelector("[data-liri-place-query]");
+      if (query && !query.value) query.value = place.website || place.name || "";
+    }
+
+    function liriSlotRenderBoard(project) {
+      const board = document.querySelector("[data-liri-slot-board]");
+      if (!board) return;
+      const slots = liriGetSlotList(project.category);
+      board.innerHTML = slots.map((slot, slotIndex) => {
+        const photos = liriSortedSlotPhotos(project, slot);
+        const photoCards = photos.map((photo, index) => {
+          const status = photo.analysisStatus || "none";
+          const analysisText = photo.analysisText || photo.analysisError || "";
+          return `
+            <article class="liri-slot-photo" data-liri-slot-photo="${projectManager.escapeHtml(photo.id)}">
+              <div class="liri-slot-thumb">${liriSlotPhotoPreview(photo)}</div>
+              <div class="liri-slot-photo-top"><span>#${index + 1}</span><span>${projectManager.escapeHtml(photo.fileName || "사진")}</span></div>
+              <textarea class="textarea" rows="2" maxlength="220" data-liri-slot-photo-memo="${projectManager.escapeHtml(photo.id)}" placeholder="이 슬롯에서 글에 넣을 짧은 메모">${projectManager.escapeHtml(photo.memo || "")}</textarea>
+              <label class="liri-slot-check"><input type="checkbox" data-liri-slot-analysis-target="${projectManager.escapeHtml(photo.id)}"${photo.isAnalysisTarget !== false ? " checked" : ""}> AI 분석 포함</label>
+              <details class="liri-slot-analysis"${analysisText ? " open" : ""}>
+                <summary>AI 분석 결과 · ${projectManager.escapeHtml(status === "done" ? "완료" : status === "analyzing" ? "분석중" : status === "error" ? "오류" : "미분석")}</summary>
+                <div>${projectManager.escapeHtml(analysisText || "아직 분석 결과가 없습니다.")}</div>
+              </details>
+              <div class="liri-slot-actions">
+                <button class="mini-button" type="button" data-liri-slot-delete-photo="${projectManager.escapeHtml(photo.id)}">삭제</button>
+              </div>
+            </article>
+          `;
+        }).join("");
+        return `
+          <article class="liri-flow-slot" data-liri-flow-slot="${projectManager.escapeHtml(slot.key)}" data-liri-flow-slot-label="${projectManager.escapeHtml(slot.label)}" data-liri-flow-slot-index="${slotIndex}">
+            <div class="liri-flow-slot-head">
+              <h4 class="liri-flow-slot-title">${projectManager.escapeHtml(slot.label)}</h4>
+              <span class="liri-flow-slot-count">${photos.length}장</span>
+            </div>
+            <div class="liri-flow-slot-drop">
+              <button class="liri-slot-upload" type="button" data-liri-slot-pick="${projectManager.escapeHtml(slot.key)}">사진 추가 / 드래그</button>
+              <input type="file" accept="image/*" multiple hidden data-liri-slot-file="${projectManager.escapeHtml(slot.key)}">
+              <div class="liri-slot-photo-list">${photoCards}</div>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function liriSlotRenderAll() {
+      liriSlotRenderShell();
+      const project = liriEnsureSlotProject();
+      const title = document.querySelector("[data-liri-slot-title]");
+      if (title && document.activeElement !== title) title.value = project.title || "";
+      liriSlotRenderCategories(project);
+      liriSlotRenderPlaceFields(project);
+      liriSlotRenderBoard(project);
+      liriSlotRenderReferencePhotos(project);
+      document.querySelectorAll("[data-liri-slot-step]").forEach((panel) => {
+        if (["3", "4", "5"].includes(panel.dataset.liriSlotStep) || panel.querySelector("[data-liri-step-footer]")) return;
+        const step = Number(panel.dataset.liriSlotStep);
+        const prev = step > 1 ? `<button class="secondary-button" type="button" data-liri-flow-prev>이전</button>` : `<span></span>`;
+        const nextLabel = step === 1 ? "다음: 장소정보" : "다음: 구성별 멘트";
+        panel.insertAdjacentHTML("beforeend", `<div class="liri-slot-nav-actions" data-liri-step-footer>${prev}<div><button class="primary-button" type="button" data-liri-flow-next>${nextLabel}</button></div></div>`);
+      });
+      const result = document.querySelector("[data-liri-slot-result]");
+      const status = document.querySelector("[data-liri-slot-result-status]");
+      if (result && document.activeElement !== result) result.value = project.generatedResult?.content || project.generatedPost || "";
+      if (status) status.textContent = project.generatedResult?.content ? "네이버 블로그 완성글이 준비되었습니다." : "글 생성 대기 중";
+    }
+
+    async function liriSlotFetchPlaceInfo(query) {
+      const { supabaseUrl, supabaseAnonKey } = liriGetSupabaseConfig();
+      if (!supabaseUrl || !supabaseAnonKey) throw new Error("Supabase 설정을 찾을 수 없습니다.");
+      const response = await fetch(`${supabaseUrl}/functions/v1/${LIRI_PLACE_FUNCTION_NAME}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${supabaseAnonKey}`, "apikey": supabaseAnonKey },
+        body: JSON.stringify({ query })
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok || !data?.ok) throw new Error(data?.error || "장소정보 자동조회에 실패했습니다.");
+      return data;
+    }
+
+    async function liriSlotUploadFiles(slotKey, files) {
+      const project = liriEnsureSlotProject();
+      const slots = liriGetSlotList(project.category);
+      const slot = slots.find((item) => item.key === slotKey) || slots[0];
+      const slotIndex = Math.max(0, slots.findIndex((item) => item.key === slot.key));
+      const imageFiles = Array.from(files || []).filter((file) => file.type.startsWith("image/")).slice(0, 30);
+      if (!imageFiles.length) return projectManager.showToast("이미지 파일만 업로드할 수 있습니다.");
+      const currentPhotos = project.photos || [];
+      const nextPhotos = [];
+      for (let index = 0; index < imageFiles.length; index += 1) {
+        const file = imageFiles[index];
+        const photoId = liriCreateId("photo");
+        try {
+          const uploaded = await liriUploadPhotoToStorage(project.id, file, photoId);
+          nextPhotos.push({
+            id: photoId,
+            fileName: file.name,
+            previewUrl: uploaded.publicUrl,
+            publicUrl: uploaded.publicUrl,
+            storagePath: uploaded.storagePath,
+            sortOrder: currentPhotos.length + nextPhotos.length,
+            section: liriSlotSectionForIndex(slotIndex, slots.length),
+            slotKey: slot.key,
+            slotLabel: slot.label,
+            type: slot.label,
+            memo: "",
+            isAnalysisTarget: false,
+            isRepresentative: !currentPhotos.length && !nextPhotos.length,
+            analysisText: "",
+            analysisStatus: "none",
+            analysisError: "",
+            analysisUsage: null,
+            analyzedAt: ""
+          });
+        } catch (error) {
+          projectManager.showToast("사진 업로드에 실패했습니다. Supabase Storage 설정을 확인해주세요.");
+        }
+      }
+      if (!nextPhotos.length) return;
+      projectManager.update((target) => {
+        target.photos = [...(target.photos || []), ...nextPhotos];
+      }, "사진 저장됨");
+      liriSlotRenderAll();
+    }
+
+    async function liriSlotAnalyzePhotos(forceAll = false) {
+      const project = liriEnsureSlotProject();
+      const targets = (project.photos || []).filter((photo) => forceAll || photo.isAnalysisTarget === true);
+      if (!targets.length) return projectManager.showToast("분석할 사진이 없습니다.");
+      if (!confirm((forceAll ? "전체 사진" : "선택 사진") + " 분석은 OpenAI API 크레딧을 사용합니다. 진행할까요?")) return;
+      for (const photo of targets) {
+        projectManager.update((target) => {
+          const item = target.photos.find((candidate) => candidate.id === photo.id);
+          if (item) { item.analysisStatus = "analyzing"; item.analysisError = ""; }
+        }, "사진 분석중");
+        liriSlotRenderAll();
+        try {
+          const result = await liriAnalyzePhotoWithVision(photo, project);
+          projectManager.update((target) => {
+            const item = target.photos.find((candidate) => candidate.id === photo.id);
+            if (item) {
+              item.analysisText = result.analysisText || "";
+              item.analysisStatus = "done";
+              item.analysisError = "";
+              item.analysisUsage = result.usage || null;
+              item.analyzedAt = new Date().toISOString();
+            }
+          }, "사진 분석 완료");
+        } catch (error) {
+          projectManager.update((target) => {
+            const item = target.photos.find((candidate) => candidate.id === photo.id);
+            if (item) {
+              item.analysisStatus = "error";
+              item.analysisError = error instanceof Error ? error.message : "사진 분석 실패";
+            }
+          }, "사진 분석 오류");
+        }
+      }
+      liriSlotRenderAll();
+      projectManager.showToast("사진 분석이 완료되었습니다.");
+    }
+
+    function liriGetSlotState(project, slot, slotIndex = 0) {
+      project.slots = Array.isArray(project.slots) ? project.slots : [];
+      let state = project.slots.find((item) => item.slotKey === slot.key);
+      if (!state) {
+        state = { id: `${project.id}-${slot.key}`, slotKey: slot.key, slotLabel: slot.label, slotOrder: slotIndex, slotComment: "", isSkipped: false };
+        project.slots.push(state);
+      }
+      state.slotLabel = slot.label;
+      state.slotOrder = slotIndex;
+      return state;
+    }
+
+    function liriGetCurrentSlotIndex(project, slots) {
+      const raw = Number(project.metadata?.slotWizardIndex || 0);
+      return Math.max(0, Math.min(slots.length - 1, Number.isFinite(raw) ? raw : 0));
+    }
+
+    function liriSlotStatus(project, slot, index) {
+      const state = liriGetSlotState(project, slot, index);
+      const done = state.isSkipped || Boolean(state.slotComment?.trim());
+      return { state, done };
+    }
+
+    function liriBuildSlotPhotoFlowPrompt(project) {
+      const slots = typeof liriGetSlotList === "function" ? liriGetSlotList(project.category) : [];
+      const commentBlocks = slots.map((slot, index) => {
+        const state = liriGetSlotState(project, slot, index);
+        if (state.isSkipped) return "";
+        const comment = liriCleanPromptValue(state.slotComment);
+        return comment ? `${slot.label}\n사용자 멘트: ${comment}` : "";
+      }).filter(Boolean);
+      const photoBlocks = [...(project.photos || [])]
+        .sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0))
+        .filter((photo) => photo.analysisStatus === "done" && liriCleanPromptValue(photo.analysisText))
+        .map((photo, index) => {
+          const linkedSlot = slots.find((slot) => slot.key === photo.slotKey);
+          const label = linkedSlot?.label || photo.slotLabel || photo.type || "참고";
+          return `사진 ${index + 1}\n연결 구성: ${label}\nAI 분석: ${liriCleanPromptValue(photo.analysisText)}`;
+        });
+      return [
+        "[구성별 멘트]",
+        commentBlocks.join("\n\n") || "작성된 구성별 멘트 없음",
+        "",
+        "[참고사진 분석]",
+        photoBlocks.join("\n\n") || "분석된 참고사진 없음",
+        "",
+        "작성 시 사용자의 구성별 멘트를 가장 우선하고, 참고사진 분석은 분위기와 보이는 사실을 보완하는 자료로만 사용하세요."
+      ].join("\n");
+    }
+
+    function liriSlotRenderBoard(project) {
+      const board = document.querySelector("[data-liri-slot-board]");
+      if (!board) return;
+      const slots = liriGetSlotList(project.category);
+      const currentIndex = liriGetCurrentSlotIndex(project, slots);
+      const currentSlot = slots[currentIndex];
+      const { state: currentState } = liriSlotStatus(project, currentSlot, currentIndex);
+      const listItems = slots.map((slot, index) => {
+        const status = liriSlotStatus(project, slot, index);
+        const className = [index === currentIndex ? "is-active" : "", status.state.isSkipped ? "is-skipped" : "", status.done && !status.state.isSkipped ? "is-done" : ""].filter(Boolean).join(" ");
+        const stateLabel = status.state.isSkipped ? "건너뜀" : status.done ? "작성됨" : "";
+        return `<button type="button" class="${className}" data-liri-slot-jump="${index}"><span>${projectManager.escapeHtml(slot.label)}</span><span>${stateLabel}</span></button>`;
+      }).join("");
+      const overview = slots.map((slot, index) => {
+        const state = liriGetSlotState(project, slot, index);
+        if (state.isSkipped || !state.slotComment?.trim()) return "";
+        return `<div class="liri-comment-overview-item"><strong>${projectManager.escapeHtml(slot.label)}</strong>${projectManager.escapeHtml(state.slotComment)}</div>`;
+      }).filter(Boolean).join("");
+      board.innerHTML = `
+        <div class="liri-comment-board">
+          <aside class="liri-comment-list" aria-label="글 구성 목록">${listItems}</aside>
+          <article class="liri-comment-editor">
+            <div class="liri-slot-current-head">
+              <div><h4>${projectManager.escapeHtml(currentSlot.label)}</h4><p>현재 구성 ${currentIndex + 1} / ${slots.length}</p></div>
+              <span class="liri-task-status">${currentState.isSkipped ? "건너뜀" : currentState.slotComment?.trim() ? "작성됨" : "작성중"}</span>
+            </div>
+            <div class="liri-slot-comment">
+              <label for="liri-slot-comment">이 구성에 넣고 싶은 말</label>
+              <textarea class="textarea" id="liri-slot-comment" rows="7" data-liri-slot-comment="${projectManager.escapeHtml(currentSlot.key)}" placeholder="예: 입구부터 차분하고 고급스러운 분위기가 느껴졌어요.">${projectManager.escapeHtml(currentState.slotComment || "")}</textarea>
+            </div>
+            <div class="liri-slot-nav-actions">
+              <button class="secondary-button" type="button" ${currentIndex === 0 ? "data-liri-flow-prev" : "data-liri-slot-prev"}>${currentIndex === 0 ? "이전" : "이전 구성"}</button>
+              <div>
+                <button class="secondary-button" type="button" data-liri-slot-skip>${currentState.isSkipped ? "건너뛰기 해제" : "건너뛰기"}</button>
+                <button class="primary-button" type="button" data-liri-slot-next>${currentIndex >= slots.length - 1 ? "멘트 작성 완료" : "다음 구성"}</button>
+              </div>
+            </div>
+            <details class="liri-comment-overview"><summary>전체 멘트 한눈에 보기</summary><div class="liri-comment-overview-list">${overview || `<div class="liri-reference-empty">아직 작성한 멘트가 없습니다.</div>`}</div></details>
+          </article>
+        </div>
+      `;
+    }
+
+    function liriSlotRenderReferencePhotos(project) {
+      const holder = document.querySelector("[data-liri-reference-grid]");
+      if (!holder) return;
+      const slots = liriGetSlotList(project.category);
+      const photos = [...(project.photos || [])].sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0));
+      holder.innerHTML = photos.map((photo, index) => {
+        const status = photo.analysisStatus || "none";
+        const analysisText = photo.analysisText || photo.analysisError || "";
+        const options = slots.map((slot) => `<option value="${projectManager.escapeHtml(slot.key)}"${photo.slotKey === slot.key ? " selected" : ""}>${projectManager.escapeHtml(slot.label)}</option>`).join("");
+        return `
+          <article class="liri-reference-card" data-liri-slot-photo="${projectManager.escapeHtml(photo.id)}">
+            <div class="liri-slot-thumb">${liriSlotPhotoPreview(photo)}</div>
+            <div class="liri-slot-photo-top"><span>참고사진 ${index + 1}</span><span>${projectManager.escapeHtml(photo.fileName || "사진")}</span></div>
+            <select class="select" data-liri-photo-slot="${projectManager.escapeHtml(photo.id)}" aria-label="사진 연결 구성">${options}</select>
+            <label class="liri-slot-check"><input type="checkbox" data-liri-slot-analysis-target="${projectManager.escapeHtml(photo.id)}"${photo.isAnalysisTarget === true ? " checked" : ""}> AI 분석 포함</label>
+            <details class="liri-slot-analysis"${analysisText ? " open" : ""}>
+              <summary>AI 분석 결과 · ${projectManager.escapeHtml(status === "done" ? "완료" : status === "analyzing" ? "분석중" : status === "error" ? "오류" : "미분석")}</summary>
+              <div>${projectManager.escapeHtml(analysisText || "아직 분석 결과가 없습니다.")}</div>
+            </details>
+            <div class="liri-slot-actions"><button class="mini-button" type="button" data-liri-slot-delete-photo="${projectManager.escapeHtml(photo.id)}">삭제</button></div>
+          </article>
+        `;
+      }).join("") || `<div class="liri-reference-empty">아직 참고사진이 없습니다. 글에 참고할 대표 장면 몇 장만 추가해도 충분합니다.</div>`;
+    }
+
+    function liriSlotMoveTo(index) {
+      const project = liriEnsureSlotProject();
+      const slots = liriGetSlotList(project.category);
+      const nextIndex = Math.max(0, Math.min(slots.length - 1, Number(index) || 0));
+      projectManager.update((target) => {
+        target.metadata = { ...(target.metadata || {}), slotWizardIndex: nextIndex };
+      }, "구성 위치 저장됨");
+      liriSlotRenderAll();
+    }
+
+    function liriSlotMoveRelative(delta) {
+      const project = liriEnsureSlotProject();
+      const slots = liriGetSlotList(project.category);
+      liriSlotMoveTo(liriGetCurrentSlotIndex(project, slots) + delta);
+    }
+
+    async function liriSlotAnalyzeCurrent() {
+      const project = liriEnsureSlotProject();
+      const slots = liriGetSlotList(project.category);
+      const currentSlot = slots[liriGetCurrentSlotIndex(project, slots)];
+      const targets = liriSortedSlotPhotos(project, currentSlot).filter((photo) => photo.isAnalysisTarget !== false);
+      if (!targets.length) return projectManager.showToast("현재 구성에서 분석할 사진이 없습니다.");
+      if (!confirm("현재 구성의 선택 사진 분석은 OpenAI API 크레딧을 사용합니다. 진행할까요?")) return;
+      for (const photo of targets) {
+        projectManager.update((target) => {
+          const item = target.photos.find((candidate) => candidate.id === photo.id);
+          if (item) { item.analysisStatus = "analyzing"; item.analysisError = ""; }
+        }, "사진 분석중");
+        liriSlotRenderAll();
+        try {
+          const result = await liriAnalyzePhotoWithVision(photo, project);
+          projectManager.update((target) => {
+            const item = target.photos.find((candidate) => candidate.id === photo.id);
+            if (item) {
+              item.analysisText = result.analysisText || "";
+              item.analysisStatus = "done";
+              item.analysisError = "";
+              item.analysisUsage = result.usage || null;
+              item.analyzedAt = new Date().toISOString();
+            }
+          }, "사진 분석 완료");
+        } catch (error) {
+          projectManager.update((target) => {
+            const item = target.photos.find((candidate) => candidate.id === photo.id);
+            if (item) {
+              item.analysisStatus = "error";
+              item.analysisError = error instanceof Error ? error.message : "사진 분석 실패";
+            }
+          }, "사진 분석 오류");
+        }
+      }
+      liriSlotRenderAll();
+    }
+
+    function liriSlotWireEvents() {
+      document.addEventListener("click", async (event) => {
+        const stepButton = event.target.closest("[data-liri-slot-step-target]");
+        if (stepButton) { liriSlotSetStep(stepButton.dataset.liriSlotStepTarget); return; }
+        if (event.target.closest("[data-liri-flow-prev]")) {
+          const active = Number(document.querySelector("[data-liri-slot-step].is-active")?.dataset.liriSlotStep || 1);
+          liriSlotSetStep(Math.max(1, active - 1));
+          return;
+        }
+        if (event.target.closest("[data-liri-flow-next]")) {
+          const active = Number(document.querySelector("[data-liri-slot-step].is-active")?.dataset.liriSlotStep || 1);
+          liriSlotSetStep(Math.min(5, active + 1));
+          return;
+        }
+        const jumpButton = event.target.closest("[data-liri-slot-jump]");
+        if (jumpButton) { liriSlotMoveTo(jumpButton.dataset.liriSlotJump); return; }
+        const categoryButton = event.target.closest("[data-liri-slot-category]");
+        if (categoryButton) {
+          projectManager.update((project) => {
+            project.category = categoryButton.dataset.liriSlotCategory;
+            project.metadata = { ...(project.metadata || {}), slotWizardIndex: 0 };
+          }, "카테고리 저장됨");
+          liriSlotRenderAll();
+          return;
+        }
+        const pickButton = event.target.closest("[data-liri-slot-pick]");
+        if (pickButton) {
+          document.querySelector(`[data-liri-slot-file="${CSS.escape(pickButton.dataset.liriSlotPick)}"]`)?.click();
+          return;
+        }
+        const deleteButton = event.target.closest("[data-liri-slot-delete-photo]");
+        if (deleteButton) {
+          const photoId = deleteButton.dataset.liriSlotDeletePhoto;
+          projectManager.update((project) => { project.photos = (project.photos || []).filter((photo) => photo.id !== photoId); }, "사진 삭제됨");
+          liriSlotRenderAll();
+          return;
+        }
+        const movePhotoButton = event.target.closest("[data-liri-slot-move-photo]");
+        if (movePhotoButton) {
+          const photoId = movePhotoButton.dataset.liriSlotMovePhoto;
+          const direction = Number(movePhotoButton.dataset.direction) || 0;
+          projectManager.update((project) => {
+            const photos = [...(project.photos || [])].sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0));
+            const index = photos.findIndex((photo) => photo.id === photoId);
+            const nextIndex = index + direction;
+            if (index < 0 || nextIndex < 0 || nextIndex >= photos.length) return;
+            const temp = photos[index].sortOrder;
+            photos[index].sortOrder = photos[nextIndex].sortOrder;
+            photos[nextIndex].sortOrder = temp;
+            project.photos = photos.map((photo, sortOrder) => ({ ...photo, sortOrder }));
+          }, "사진 순서 저장됨");
+          liriSlotRenderAll();
+          return;
+        }
+        if (event.target.closest("[data-liri-slot-prev]")) { liriSlotMoveRelative(-1); return; }
+        if (event.target.closest("[data-liri-slot-next]")) {
+          const project = liriEnsureSlotProject();
+          const slots = liriGetSlotList(project.category);
+          const currentIndex = liriGetCurrentSlotIndex(project, slots);
+          if (currentIndex >= slots.length - 1) { liriSlotSetStep(4); return; }
+          liriSlotMoveTo(currentIndex + 1);
+          return;
+        }
+        if (event.target.closest("[data-liri-slot-skip]")) {
+          const project = liriEnsureSlotProject();
+          const slots = liriGetSlotList(project.category);
+          const currentIndex = liriGetCurrentSlotIndex(project, slots);
+          const currentSlot = slots[currentIndex];
+          let skipped = false;
+          projectManager.update((target) => {
+            const state = liriGetSlotState(target, currentSlot, currentIndex);
+            state.isSkipped = !state.isSkipped;
+            if (state.isSkipped) state.slotComment = "";
+            skipped = state.isSkipped;
+          }, "구성 건너뛰기 저장됨");
+          if (skipped && currentIndex < slots.length - 1) {
+            liriSlotMoveTo(currentIndex + 1);
+            return;
+          }
+          liriSlotRenderAll();
+          return;
+        }
+        if (event.target.closest("[data-liri-analyze-current]")) { await liriSlotAnalyzeCurrent(); return; }
+        if (event.target.closest("[data-liri-analyze-selected]")) { await liriSlotAnalyzePhotos(false); return; }
+        if (event.target.closest("[data-liri-analyze-all]")) { await liriSlotAnalyzePhotos(true); return; }
+        if (event.target.closest("[data-liri-place-open]")) {
+          const project = liriEnsureSlotProject();
+          const raw = document.querySelector("[data-liri-place-query]")?.value.trim() || project.placeInfo?.website || project.placeInfo?.name || "";
+          const url = /^https?:\/\//i.test(raw) ? raw : `https://map.naver.com/p/search/${encodeURIComponent(raw)}`;
+          if (raw) window.open(url, "_blank", "noopener,noreferrer");
+          return;
+        }
+        if (event.target.closest("[data-liri-place-lookup]")) {
+          const query = document.querySelector("[data-liri-place-query]")?.value.trim() || "";
+          const status = document.querySelector("[data-liri-place-status]");
+          if (!query) { if (status) status.textContent = "URL 또는 장소명을 입력해주세요."; return; }
+          if (status) status.textContent = "자동조회 시도 중...";
+          try {
+            const info = await liriSlotFetchPlaceInfo(query);
+            projectManager.update((project) => {
+              project.placeInfo = {
+                ...(project.placeInfo || {}),
+                name: info.placeName || project.placeInfo?.name || (/^https?:\/\//i.test(query) ? "" : query),
+                address: info.address || project.placeInfo?.address || "",
+                openingHours: info.hours || project.placeInfo?.openingHours || "",
+                phone: info.phone || project.placeInfo?.phone || "",
+                price: info.price || project.placeInfo?.price || "",
+                website: info.homepage || info.link || query,
+                parking: project.placeInfo?.parking || "",
+                memo: project.placeInfo?.memo || ""
+              };
+            }, "장소정보 저장됨");
+            if (status) status.textContent = "자동조회 결과를 채웠습니다. 필요한 부분은 직접 수정해주세요.";
+          } catch (error) {
+            projectManager.update((project) => {
+              project.placeInfo = { ...(project.placeInfo || {}), website: /^https?:\/\//i.test(query) ? query : project.placeInfo?.website || "", name: /^https?:\/\//i.test(query) ? project.placeInfo?.name || "" : query };
+            }, "장소 입력값 저장됨");
+            if (status) status.textContent = "자동조회 실패. 아래 입력칸에 확인한 정보만 직접 입력해주세요.";
+          }
+          liriSlotRenderAll();
+          return;
+        }
+        if (event.target.closest("[data-liri-slot-generate]")) {
+          const status = document.querySelector("[data-liri-slot-result-status]");
+          const resultBox = document.querySelector("[data-liri-slot-result]");
+          try {
+            if (status) status.textContent = "블로그 글을 만드는 중입니다...";
+            const result = await generateAIBlogResult(liriEnsureSlotProject());
+            saveGeneratedResult(result);
+            const active = projectManager.getActive();
+            if (resultBox) resultBox.value = active?.generatedResult?.content || result.content || "";
+            if (status) status.textContent = "네이버 블로그 완성글이 준비되었습니다.";
+            projectManager.showToast("블로그 글이 생성되었습니다.");
+          } catch (error) {
+            const message = error instanceof Error ? error.message : "블로그 글 생성에 실패했습니다.";
+            if (status) status.textContent = message;
+            projectManager.showToast(message);
+          }
+          return;
+        }
+        if (event.target.closest("[data-liri-slot-copy]")) {
+          const resultBox = document.querySelector("[data-liri-slot-result]");
+          if (resultBox?.value) navigator.clipboard?.writeText(resultBox.value).then(() => projectManager.showToast("블로그 글이 복사되었습니다."));
+        }
+      });
+
+      document.addEventListener("change", (event) => {
+        const fileInput = event.target.closest("[data-liri-slot-file]");
+        if (fileInput) {
+          liriSlotUploadFiles(fileInput.dataset.liriSlotFile, fileInput.files);
+          fileInput.value = "";
+          return;
+        }
+        const analysisTarget = event.target.closest("[data-liri-slot-analysis-target]");
+        if (analysisTarget) {
+          const photoId = analysisTarget.dataset.liriSlotAnalysisTarget;
+          projectManager.update((project) => {
+            const photo = (project.photos || []).find((item) => item.id === photoId);
+            if (photo) photo.isAnalysisTarget = analysisTarget.checked;
+          }, "분석 대상 저장됨");
+          return;
+        }
+        const photoSlot = event.target.closest("[data-liri-photo-slot]");
+        if (photoSlot) {
+          const photoId = photoSlot.dataset.liriPhotoSlot;
+          const project = liriEnsureSlotProject();
+          const slot = liriGetSlotList(project.category).find((item) => item.key === photoSlot.value);
+          if (!slot) return;
+          projectManager.update((target) => {
+            const photo = (target.photos || []).find((item) => item.id === photoId);
+            if (photo) {
+              photo.slotKey = slot.key;
+              photo.slotLabel = slot.label;
+              photo.type = slot.label;
+            }
+          }, "참고사진 구성 저장됨");
+        }
+      });
+
+      document.addEventListener("input", (event) => {
+        const titleInput = event.target.closest("[data-liri-slot-title]");
+        if (titleInput) {
+          projectManager.update((project) => { project.title = titleInput.value.trim() || "새 블로그 포스팅"; }, "프로젝트명 저장됨");
+          return;
+        }
+        const placeField = event.target.closest("[data-liri-place-field]");
+        if (placeField) {
+          projectManager.update((project) => {
+            project.placeInfo = { ...(project.placeInfo || {}), [placeField.dataset.liriPlaceField]: placeField.value };
+          }, "장소정보 저장됨");
+          return;
+        }
+        const slotComment = event.target.closest("[data-liri-slot-comment]");
+        if (slotComment) {
+          const project = liriEnsureSlotProject();
+          const slots = liriGetSlotList(project.category);
+          const slot = slots.find((item) => item.key === slotComment.dataset.liriSlotComment);
+          if (slot) {
+            projectManager.update((target) => {
+              const state = liriGetSlotState(target, slot, slots.findIndex((item) => item.key === slot.key));
+              state.slotComment = slotComment.value;
+              if (slotComment.value.trim()) state.isSkipped = false;
+            }, "구성 코멘트 저장됨");
+          }
+          return;
+        }
+        const memoField = event.target.closest("[data-liri-slot-photo-memo]");
+        if (memoField) {
+          const photoId = memoField.dataset.liriSlotPhotoMemo;
+          projectManager.update((project) => {
+            const photo = (project.photos || []).find((item) => item.id === photoId);
+            if (photo) photo.memo = memoField.value;
+          }, "사진 메모 저장됨");
+        }
+      });
+
+      document.addEventListener("dragover", (event) => {
+        const dropArea = event.target.closest("[data-liri-reference-drop]");
+        if (!dropArea) return;
+        event.preventDefault();
+        dropArea.classList.add("is-dragover");
+      });
+      document.addEventListener("dragleave", (event) => {
+        event.target.closest("[data-liri-reference-drop]")?.classList.remove("is-dragover");
+      });
+      document.addEventListener("drop", (event) => {
+        const dropArea = event.target.closest("[data-liri-reference-drop]");
+        if (!dropArea) return;
+        event.preventDefault();
+        dropArea.classList.remove("is-dragover");
+        liriSlotUploadFiles("reference", event.dataTransfer.files);
+      });
+    }
+
+    liriSlotRenderAll();
+    liriSlotWireEvents();
 
     /* =========================================================
        LIRI Engine Data View
