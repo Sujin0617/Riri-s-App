@@ -9658,10 +9658,10 @@ function renderSidejob(){
     (function(){
       const document = liriDocument;
       const visionStyle = document.createElement("style");
-      visionStyle.textContent = ".photo-analysis-actions{display:flex;flex-wrap:wrap;gap:8px}.photo-analysis-summary{display:grid;gap:4px;padding:12px 14px;border:1px solid rgba(244,114,156,.22);border-radius:18px;background:#fff0f5;color:#8b5262;font-size:12px;line-height:1.5}.photo-analysis-summary strong{color:#df477b;font-size:13px}.photo-analysis-box{display:grid;gap:6px;padding:10px;border-radius:12px;background:#fbf8fa;color:#62666d;font-size:12px;line-height:1.55}.photo-analysis-box strong{color:#202124;font-size:12px}.analysis-status{display:inline-flex;align-items:center;width:fit-content;min-height:24px;padding:0 9px;border-radius:999px;background:#f0eef1;color:#8a8f98;font-size:11px;font-weight:850}.analysis-status.is-analyzing{background:rgba(115,180,255,.16);color:#4570a7}.analysis-status.is-done{background:rgba(84,199,167,.14);color:#357465}.analysis-status.is-error{background:rgba(244,114,156,.16);color:#df477b}";
+      visionStyle.textContent = ".photo-analysis-actions{display:flex;flex-wrap:wrap;gap:8px}.photo-analysis-summary{display:grid;gap:4px;padding:12px 14px;border:1px solid rgba(244,114,156,.22);border-radius:18px;background:#fff0f5;color:#8b5262;font-size:12px;line-height:1.5}.photo-analysis-summary strong{color:#df477b;font-size:13px}.photo-analysis-box{display:grid;gap:6px;padding:10px;border-radius:12px;background:#fbf8fa;color:#62666d;font-size:12px;line-height:1.55}.photo-analysis-box strong{color:#202124;font-size:12px}.analysis-status{display:inline-flex;align-items:center;width:fit-content;min-height:24px;padding:0 9px;border-radius:999px;background:#f0eef1;color:#8a8f98;font-size:11px;font-weight:850}.analysis-status.is-analyzing{background:rgba(115,180,255,.16);color:#4570a7}.analysis-status.is-done{background:rgba(84,199,167,.14);color:#357465}.analysis-status.is-error{background:rgba(244,114,156,.16);color:#df477b}.generation-mode-card,.api-ready-card,.prompt-test-side,[data-prompt-test-buttons],[data-copy-prompt]{display:none!important}.prompt-test-shell{display:none}.liri-simple-flow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;color:#8a5a68;font-size:12px;font-weight:850}.liri-simple-flow span{padding:7px 10px;border-radius:999px;background:#fff0f5}.final-result-toolbar .generate-button{font-size:16px}.photo-card .textarea{min-height:72px}";
       root.appendChild(visionStyle);
       (function injectLiriVisionControls(){
-        const controls = '<div class="photo-analysis-actions"><button class="secondary-button" type="button" data-photo-analyze-all>📸 전체 사진 AI 분석</button><button class="secondary-button" type="button" data-photo-analyze-selected>⭐ 대표/선택 사진만 분석</button><button class="secondary-button" type="button" data-photo-reanalyze>🔁 분석 다시 하기</button></div>';
+        const controls = '<div class="photo-analysis-actions"><button class="primary-button" type="button" data-photo-analyze-selected>선택 사진 AI 분석</button><button class="secondary-button" type="button" data-photo-analyze-all>전체 사진 AI 분석</button></div>';
         const photoEmpty = document.querySelector("[data-photo-empty]");
         if (photoEmpty && !document.querySelector("[data-photo-analysis-summary]")) {
           photoEmpty.insertAdjacentHTML("beforebegin", controls + '<div class="photo-analysis-summary" data-photo-analysis-summary hidden></div>');
@@ -9674,6 +9674,22 @@ function renderSidejob(){
         if (apiGrid && !apiGrid.textContent.includes("analyze-liri-photo")) {
           apiGrid.insertAdjacentHTML("beforeend", '<div class="api-ready-item"><span>사진 분석 Function</span><strong>analyze-liri-photo</strong></div>');
         }
+        const progressCard = document.querySelector(".progress-card");
+        if (progressCard && !document.querySelector(".liri-simple-flow")) {
+          progressCard.insertAdjacentHTML("afterbegin", '<div class="liri-simple-flow"><span>1 설정</span><span>2 장소</span><span>3 사진</span><span>4 메모</span><span>5 글보기</span></div>');
+        }
+        const resultHeading = document.querySelector('[data-step="7"] .step-heading h2');
+        if (resultHeading) resultHeading.textContent = "블로그 글 보기";
+        const resultDescription = document.querySelector('[data-step="7"] .step-heading p');
+        if (resultDescription) resultDescription.textContent = "네이버 블로그에 바로 붙여넣을 완성글을 만듭니다.";
+        const resultButton = document.querySelector("[data-generate-result]");
+        if (resultButton) resultButton.textContent = "블로그 글 만들기";
+        const resultMeta = document.querySelector("[data-result-meta]");
+        if (resultMeta) resultMeta.innerHTML = "<span>블로그 글 생성 대기</span>";
+        const resultEditor = document.querySelector("[data-result-editor]");
+        if (resultEditor) resultEditor.placeholder = "블로그 글 만들기를 누르면 네이버 블로그 완성글이 이곳에 표시됩니다.";
+        const aiMode = document.querySelector('[data-generation-mode][value="ai"]');
+        if (aiMode) aiMode.checked = true;
       })();
     /* =========================================================
        Project Management and LocalStorage
@@ -9715,6 +9731,186 @@ function renderSidejob(){
       return categoryMap[getCategoryKey(category)] || category || "여행";
     }
 
+    function liriCreateId(prefix) {
+      if (crypto?.randomUUID) return `${prefix}-${crypto.randomUUID()}`;
+      return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    }
+
+    function liriSanitizeFileName(fileName) {
+      return String(fileName || "photo.jpg").replace(/[^\w.\-가-힣]/g, "_").slice(0, 120);
+    }
+
+    function liriGetSupabaseConfig() {
+      return {
+        supabaseUrl: window.SUPABASE_URL || window.supabaseUrl || window.APP_SUPABASE_URL || (typeof SB_URL !== "undefined" ? SB_URL : "") || "",
+        supabaseAnonKey: window.SUPABASE_ANON_KEY || window.supabaseAnonKey || window.APP_SUPABASE_ANON_KEY || (typeof SB_KEY !== "undefined" ? SB_KEY : "") || ""
+      };
+    }
+
+    async function liriSupabaseFetch(path, options = {}) {
+      const { supabaseUrl, supabaseAnonKey } = liriGetSupabaseConfig();
+      if (!supabaseUrl || !supabaseAnonKey) throw new Error("Supabase 설정을 찾을 수 없습니다.");
+      const response = await fetch(`${supabaseUrl}${path}`, {
+        ...options,
+        headers: {
+          "apikey": supabaseAnonKey,
+          "Authorization": `Bearer ${supabaseAnonKey}`,
+          ...(options.headers || {})
+        }
+      });
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : null;
+      if (!response.ok) throw new Error(data?.message || data?.error || "Supabase 요청에 실패했습니다.");
+      return data;
+    }
+
+    async function liriUploadPhotoToStorage(projectId, file, photoId) {
+      const { supabaseUrl, supabaseAnonKey } = liriGetSupabaseConfig();
+      if (!supabaseUrl || !supabaseAnonKey) throw new Error("Supabase 설정을 찾을 수 없습니다.");
+      const safeName = liriSanitizeFileName(file.name);
+      const storagePath = `${projectId}/${photoId}-${safeName}`;
+      const response = await fetch(`${supabaseUrl}/storage/v1/object/liri-photos/${encodeURIComponent(storagePath).replace(/%2F/g, "/")}`, {
+        method: "PUT",
+        headers: {
+          "apikey": supabaseAnonKey,
+          "Authorization": `Bearer ${supabaseAnonKey}`,
+          "Content-Type": file.type || "application/octet-stream",
+          "x-upsert": "true"
+        },
+        body: file
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(data?.message || data?.error || "사진 업로드에 실패했습니다.");
+      return {
+        storagePath,
+        publicUrl: `${supabaseUrl}/storage/v1/object/public/liri-photos/${encodeURIComponent(storagePath).replace(/%2F/g, "/")}`
+      };
+    }
+
+    function liriProjectToRow(project) {
+      const place = project.placeInfo || {};
+      return {
+        id: project.id,
+        title: project.title || "",
+        category: getCategoryKey(project.category),
+        place_name: place.name || "",
+        place_address: place.address || "",
+        place_hours: place.openingHours || "",
+        place_phone: place.phone || "",
+        place_price: place.price || "",
+        place_parking: place.parking || "",
+        place_link: place.website || place.link || "",
+        place_memo: place.memo || "",
+        status: project.status || "작성중",
+        created_at: project.createdAt || new Date().toISOString(),
+        updated_at: project.updatedAt || new Date().toISOString()
+      };
+    }
+
+    function liriPhotoToRow(projectId, photo) {
+      return {
+        id: photo.id,
+        project_id: projectId,
+        file_name: photo.fileName || "",
+        storage_path: photo.storagePath || "",
+        public_url: photo.publicUrl || photo.previewUrl || "",
+        sort_order: Number(photo.sortOrder) || 0,
+        section: photo.section || "body",
+        photo_type: photo.type || "기타",
+        memo: photo.memo || "",
+        is_analysis_target: photo.isAnalysisTarget !== false,
+        analysis_text: photo.analysisText || "",
+        analysis_status: photo.analysisStatus || "none",
+        analysis_error: photo.analysisError || "",
+        updated_at: new Date().toISOString()
+      };
+    }
+
+    function liriRowToProject(row, photos = [], result = null) {
+      return {
+        id: row.id,
+        title: row.title || "새 프로젝트",
+        createdAt: row.created_at || new Date().toISOString(),
+        updatedAt: row.updated_at || new Date().toISOString(),
+        status: row.status || "작성중",
+        progress: row.status === "완료" ? 100 : 0,
+        category: getCategoryLabel(row.category || "travel"),
+        placeInfo: {
+          name: row.place_name || "",
+          address: row.place_address || "",
+          phone: row.place_phone || "",
+          website: row.place_link || "",
+          openingHours: row.place_hours || "",
+          price: row.place_price || "",
+          parking: row.place_parking || "",
+          memo: row.place_memo || "",
+          category: "",
+          keywords: [],
+          description: "",
+          mapImage: ""
+        },
+        photos: photos.map((photo, index) => ({
+          id: photo.id,
+          fileName: photo.file_name || "업로드 사진",
+          previewUrl: photo.public_url || photo.signed_url || "",
+          publicUrl: photo.public_url || "",
+          storagePath: photo.storage_path || "",
+          sortOrder: Number.isFinite(Number(photo.sort_order)) ? Number(photo.sort_order) : index,
+          section: photo.section || "body",
+          type: photo.photo_type || "기타",
+          memo: photo.memo || "",
+          isRepresentative: index === 0,
+          isAnalysisTarget: photo.is_analysis_target !== false,
+          analysisText: photo.analysis_text || "",
+          analysisStatus: photo.analysis_status || "none",
+          analysisError: photo.analysis_error || "",
+          analysisUsage: null,
+          analyzedAt: photo.updated_at || ""
+        })),
+        answers: [],
+        aiOptions: { style: "박리리", seo: true, emotional: true, informative: true, emoji: true, lineBreak: true, titleRecommend: true, tagRecommend: true },
+        generatedPost: result?.content || "",
+        generatedResult: result ? { createdAt: result.created_at || "", category: row.category || "", content: result.content || "", titleCandidates: [], tags: [], isMock: false } : { createdAt: "", category: "", content: "", titleCandidates: [], tags: [] },
+        seoTags: [],
+        hashtags: [],
+        metadata: { version: "1.6.5", lastStep: 1 }
+      };
+    }
+
+    async function liriLoadProjectsFromSupabase() {
+      const projects = await liriSupabaseFetch("/rest/v1/liri_projects?select=*&order=updated_at.desc");
+      const photos = await liriSupabaseFetch("/rest/v1/liri_photos?select=*&order=sort_order.asc");
+      const results = await liriSupabaseFetch("/rest/v1/liri_results?select=*&order=updated_at.desc");
+      return (projects || []).map((project) => liriRowToProject(
+        project,
+        (photos || []).filter((photo) => photo.project_id === project.id),
+        (results || []).find((result) => result.project_id === project.id)
+      ));
+    }
+
+    async function liriSaveProjectToSupabase(project) {
+      await liriSupabaseFetch("/rest/v1/liri_projects?on_conflict=id", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" },
+        body: JSON.stringify(liriProjectToRow(project))
+      });
+      const photos = (project.photos || []).map((photo) => liriPhotoToRow(project.id, photo));
+      if (photos.length) {
+        await liriSupabaseFetch("/rest/v1/liri_photos?on_conflict=id", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" },
+          body: JSON.stringify(photos)
+        });
+      }
+      if (project.generatedResult?.content) {
+        await liriSupabaseFetch("/rest/v1/liri_results?on_conflict=id", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" },
+          body: JSON.stringify({ id: project.generatedResult.id || liriCreateId("result"), project_id: project.id, content: project.generatedResult.content, created_at: project.generatedResult.createdAt || new Date().toISOString(), updated_at: new Date().toISOString() })
+        });
+      }
+    }
+
     function liriFileToDataUrl(file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -9751,15 +9947,9 @@ function renderSidejob(){
 
     const LIRI_PHOTO_ANALYSIS_FUNCTION_NAME = "analyze-liri-photo";
 
-    function liriGetSupabaseConfig() {
-      return {
-        supabaseUrl: window.SUPABASE_URL || window.supabaseUrl || window.APP_SUPABASE_URL || (typeof SB_URL !== "undefined" ? SB_URL : "") || "",
-        supabaseAnonKey: window.SUPABASE_ANON_KEY || window.supabaseAnonKey || window.APP_SUPABASE_ANON_KEY || (typeof SB_KEY !== "undefined" ? SB_KEY : "") || ""
-      };
-    }
-
     async function liriAnalyzePhotoWithVision(photo, project) {
-      if (!photo.previewUrl || liriIsInvalidPreviewUrl(photo.previewUrl) || !photo.previewUrl.startsWith("data:image/")) {
+      const imageUrl = photo.publicUrl || photo.previewUrl || "";
+      if (!imageUrl || liriIsInvalidPreviewUrl(imageUrl)) {
         throw new Error("분석 가능한 사진 미리보기가 없습니다. 사진을 다시 업로드해주세요.");
       }
       const { supabaseUrl, supabaseAnonKey } = liriGetSupabaseConfig();
@@ -9767,7 +9957,7 @@ function renderSidejob(){
       const response = await fetch(`${supabaseUrl}/functions/v1/${LIRI_PHOTO_ANALYSIS_FUNCTION_NAME}`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${supabaseAnonKey}`, "apikey": supabaseAnonKey },
-        body: JSON.stringify({ imageDataUrl: photo.previewUrl, fileName: photo.fileName, photoType: photo.type, memo: photo.memo, category: project.category, projectTitle: project.title })
+        body: JSON.stringify({ imageUrl, imageDataUrl: imageUrl.startsWith("data:image/") ? imageUrl : "", fileName: photo.fileName, photoType: photo.type, memo: photo.memo, category: project.category, projectTitle: project.title })
       });
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(data?.error || data?.message || "사진 분석 요청에 실패했습니다.");
@@ -9775,8 +9965,7 @@ function renderSidejob(){
     }
 
     const projectManager = (() => {
-      const storageKey = "liriStudio.projects";
-      const state = { activeProjectId: "", toastTimer: null };
+      const state = { activeProjectId: "", toastTimer: null, projects: [], isLoaded: false, saveTimer: null };
 
       function emptyPlaceInfo() {
         return { name: "", address: "", phone: "", website: "", openingHours: "", category: "", keywords: [], description: "", mapImage: "" };
@@ -9790,6 +9979,10 @@ function renderSidejob(){
           sortOrder: Number.isFinite(Number(photo.sortOrder)) ? Number(photo.sortOrder) : index,
           type: photo.type || "Unknown",
           memo: photo.memo || "",
+          section: photo.section || "body",
+          publicUrl: photo.publicUrl || photo.previewUrl || "",
+          storagePath: photo.storagePath || "",
+          isAnalysisTarget: photo.isAnalysisTarget !== false,
           isRepresentative: Boolean(photo.isRepresentative),
           analysisText: photo.analysisText || "",
           analysisStatus: ["none", "analyzing", "done", "error"].includes(photo.analysisStatus) ? photo.analysisStatus : "none",
@@ -9850,18 +10043,35 @@ function renderSidejob(){
       }
 
       function readAll() {
-        try {
-          const raw = JSON.parse(localStorage.getItem(storageKey) || "[]");
-          const projects = Array.isArray(raw) ? raw.map(normalizeProject) : [];
-          if (JSON.stringify(raw) !== JSON.stringify(projects)) writeAll(projects);
-          return projects;
-        } catch (error) {
-          return [];
-        }
+        return state.projects.map(normalizeProject);
       }
 
       function writeAll(projects) {
-        localStorage.setItem(storageKey, JSON.stringify(projects));
+        state.projects = projects.map(normalizeProject);
+        window.clearTimeout(state.saveTimer);
+        state.saveTimer = window.setTimeout(() => {
+          state.projects.forEach((project) => {
+            liriSaveProjectToSupabase(project).catch((error) => {
+              console.warn("LIRI Supabase save failed", error);
+              saveStatus.textContent = "Supabase 저장 실패";
+            });
+          });
+        }, 300);
+      }
+
+      async function loadRemote() {
+        try {
+          state.projects = (await liriLoadProjectsFromSupabase()).map(normalizeProject);
+          state.isLoaded = true;
+          render();
+          saveStatus.textContent = "Supabase 동기화 완료";
+        } catch (error) {
+          console.warn("LIRI Supabase load failed", error);
+          state.isLoaded = true;
+          render();
+          saveStatus.textContent = "Supabase 로드 실패";
+          showToast("Supabase 데이터를 불러오지 못했습니다.");
+        }
       }
 
       function formatDate(dateValue) {
@@ -9955,6 +10165,7 @@ function renderSidejob(){
         const projects = readAll();
         projects.unshift(project);
         writeAll(projects);
+        liriSaveProjectToSupabase(project).catch((error) => console.warn("LIRI project create failed", error));
         setActive(project.id);
         closeModal();
         showScreen("writer");
@@ -9964,15 +10175,10 @@ function renderSidejob(){
       }
 
       function seedDemo() {
-        const projects = readAll();
-        if (projects.length) return;
-        const project = createProjectModel({ id: "demo-fukuoka", title: "후쿠오카 미야지다케 신사", category: "여행", status: "작성중" });
-        project.progress = 65;
-        project.metadata.lastStep = 3;
-        writeAll([project]);
+        if (!state.isLoaded) loadRemote();
       }
 
-      return { create, closeModal, escapeHtml, getActive, openModal, readAll, remove, render, setActive, showToast, update, seedDemo, state };
+      return { create, closeModal, escapeHtml, getActive, openModal, readAll, remove, render, setActive, showToast, update, seedDemo, state, loadRemote };
     })();
 
     function hydrateWriterProject(project) {
@@ -10115,11 +10321,11 @@ function renderSidejob(){
     });
 
     nextButtons.forEach((button) => {
-      button.addEventListener("click", () => showStep(currentStep + 1));
+      button.addEventListener("click", () => showStep(currentStep === 5 ? 7 : currentStep + 1));
     });
 
     prevButtons.forEach((button) => {
-      button.addEventListener("click", () => showStep(currentStep - 1));
+      button.addEventListener("click", () => showStep(currentStep === 7 ? 5 : currentStep - 1));
     });
 
     categoryButtons.forEach((button) => {
@@ -10163,18 +10369,28 @@ function renderSidejob(){
         daily: ["대표사진 / 도입", "하루 시작", "이동", "음식", "카페", "산책", "작업", "운동", "쇼핑", "사람 / 약속", "집", "감정 기록", "마무리", "기타"]
       };
       let draggedPhotoId = "";
+      const liriPhotoTypeMap = {
+        travel: ["\uB300\uD45C\uC0AC\uC9C4 / \uB3C4\uC785", "\uAC00\uB294\uAE38", "\uAD50\uD1B5", "\uC785\uAD6C", "\uC8FC\uC694\uC7A5\uC18C", "\uD48D\uACBD", "\uD3EC\uD1A0\uC874", "\uB9C8\uBB34\uB9AC", "\uAE30\uD0C0"],
+        restaurant: ["\uB300\uD45C\uC0AC\uC9C4 / \uB3C4\uC785", "\uC678\uAD00", "\uC785\uAD6C", "\uB0B4\uBD80", "\uC88C\uC11D", "\uBA54\uB274\uD310", "\uC8FC\uBB38\uBA54\uB274", "\uC74C\uC2DD", "\uB514\uC800\uD2B8", "\uC601\uC218\uC99D / \uC548\uB0B4", "\uB9C8\uBB34\uB9AC", "\uAE30\uD0C0"],
+        cafe: ["\uB300\uD45C\uC0AC\uC9C4 / \uB3C4\uC785", "\uC678\uAD00", "\uC785\uAD6C", "\uB0B4\uBD80", "\uC88C\uC11D", "\uBA54\uB274\uD310", "\uC74C\uB8CC", "\uB514\uC800\uD2B8", "\uD3EC\uD1A0\uC874", "\uC791\uC5C5 / \uACF5\uAC04", "\uB9C8\uBB34\uB9AC", "\uAE30\uD0C0"],
+        stay: ["\uB300\uD45C\uC0AC\uC9C4 / \uB3C4\uC785", "\uC678\uAD00", "\uB85C\uBE44", "\uCCB4\uD06C\uC778", "\uAC1D\uC2E4", "\uCE68\uB300", "\uC695\uC2E4", "\uC5B4\uBA54\uB2C8\uD2F0", "\uBDF0", "\uC870\uC2DD", "\uBD80\uB300\uC2DC\uC124", "\uC8FC\uCC28", "\uB9C8\uBB34\uB9AC", "\uAE30\uD0C0"],
+        experience: ["\uB300\uD45C\uC0AC\uC9C4 / \uB3C4\uC785", "\uC678\uAD00", "\uC785\uAD6C", "\uB0B4\uBD80", "\uCCB4\uD5D8\uACF5\uAC04", "\uC790\uB9AC / \uC138\uD305", "\uC124\uBA85 / \uC548\uB0B4", "\uC9C4\uD589\uACFC\uC815", "\uC911\uAC04\uACB0\uACFC", "\uC644\uC131\uACB0\uACFC", "\uD328\uD0A4\uC9C0 / \uD3EC\uC7A5", "\uD3EC\uD1A0\uC874", "\uB9C8\uBB34\uB9AC", "\uAE30\uD0C0"],
+        tip: ["\uB300\uD45C\uC0AC\uC9C4 / \uB3C4\uC785", "\uD0C0\uC774\uD2C0 \uBC30\uB108", "\uBE0C\uB79C\uB4DC \uD654\uBA74", "\uC81C\uD488 \uBAA9\uB85D", "\uC81C\uD488 \uC0C1\uC138", "\uAC00\uACA9 / \uD560\uC778", "\uCFE0\uD3F0 / \uD61C\uD0DD", "\uAD6C\uB9E4 \uD654\uBA74", "\uB9C1\uD06C \uC548\uB0B4", "\uBE44\uAD50 \uD654\uBA74", "\uB9C8\uBB34\uB9AC", "\uAE30\uD0C0"],
+        daily: ["\uB300\uD45C\uC0AC\uC9C4 / \uB3C4\uC785", "\uD558\uB8E8 \uC2DC\uC791", "\uC774\uB3D9", "\uC74C\uC2DD", "\uCE74\uD398", "\uC0B0\uCC45", "\uC791\uC5C5", "\uC77C\uC0C1", "\uAC10\uC815 \uAE30\uB85D", "\uB9C8\uBB34\uB9AC", "\uAE30\uD0C0"]
+      };
+      const liriSectionLabels = { intro: "\uC11C\uB860", body: "\uBCF8\uBB38", closing: "\uACB0\uB860" };
 
       function sortedPhotos(photos = []) {
         return [...photos].sort((a, b) => Number(a.sortOrder) - Number(b.sortOrder));
       }
 
       function getPhotoTypes(category = projectManager.getActive()?.category) {
-        return photoTypeMap[getCategoryKey(category)] || photoTypeMap.travel;
+        return liriPhotoTypeMap[getCategoryKey(category)] || liriPhotoTypeMap.travel;
       }
 
       function getFallbackPhotoType(category) {
         const types = getPhotoTypes(category);
-        return types.includes("기타") ? "기타" : types[0];
+        return types[0] || "기타";
       }
 
       function getValidPhotoType(type, category) {
@@ -10192,6 +10408,10 @@ function renderSidejob(){
           sortOrder: index,
           type: getValidPhotoType(photo.type, category),
           memo: photo.memo || "",
+          section: ["intro", "body", "closing"].includes(photo.section) ? photo.section : "body",
+          publicUrl: photo.publicUrl || photo.previewUrl || "",
+          storagePath: photo.storagePath || "",
+          isAnalysisTarget: photo.isAnalysisTarget !== false,
           isRepresentative: Boolean(photo.isRepresentative),
           analysisText: photo.analysisText || "",
           analysisStatus: ["none", "analyzing", "done", "error"].includes(photo.analysisStatus) ? photo.analysisStatus : "none",
@@ -10211,14 +10431,18 @@ function renderSidejob(){
         renderMemo(savedPhotos);
       }
 
-      function createPhoto(file, sortOrder, shouldRepresent, previewUrl = "") {
+      function createPhoto(file, sortOrder, shouldRepresent, previewUrl = "", storagePath = "", section = "body") {
         return {
-          id: `photo-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          id: liriCreateId("photo"),
           fileName: file.name,
           previewUrl,
+          publicUrl: previewUrl,
+          storagePath,
           sortOrder,
+          section,
           type: getFallbackPhotoType(),
           memo: "",
+          isAnalysisTarget: true,
           isRepresentative: shouldRepresent,
           analysisText: "",
           analysisStatus: "none",
@@ -10234,7 +10458,7 @@ function renderSidejob(){
           projectManager.showToast("먼저 프로젝트를 선택해주세요.");
           return;
         }
-        const imageFiles = Array.from(files).filter((file) => file.type.startsWith("image/"));
+        const imageFiles = Array.from(files).filter((file) => file.type.startsWith("image/")).slice(0, 30);
         if (!imageFiles.length) {
           projectManager.showToast("이미지 파일만 업로드할 수 있습니다.");
           return;
@@ -10244,15 +10468,24 @@ function renderSidejob(){
         const nextPhotos = [];
         for (let index = 0; index < imageFiles.length; index += 1) {
           const file = imageFiles[index];
+          const photoId = liriCreateId("photo");
           let previewUrl = "";
+          let storagePath = "";
           try {
-            previewUrl = file.size <= 900 * 1024 ? await liriFileToDataUrl(file) : await liriFileToCompressedDataUrl(file);
+            const uploaded = await liriUploadPhotoToStorage(activeProject.id, file, photoId);
+            previewUrl = uploaded.publicUrl;
+            storagePath = uploaded.storagePath;
           } catch (error) {
-            previewUrl = "";
+            console.warn("LIRI photo upload failed", error);
+            projectManager.showToast("Supabase Storage 업로드 실패. bucket 설정을 확인해주세요.");
+            continue;
           }
-          nextPhotos.push(createPhoto(file, currentPhotos.length + index, !hasRepresentative && index === 0, previewUrl));
+          const photo = createPhoto(file, currentPhotos.length + index, !hasRepresentative && index === 0, previewUrl, storagePath, "body");
+          photo.id = photoId;
+          nextPhotos.push(photo);
         }
-        savePhotos([...currentPhotos, ...nextPhotos], "사진이 저장되었습니다.");
+        if (!nextPhotos.length) return;
+        savePhotos([...currentPhotos, ...nextPhotos], "사진이 Supabase에 저장되었습니다.");
       }
 
       function photoTypeOptions(selectedType) {
@@ -10300,9 +10533,22 @@ function renderSidejob(){
               <div class="photo-ai-row"><span class="photo-current-type">${projectManager.escapeHtml(photo.type)}</span><span class="photo-recommended">${projectManager.escapeHtml(getCategoryLabel(projectManager.getActive()?.category))}</span></div>
               ${analysisMarkup(photo)}
               <div class="photo-field">
+                <label for="photo-section-${projectManager.escapeHtml(photo.id)}">구간</label>
+                <select class="photo-select" id="photo-section-${projectManager.escapeHtml(photo.id)}" data-photo-section="${projectManager.escapeHtml(photo.id)}">
+                  <option value="intro"${photo.section === "intro" ? " selected" : ""}>서론</option>
+                  <option value="body"${photo.section === "body" ? " selected" : ""}>본문</option>
+                  <option value="closing"${photo.section === "closing" ? " selected" : ""}>결론</option>
+                </select>
+              </div>
+              <div class="photo-field">
                 <label for="photo-type-${projectManager.escapeHtml(photo.id)}">사진 종류</label>
                 <select class="photo-select" id="photo-type-${projectManager.escapeHtml(photo.id)}" data-photo-type="${projectManager.escapeHtml(photo.id)}" aria-label="사진 종류 변경">${photoTypeOptions(photo.type)}</select>
               </div>
+              <div class="photo-memo-field">
+                <label for="photo-inline-memo-${projectManager.escapeHtml(photo.id)}">짧은 메모</label>
+                <textarea class="textarea" id="photo-inline-memo-${projectManager.escapeHtml(photo.id)}" rows="2" maxlength="180" data-photo-inline-memo="${projectManager.escapeHtml(photo.id)}" placeholder="사진에서 글에 꼭 넣을 포인트">${projectManager.escapeHtml(photo.memo)}</textarea>
+              </div>
+              <label class="check-card" style="min-height:auto;padding:10px 12px;"><input type="checkbox" data-photo-analysis-target="${projectManager.escapeHtml(photo.id)}"${photo.isAnalysisTarget !== false ? " checked" : ""}> 분석에 포함</label>
               <div class="photo-actions">
                 <button class="mini-button" type="button" data-photo-representative="${projectManager.escapeHtml(photo.id)}">${photo.isRepresentative ? "대표사진" : "대표 선택"}</button>
                 <button class="mini-button" type="button" data-photo-delete="${projectManager.escapeHtml(photo.id)}">삭제</button>
@@ -10358,6 +10604,23 @@ function renderSidejob(){
         savePhotos(photos, "사진 종류가 저장되었습니다.");
       }
 
+      function updateSection(photoId, section) {
+        const nextSection = ["intro", "body", "closing"].includes(section) ? section : "body";
+        const photos = sortedPhotos(projectManager.getActive()?.photos || []).map((photo) => photo.id === photoId ? { ...photo, section: nextSection } : photo);
+        savePhotos(photos, "사진 구간이 저장되었습니다.");
+      }
+
+      function updateAnalysisTarget(photoId, checked) {
+        const photos = sortedPhotos(projectManager.getActive()?.photos || []).map((photo) => photo.id === photoId ? { ...photo, isAnalysisTarget: checked } : photo);
+        savePhotos(photos, "사진 분석 대상이 저장되었습니다.");
+      }
+
+      function updateInlineMemo(photoId, memo) {
+        const photos = sortedPhotos(projectManager.getActive()?.photos || []).map((photo) => photo.id === photoId ? { ...photo, memo } : photo);
+        projectManager.update((project) => { project.photos = normalizePhotos(photos); }, "사진 메모 저장됨");
+        renderMemo(projectManager.getActive()?.photos || photos);
+      }
+
       function syncTypesForCategory() {
         const photos = sortedPhotos(projectManager.getActive()?.photos || []);
         if (!photos.length) return;
@@ -10391,7 +10654,7 @@ function renderSidejob(){
 
       function getPhotosForAnalysis(mode, force = false) {
         const photos = sortedPhotos(projectManager.getActive()?.photos || []);
-        const scoped = mode === "selected" ? photos.filter((photo, index) => photo.isRepresentative || index === 0) : photos;
+        const scoped = mode === "selected" ? photos.filter((photo) => photo.isAnalysisTarget !== false) : photos;
         return force ? scoped : scoped.filter((photo) => photo.analysisStatus !== "done");
       }
 
@@ -10403,8 +10666,10 @@ function renderSidejob(){
           projectManager.showToast(force ? "분석할 사진이 없습니다." : "이미 분석된 사진은 건너뛰었습니다.");
           return;
         }
-        if (!force && mode === "all") {
-          const ok = confirm("사진 분석은 OpenAI API 크레딧을 사용합니다. 업로드된 전체 사진을 분석할까요?");
+        if (!force) {
+          const ok = confirm(mode === "all"
+            ? "사진 분석은 OpenAI API 크레딧을 사용합니다. 업로드된 전체 사진을 분석할까요?"
+            : "사진 분석은 OpenAI API 크레딧을 사용합니다. 분석에 포함 체크한 사진만 분석할까요?");
           if (!ok) return;
         }
         let totalTokens = 0;
@@ -10457,6 +10722,15 @@ function renderSidejob(){
       photoList.addEventListener("change", (event) => {
         const typeSelect = event.target.closest("[data-photo-type]");
         if (typeSelect) updateType(typeSelect.dataset.photoType, typeSelect.value);
+        const sectionSelect = event.target.closest("[data-photo-section]");
+        if (sectionSelect) updateSection(sectionSelect.dataset.photoSection, sectionSelect.value);
+        const targetCheckbox = event.target.closest("[data-photo-analysis-target]");
+        if (targetCheckbox) updateAnalysisTarget(targetCheckbox.dataset.photoAnalysisTarget, targetCheckbox.checked);
+      });
+
+      photoList.addEventListener("input", (event) => {
+        const memoInput = event.target.closest("[data-photo-inline-memo]");
+        if (memoInput) updateInlineMemo(memoInput.dataset.photoInlineMemo, memoInput.value);
       });
 
       photoList.addEventListener("dragstart", (event) => {
@@ -10502,6 +10776,28 @@ function renderSidejob(){
 
       recommendOrderButton.addEventListener("click", () => {
         projectManager.showToast("박리리 추천 순서 적용은 다음 단계에서 연결됩니다.");
+      });
+
+      recommendOrderButton.addEventListener("click", () => {
+        const photos = sortedPhotos(projectManager.getActive()?.photos || []);
+        if (!photos.length) {
+          projectManager.showToast("추천을 적용할 사진이 없습니다.");
+          return;
+        }
+        const introTypes = ["대표사진 / 도입", "외관", "입구"];
+        const bodyTypes = ["내부", "체험공간", "자리 / 세팅", "설명 / 안내", "진행과정", "중간결과"];
+        const closingTypes = ["완성결과", "마무리"];
+        const closingStart = Math.max(photos.length - (photos.length > 5 ? 2 : 1), 1);
+        const recommended = photos.map((photo, index) => {
+          if (index < Math.min(3, Math.max(1, photos.length - 2))) {
+            return { ...photo, section: "intro", type: introTypes[index] || "입구", isAnalysisTarget: index === 0 };
+          }
+          if (index >= closingStart) {
+            return { ...photo, section: "closing", type: closingTypes[index - closingStart] || "마무리", isAnalysisTarget: true };
+          }
+          return { ...photo, section: "body", type: bodyTypes[(index - 3 + bodyTypes.length) % bodyTypes.length], isAnalysisTarget: index < 8 };
+        });
+        savePhotos(recommended, "박리리 추천 구간/타입이 적용되었습니다.");
       });
 
       analyzeAllButtons.forEach((button) => {
@@ -10592,6 +10888,79 @@ function renderSidejob(){
         placeSearchButton.disabled = false;
         placeSearchInput.disabled = false;
       }
+    }
+
+    function liriIsNaverMapUrl(value) {
+      return /^https?:\/\//i.test(String(value || "")) && String(value || "").includes("map.naver");
+    }
+
+    function renderPlaceResult(placeInfo = {}) {
+      const fields = [
+        ["name", "장소명", "성수 향수공방 닷노트"],
+        ["address", "주소", "주소를 확인 후 입력"],
+        ["openingHours", "운영시간", "운영시간을 확인 후 입력"],
+        ["phone", "전화번호", "전화번호를 확인 후 입력"],
+        ["price", "가격", "가격 정보를 입력"],
+        ["parking", "주차", "주차 가능 여부 입력"],
+        ["website", "링크", "네이버지도 URL 또는 홈페이지"],
+        ["memo", "장소 메모", "예약 팁, 분위기, 확인할 점"]
+      ];
+      placeResult.innerHTML = `
+        <div class="place-result-head">
+          <div>
+            <h3>장소정보 직접 확인</h3>
+            <p class="ai-note">네이버지도 URL은 링크로 저장됩니다. 입력하지 않은 정보는 글에서 확정 정보처럼 쓰지 않습니다.</p>
+          </div>
+          <span class="ai-badge">수동 입력</span>
+        </div>
+        <div class="place-info-grid">
+          ${fields.map(([key, label, placeholder]) => `
+            <div class="field-card">
+              <label for="liri-place-${key}">${label}</label>
+              ${key === "memo"
+                ? `<textarea class="textarea" id="liri-place-${key}" rows="3" data-place-field="${key}" placeholder="${placeholder}">${projectManager.escapeHtml(placeInfo[key] || "")}</textarea>`
+                : `<input class="input" id="liri-place-${key}" data-place-field="${key}" value="${projectManager.escapeHtml(placeInfo[key] || "")}" placeholder="${placeholder}">`}
+            </div>
+          `).join("")}
+        </div>
+        ${placeInfo.website ? `<div class="map-preview"><span>지도 iframe은 사용하지 않습니다.</span><button class="secondary-button" type="button" data-open-place-link>네이버지도 링크 열기</button></div>` : `<div class="map-preview">지도 자동 추출은 V1.7 Place Info API에서 분리 예정입니다.</div>`}
+      `;
+      placeResult.hidden = false;
+      placeResult.querySelectorAll("[data-place-field]").forEach((input) => {
+        input.addEventListener("input", () => {
+          projectManager.update((project) => {
+            project.placeInfo = { ...(project.placeInfo || {}), [input.dataset.placeField]: input.value };
+          }, "장소정보 저장됨");
+        });
+      });
+      const openButton = placeResult.querySelector("[data-open-place-link]");
+      if (openButton) {
+        openButton.addEventListener("click", () => {
+          const url = projectManager.getActive()?.placeInfo?.website || "";
+          if (url) window.open(url, "_blank", "noopener,noreferrer");
+        });
+      }
+    }
+
+    async function handlePlaceSearch() {
+      const query = placeSearchInput.value.trim();
+      placeResult.hidden = true;
+      placeError.hidden = true;
+      if (!query) {
+        placeSearchInput.focus();
+        setLookupState("네이버지도 URL 또는 장소명을 입력해주세요.");
+        placeError.hidden = false;
+        return;
+      }
+      const currentPlace = projectManager.getActive()?.placeInfo || {};
+      const placeInfo = {
+        ...currentPlace,
+        name: liriIsNaverMapUrl(query) ? (currentPlace.name || "") : query,
+        website: liriIsNaverMapUrl(query) ? query : (currentPlace.website || "")
+      };
+      projectManager.update((project) => { project.placeInfo = placeInfo; }, "장소 링크/검색어 저장됨");
+      renderPlaceResult(placeInfo);
+      setLookupState("장소정보를 직접 확인해 입력해주세요. 입력하지 않은 정보는 글에서 단정하지 않습니다.");
     }
 
     const placeError = document.querySelector("[data-place-error]");
@@ -10876,7 +11245,7 @@ function renderSidejob(){
     const generationModeInputs = document.querySelectorAll("[data-generation-mode]");
     const generationStatusBadge = document.querySelector("[data-generation-status]");
     let latestResultParts = { titleCandidates: [], body: "", tags: [] };
-    let generationMode = "mock";
+    let generationMode = "ai";
     let generationStatus = "idle";
     let generationError = "";
 
@@ -11020,6 +11389,128 @@ ${tags.join(" ")}`;
       return { createdAt: new Date().toISOString(), category: project.category, content, titleCandidates: titles, tags, isMock: true };
     }
 
+    function liriCleanPromptValue(value) {
+      const text = String(value || "").trim();
+      const banned = [
+        "Mock Data Provider",
+        "02-0000-0000",
+        "매일 10:00 - 20:00",
+        "공식 홈페이지 확인 예정",
+        "향후 API가 채워갈 대표 설명",
+        "장소 추천",
+        "방문 후기",
+        "mock-map-default"
+      ];
+      if (!text || banned.some((item) => text.includes(item))) return "";
+      return text;
+    }
+
+    function liriPromptLine(label, value) {
+      const clean = liriCleanPromptValue(value);
+      return clean ? `- ${label}: ${clean}` : "";
+    }
+
+    function liriBuildPhotoFlowBySection(project) {
+      const photos = [...(project.photos || [])].sort((a, b) => Number(a.sortOrder) - Number(b.sortOrder));
+      if (!photos.length) return "[사진 흐름]\n사진 정보 없음";
+      const groups = [
+        ["intro", "서론 사진"],
+        ["body", "본문 사진"],
+        ["closing", "결론 사진"]
+      ];
+      const fallbackSection = (index, total) => {
+        if (index < Math.min(3, Math.max(1, total - 2))) return "intro";
+        if (index >= Math.max(total - (total > 5 ? 2 : 1), 1)) return "closing";
+        return "body";
+      };
+      const normalized = photos.map((photo, index) => ({
+        ...photo,
+        section: ["intro", "body", "closing"].includes(photo.section) ? photo.section : fallbackSection(index, photos.length)
+      }));
+      const body = groups.map(([section, label]) => {
+        const items = normalized.filter((photo) => photo.section === section);
+        if (!items.length) return "";
+        return `${label}\n${items.map((photo) => {
+          const lines = [`- 타입: ${liriCleanPromptValue(photoManager.getValidPhotoTypeForPrompt(photo.type, project.category)) || "기타"}`];
+          const memo = liriCleanPromptValue(photo.memo);
+          const analysis = liriCleanPromptValue(photo.analysisText);
+          if (memo) lines.push(`  메모: ${memo}`);
+          if (analysis) lines.push(`  AI 분석: ${analysis}`);
+          return lines.join("\n");
+        }).join("\n")}`;
+      }).filter(Boolean).join("\n\n");
+      return `[사진 흐름]\n\n${body || "사진 정보 없음"}`;
+    }
+
+    function liriBuildNaverBlogPrompt(project) {
+      const place = project.placeInfo || {};
+      const answers = (project.answers || [])
+        .filter((item) => liriCleanPromptValue(item.answer))
+        .map((item) => `- ${liriCleanPromptValue(item.question) || "질문"}: ${liriCleanPromptValue(item.answer)}`)
+        .join("\n");
+      const projectInfo = [
+        "[프로젝트 정보]",
+        liriPromptLine("프로젝트명", project.title),
+        liriPromptLine("카테고리", getCategoryLabel(project.category)),
+        liriPromptLine("장소명", place.name),
+        liriPromptLine("주소", place.address),
+        liriPromptLine("운영시간", place.openingHours),
+        liriPromptLine("전화번호", place.phone),
+        liriPromptLine("가격", place.price),
+        liriPromptLine("주차", place.parking),
+        liriPromptLine("링크", place.website || place.link),
+        liriPromptLine("장소 메모", place.memo),
+        "",
+        "위에 없는 정보는 본문에서 확정 정보처럼 쓰지 마세요."
+      ].filter(Boolean).join("\n");
+      const finalRules = `[최종 글 출력 규칙]
+너의 답변은 프롬프트 설명이 아니라 네이버 블로그에 바로 붙여넣을 수 있는 완성글이어야 한다.
+
+절대 출력하지 말 것:
+- 공통 작성 규칙
+- 박리리 말투 규칙
+- 카테고리 작성 규칙
+- 프로젝트 정보
+- 사진 순서 및 메모
+- 사용자 답변
+- AI 옵션
+- 최종 출력 형식
+- 개발자 설명
+- 프롬프트 설명
+
+최종 글은 제목 후보 3개를 먼저 제안하되, "1. 제목 후보 / 2. 도입 문구" 같은 보고서식 목차로 쓰지 않는다.
+본문 시작 전에는 3~6줄의 짧은 감성 도입 문장을 쓴다.
+인사말은 "안녕하세요 박리리입니다 :)"로 자연스럽게 시작한다.
+기본정보는 사용자가 입력한 정보만 사용하고, 없는 정보는 만들지 않는다.
+Mock Data Provider, 02-0000-0000, 공식 홈페이지 확인 예정 같은 문구는 절대 쓰지 않는다.
+정보가 부족하면 "정확한 운영시간과 예약 정보는 방문 전 네이버지도에서 한 번 더 확인해보시는 걸 추천드려요." 정도로만 쓴다.
+서론 사진은 첫인상과 도입부에, 본문 사진은 방문 흐름과 체험 과정에, 결론 사진은 마무리와 추천 문단에 활용한다.
+사진 번호, "사진에는", "AI 사진 분석" 같은 표현을 직접 쓰지 않는다.
+분석 결과는 블로그 문장으로 자연스럽게 녹인다.
+사용자가 쓴 메모와 답변의 감정을 우선한다.
+이용 팁과 추천 대상은 확인 가능한 내용만 자연스럽게 정리한다.
+마무리는 광고처럼 끝내지 말고 "오늘도 읽어주셔서 감사합니다 :)"처럼 부드럽게 끝낸다.
+마지막에 SEO 태그 10~15개를 작성한다.`;
+
+      return [
+        "너는 네이버 블로그 글을 작성하는 박리리 전용 블로그 에디터다.",
+        "",
+        liriBuildCompressedCommonRules(),
+        "",
+        liriBuildCompressedCategoryRules(project.category),
+        "",
+        projectInfo,
+        "",
+        liriBuildPhotoFlowBySection(project),
+        "",
+        answers ? `[사용자 답변]\n${answers}` : "[사용자 답변]\n입력된 답변 없음",
+        "",
+        finalRules
+      ].filter(Boolean).join("\n");
+    }
+
+    buildPrompt = liriBuildNaverBlogPrompt;
+
     function getPromptForAI(project) {
       return buildPrompt(project);
     }
@@ -11084,13 +11575,14 @@ ${tags.join(" ")}`;
         const usage = result.usage || null;
         const usageMeta = [usage?.input_tokens != null ? "<span>입력 토큰 " + projectManager.escapeHtml(Number(usage.input_tokens).toLocaleString("ko-KR")) + "</span>" : "", usage?.output_tokens != null ? "<span>출력 토큰 " + projectManager.escapeHtml(Number(usage.output_tokens).toLocaleString("ko-KR")) + "</span>" : "", usage?.total_tokens != null ? "<span>총 토큰 " + projectManager.escapeHtml(Number(usage.total_tokens).toLocaleString("ko-KR")) + "</span>" : ""].filter(Boolean).join("");
         resultMeta.innerHTML = "<span>생성 모드 " + (result.isMock === false ? "AI" : "Mock") + "</span><span>모델 " + projectManager.escapeHtml(result.model || (result.isMock === false ? "gpt-4.1-mini" : "Mock")) + "</span><span>생성 상태 완료</span><span>카테고리 " + projectManager.escapeHtml(result.category || project.category) + "</span><span>" + result.content.length.toLocaleString("ko-KR") + "자</span>" + usageMeta;
-      } else { resultMeta.innerHTML = "<span>Mock 결과 대기</span>"; }
+      } else { resultMeta.innerHTML = "<span>블로그 글 생성 대기</span>"; }
       resultCopyMessage.textContent = "";
     }
 
     async function handleGenerateBlogResult() {
       const project = projectManager.getActive();
       if (!project) return;
+      generationMode = "ai";
       setGenerationState("generating");
       resultMeta.innerHTML = "<span>블로그 글을 생성하는 중입니다...</span>";
       try { if (generationMode === "mock") await new Promise((resolve) => window.setTimeout(resolve, 260)); const result = await generateBlogResult(project); saveGeneratedResult(result); renderGeneratedResult(); setGenerationState("success"); projectManager.showToast(generationMode === "ai" ? "AI 블로그 글 결과가 생성되었습니다." : "Mock 블로그 글 결과가 생성되었습니다."); }
