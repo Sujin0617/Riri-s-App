@@ -2493,7 +2493,7 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
     <button class="scr-nav-btn" onclick="openDrawer()" title="메뉴">☰</button>
     <button class="scr-nav-btn home" onclick="goScreen('home')" title="홈">🏠</button>
   </div>
-  <div class="page-top"><div class="page-title">💼 박리리 AI Studio</div><div class="page-sub">네이버 블로그 글쓰기 작업실</div></div>
+  <div class="page-top"><div class="page-title">💼 부업</div><div class="page-sub">블로그 포스팅 · 홈페이지 작업 · 업무관리</div></div>
   <div id="liri-implant-root"></div>
 </div>
 <div class="screen" id="scr-personal">
@@ -9660,6 +9660,9 @@ function renderSidejob(){
       const visionStyle = document.createElement("style");
       visionStyle.textContent = ".photo-analysis-actions{display:flex;flex-wrap:wrap;gap:8px}.photo-analysis-summary{display:grid;gap:4px;padding:12px 14px;border:1px solid rgba(244,114,156,.22);border-radius:18px;background:#fff0f5;color:#8b5262;font-size:12px;line-height:1.5}.photo-analysis-summary strong{color:#df477b;font-size:13px}.photo-analysis-box{display:grid;gap:6px;padding:10px;border-radius:12px;background:#fbf8fa;color:#62666d;font-size:12px;line-height:1.55}.photo-analysis-box strong{color:#202124;font-size:12px}.analysis-status{display:inline-flex;align-items:center;width:fit-content;min-height:24px;padding:0 9px;border-radius:999px;background:#f0eef1;color:#8a8f98;font-size:11px;font-weight:850}.analysis-status.is-analyzing{background:rgba(115,180,255,.16);color:#4570a7}.analysis-status.is-done{background:rgba(84,199,167,.14);color:#357465}.analysis-status.is-error{background:rgba(244,114,156,.16);color:#df477b}.generation-mode-card,.api-ready-card,.prompt-test-side,[data-prompt-test-buttons],[data-copy-prompt]{display:none!important}.prompt-test-shell{display:none}.liri-simple-flow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;color:#8a5a68;font-size:12px;font-weight:850}.liri-simple-flow span{padding:7px 10px;border-radius:999px;background:#fff0f5}.final-result-toolbar .generate-button{font-size:16px}.photo-card .textarea{min-height:72px}";
       root.appendChild(visionStyle);
+      const workroomStyle = document.createElement("style");
+      workroomStyle.textContent = ".sidebar{display:none!important}.app-shell{display:block}.workspace{max-width:none;margin:0;padding:0;background:transparent}.liri-workroom-head{display:none}.liri-workroom-layout{display:flex;flex:1;overflow:hidden;height:calc(100vh - 126px);min-height:620px}.liri-side-menu{width:80px;background:#fff;border-right:1px solid #EFEDE8;display:flex;flex-direction:column;padding:10px 0;flex-shrink:0;overflow-y:auto}.liri-side-btn{background:none;border:none;border-left:3px solid transparent;padding:11px 5px;cursor:pointer;font-family:inherit;color:#8A8680;display:flex;flex-direction:column;align-items:center;gap:5px;transition:all .15s}.liri-side-btn:hover{background:#FFF7E8;color:#B8860B}.liri-side-btn.is-active{background:#FFF7E8;color:#B8860B;border-left-color:#D4A017}.liri-side-ico{font-size:22px;line-height:1}.liri-side-lbl{font-size:11px;font-weight:800;line-height:1.2}.liri-main-area{flex:1;min-width:0;overflow-y:auto;padding:14px;background:#F8F6F1}.liri-content-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:12px}.liri-content-title{margin:0;font-size:20px;font-weight:900;color:#2D2926}.liri-content-sub{margin:4px 0 0;color:#8A8680;font-size:13px}.liri-tabs{display:none}.liri-subtabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}.liri-subtab{min-height:36px;padding:0 13px;border-radius:12px;background:#fff;border:1px solid #EFEDE8;color:#6B665F;font-weight:850}.liri-subtab.is-active{background:#FFF7E8;border-color:#D4A017;color:#B8860B}.liri-work-panel,.liri-subpanel{display:none}.liri-work-panel.is-active,.liri-subpanel.is-active{display:block}.liri-ready-card{display:grid;gap:12px;padding:18px;border:1px solid #EFEDE8;border-radius:18px;background:#fff;box-shadow:0 6px 16px rgba(184,134,11,.06)}.liri-ready-card h2{margin:0;font-size:18px}.liri-ready-card p{margin:0;color:#6B665F;line-height:1.6}.liri-task-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:14px}.liri-task-form .field-card:last-of-type{grid-column:1/-1}.liri-task-list{display:grid;gap:10px}.liri-task-card{display:grid;gap:10px;padding:15px;border:1px solid #EFEDE8;border-radius:16px;background:#fff}.liri-task-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.liri-task-title{margin:0;font-size:15px;font-weight:900}.liri-task-meta{display:flex;gap:8px;flex-wrap:wrap;color:#8A8680;font-size:12px}.liri-task-status{padding:6px 9px;border-radius:999px;background:#FFF7E8;color:#B8860B;font-size:11px;font-weight:900}.liri-task-actions{display:flex;gap:8px;flex-wrap:wrap}.liri-hidden-dev{display:none!important}.progress-card{padding:10px 12px!important;margin-bottom:12px}.step-panel{padding:14px!important}.step-heading{margin-bottom:12px!important}.step-heading h2{font-size:19px!important}.page-head,.home-hero,.quick-grid,.recent-section{display:none!important}@media(min-width:900px){.liri-side-menu{width:92px}.liri-main-area{padding:18px 24px}}@media(max-width:720px){.liri-workroom-layout{height:auto;min-height:auto;display:block}.liri-side-menu{width:100%;height:auto;flex-direction:row;border-right:0;border-bottom:1px solid #EFEDE8}.liri-side-btn{flex:1;border-left:0;border-bottom:3px solid transparent}.liri-side-btn.is-active{border-bottom-color:#D4A017}.liri-task-form{grid-template-columns:1fr}.liri-main-area{padding:14px}}";
+      root.appendChild(workroomStyle);
       (function injectLiriVisionControls(){
         const controls = '<div class="photo-analysis-actions"><button class="primary-button" type="button" data-photo-analyze-selected>선택 사진 AI 분석</button><button class="secondary-button" type="button" data-photo-analyze-all>전체 사진 AI 분석</button></div>';
         const photoEmpty = document.querySelector("[data-photo-empty]");
@@ -9690,6 +9693,74 @@ function renderSidejob(){
         if (resultEditor) resultEditor.placeholder = "블로그 글 만들기를 누르면 네이버 블로그 완성글이 이곳에 표시됩니다.";
         const aiMode = document.querySelector('[data-generation-mode][value="ai"]');
         if (aiMode) aiMode.checked = true;
+      })();
+      (function injectLiriWorkroomShell(){
+        const workspace = document.querySelector(".workspace");
+        const writerScreen = document.querySelector("#writer");
+        if (!workspace || !writerScreen || document.querySelector("[data-liri-workroom]")) return;
+        workspace.insertAdjacentHTML("afterbegin", `
+          <section class="liri-workroom-layout" data-liri-workroom>
+            <aside class="liri-side-menu" aria-label="부업 메뉴">
+              <button class="liri-side-btn is-active" type="button" data-workroom-tab="work">
+                <span class="liri-side-ico">🧰</span>
+                <span class="liri-side-lbl">작업실</span>
+              </button>
+              <button class="liri-side-btn" type="button" data-workroom-tab="manage">
+                <span class="liri-side-ico">📋</span>
+                <span class="liri-side-lbl">관리실</span>
+              </button>
+            </aside>
+            <main class="liri-main-area">
+              <div class="liri-work-panel is-active" data-workroom-panel="work">
+                <div class="liri-content-head">
+                  <div>
+                    <h2 class="liri-content-title">작업실</h2>
+                    <p class="liri-content-sub">홈페이지 작업과 블로그 포스팅 작업을 진행합니다.</p>
+                  </div>
+                </div>
+                <div class="liri-subtabs" role="tablist">
+                  <button class="liri-subtab" type="button" data-work-subtab="web">홈페이지 작업실</button>
+                  <button class="liri-subtab is-active" type="button" data-work-subtab="blog">블로그 포스팅 작업실</button>
+                </div>
+                <section class="liri-subpanel" data-work-subpanel="web">
+                  <div class="liri-ready-card">
+                    <h2>홈페이지 작업실</h2>
+                    <p>홈페이지 제작, 수정, 랜딩페이지 작업을 정리할 공간입니다. 추후 홈페이지 작업 프롬프트와 체크리스트가 연결됩니다.</p>
+                    <button class="primary-button" type="button">+ 홈페이지 작업 추가</button>
+                  </div>
+                </section>
+              </div>
+              <section class="liri-work-panel" data-workroom-panel="manage">
+                <div class="liri-content-head">
+                  <div>
+                    <h2 class="liri-content-title">포스팅 업무관리</h2>
+                    <p class="liri-content-sub">작성해야 하는 글과 업로드 상태를 관리합니다.</p>
+                  </div>
+                </div>
+                <div class="liri-ready-card">
+                  <form class="liri-task-form" data-liri-task-form>
+                    <div class="field-card"><label>업무명</label><input class="input" name="title" required placeholder="성수 닷노트 향수공방 후기"></div>
+                    <div class="field-card"><label>카테고리</label><select class="select" name="category"><option value="experience">체험</option><option value="restaurant">맛집</option><option value="cafe">카페</option><option value="travel">여행</option><option value="stay">숙소</option><option value="daily">일상</option><option value="tip">알뜰살뜰TIP</option></select></div>
+                    <div class="field-card"><label>장소명 / 주제</label><input class="input" name="placeName" placeholder="성수 닷노트"></div>
+                    <div class="field-card"><label>마감일</label><input class="input" name="dueDate" type="date"></div>
+                    <div class="field-card"><label>상태</label><select class="select" name="status"><option>작성 예정</option><option>사진 정리중</option><option>초안 작성중</option><option>검수중</option><option>업로드 완료</option></select></div>
+                    <div class="field-card"><label>메모</label><textarea class="textarea" name="memo" rows="3" placeholder="사진 정리 필요 / 향수 체험 후기"></textarea></div>
+                    <button class="primary-button" type="submit">+ 업무 추가</button>
+                  </form>
+                  <div class="liri-task-list" data-liri-task-list></div>
+                </div>
+              </section>
+            </main>
+          </section>
+        `);
+        const workPanel = document.querySelector('[data-workroom-panel="work"]');
+        const blogSubtab = document.querySelector('[data-work-subtab="blog"]');
+        if (workPanel && writerScreen) {
+          workPanel.appendChild(writerScreen);
+          writerScreen.classList.add("is-active");
+        }
+        document.querySelectorAll('[data-screen]:not(#writer)').forEach((screen) => screen.classList.add("liri-hidden-dev"));
+        if (blogSubtab) blogSubtab.classList.add("is-active");
       })();
     /* =========================================================
        Project Management and LocalStorage
@@ -9909,6 +9980,56 @@ function renderSidejob(){
           body: JSON.stringify({ id: project.generatedResult.id || liriCreateId("result"), project_id: project.id, content: project.generatedResult.content, created_at: project.generatedResult.createdAt || new Date().toISOString(), updated_at: new Date().toISOString() })
         });
       }
+    }
+
+    function liriTaskToRow(task) {
+      return {
+        id: task.id || liriCreateId("task"),
+        title: task.title || "",
+        category: getCategoryKey(task.category || "experience"),
+        place_name: task.placeName || "",
+        due_date: task.dueDate || null,
+        status: task.status || "작성 예정",
+        memo: task.memo || "",
+        linked_project_id: task.linkedProjectId || null,
+        created_at: task.createdAt || new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+    }
+
+    function liriRowToTask(row) {
+      return {
+        id: row.id || liriCreateId("task"),
+        title: row.title || "",
+        category: row.category || "experience",
+        placeName: row.place_name || "",
+        dueDate: row.due_date || "",
+        status: row.status || "작성 예정",
+        memo: row.memo || "",
+        linkedProjectId: row.linked_project_id || "",
+        createdAt: row.created_at || "",
+        updatedAt: row.updated_at || ""
+      };
+    }
+
+    async function liriLoadTasksFromSupabase() {
+      const rows = await liriSupabaseFetch("/rest/v1/liri_tasks?select=*&order=updated_at.desc");
+      return Array.isArray(rows) ? rows.map(liriRowToTask) : [];
+    }
+
+    async function liriSaveTaskToSupabase(task) {
+      await liriSupabaseFetch("/rest/v1/liri_tasks?on_conflict=id", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates,return=minimal" },
+        body: JSON.stringify(liriTaskToRow(task))
+      });
+    }
+
+    async function liriDeleteTaskFromSupabase(taskId) {
+      await liriSupabaseFetch(`/rest/v1/liri_tasks?id=eq.${encodeURIComponent(taskId)}`, {
+        method: "DELETE",
+        headers: { "Prefer": "return=minimal" }
+      });
     }
 
     function liriFileToDataUrl(file) {
@@ -10174,11 +10295,30 @@ function renderSidejob(){
         showToast("프로젝트가 생성되었습니다.");
       }
 
+      function createFromTask(task) {
+        const project = createProjectModel({
+          title: task.title || task.placeName || "블로그 포스팅 작업",
+          category: task.category || "experience",
+          status: "\uC791\uC131\uC911"
+        });
+        project.placeInfo = { ...project.placeInfo, name: task.placeName || "" };
+        project.metadata.taskId = task.id || "";
+        const projects = readAll();
+        projects.unshift(project);
+        writeAll(projects);
+        liriSaveProjectToSupabase(project).catch((error) => console.warn("LIRI task project create failed", error));
+        setActive(project.id);
+        showScreen("writer");
+        showStep(1);
+        render();
+        return project;
+      }
+
       function seedDemo() {
         if (!state.isLoaded) loadRemote();
       }
 
-      return { create, closeModal, escapeHtml, getActive, openModal, readAll, remove, render, setActive, showToast, update, seedDemo, state, loadRemote };
+      return { create, createFromTask, closeModal, escapeHtml, getActive, openModal, readAll, remove, render, setActive, showToast, update, seedDemo, state, loadRemote };
     })();
 
     function hydrateWriterProject(project) {
@@ -10279,6 +10419,165 @@ function renderSidejob(){
     projectModal.addEventListener("click", (event) => {
       if (event.target === projectModal) projectManager.closeModal();
     });
+
+    /* =========================================================
+       LIRI Sidejob Workroom and Task Management
+       ========================================================= */
+    const workroomTabs = document.querySelectorAll("[data-workroom-tab]");
+    const workroomPanels = document.querySelectorAll("[data-workroom-panel]");
+    const workSubtabs = document.querySelectorAll("[data-work-subtab]");
+    const workSubpanels = document.querySelectorAll("[data-work-subpanel]");
+    const workroomWriter = document.querySelector("#writer");
+    const taskForm = document.querySelector("[data-liri-task-form]");
+    const taskList = document.querySelector("[data-liri-task-list]");
+    let liriTasks = [];
+
+    function setWorkroomTab(tabName) {
+      workroomTabs.forEach((tab) => tab.classList.toggle("is-active", tab.dataset.workroomTab === tabName));
+      workroomPanels.forEach((panel) => panel.classList.toggle("is-active", panel.dataset.workroomPanel === tabName));
+    }
+
+    function setWorkSubtab(tabName) {
+      workSubtabs.forEach((tab) => tab.classList.toggle("is-active", tab.dataset.workSubtab === tabName));
+      workSubpanels.forEach((panel) => panel.classList.toggle("is-active", panel.dataset.workSubpanel === tabName));
+      if (workroomWriter) workroomWriter.classList.toggle("is-active", tabName === "blog");
+    }
+
+    function renderLiriTasks() {
+      if (!taskList) return;
+      if (!liriTasks.length) {
+        taskList.innerHTML = `<div class="project-empty">아직 등록된 작성 업무가 없습니다.</div>`;
+        return;
+      }
+      taskList.innerHTML = liriTasks.map((task) => `
+        <article class="liri-task-card" data-liri-task-id="${projectManager.escapeHtml(task.id)}">
+          <div class="liri-task-top">
+            <div>
+              <h3 class="liri-task-title">${projectManager.escapeHtml(task.title || "제목 없는 업무")}</h3>
+              <div class="liri-task-meta">
+                <span>카테고리: ${projectManager.escapeHtml(getCategoryLabel(task.category))}</span>
+                <span>장소/주제: ${projectManager.escapeHtml(task.placeName || "입력 없음")}</span>
+                <span>마감일: ${projectManager.escapeHtml(task.dueDate || "미정")}</span>
+              </div>
+            </div>
+            <span class="liri-task-status">${projectManager.escapeHtml(task.status || "작성 예정")}</span>
+          </div>
+          ${task.memo ? `<p class="liri-workroom-sub">${projectManager.escapeHtml(task.memo)}</p>` : ""}
+          <div class="liri-task-actions">
+            <button class="primary-button" type="button" data-task-start="${projectManager.escapeHtml(task.id)}">글쓰기 시작</button>
+            <select class="select" data-task-status="${projectManager.escapeHtml(task.id)}" style="max-width:180px;">
+              ${["작성 예정", "사진 정리중", "초안 작성중", "검수중", "업로드 완료"].map((status) => `<option${status === task.status ? " selected" : ""}>${status}</option>`).join("")}
+            </select>
+            <button class="secondary-button" type="button" data-task-complete="${projectManager.escapeHtml(task.id)}">완료 체크</button>
+            <button class="secondary-button" type="button" data-task-delete="${projectManager.escapeHtml(task.id)}">삭제</button>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    async function loadLiriTasks() {
+      try {
+        liriTasks = await liriLoadTasksFromSupabase();
+        renderLiriTasks();
+      } catch (error) {
+        console.warn("LIRI task load failed", error);
+        if (taskList) taskList.innerHTML = `<div class="project-empty">liri_tasks 테이블을 아직 불러오지 못했습니다. Supabase SQL 세팅 후 다시 열어주세요.</div>`;
+      }
+    }
+
+    async function saveLiriTask(task) {
+      const existingIndex = liriTasks.findIndex((item) => item.id === task.id);
+      if (existingIndex >= 0) liriTasks[existingIndex] = task;
+      else liriTasks.unshift(task);
+      renderLiriTasks();
+      await liriSaveTaskToSupabase(task);
+    }
+
+    workroomTabs.forEach((tab) => {
+      tab.addEventListener("click", () => setWorkroomTab(tab.dataset.workroomTab));
+    });
+
+    workSubtabs.forEach((tab) => {
+      tab.addEventListener("click", () => setWorkSubtab(tab.dataset.workSubtab));
+    });
+
+    if (taskForm) {
+      taskForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const formData = new FormData(taskForm);
+        const task = {
+          id: liriCreateId("task"),
+          title: String(formData.get("title") || "").trim(),
+          category: String(formData.get("category") || "experience"),
+          placeName: String(formData.get("placeName") || "").trim(),
+          dueDate: String(formData.get("dueDate") || ""),
+          status: String(formData.get("status") || "작성 예정"),
+          memo: String(formData.get("memo") || "").trim(),
+          linkedProjectId: "",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        try {
+          await saveLiriTask(task);
+          taskForm.reset();
+          projectManager.showToast("작성 업무가 저장되었습니다.");
+        } catch (error) {
+          projectManager.showToast("작성 업무 저장에 실패했습니다.");
+        }
+      });
+    }
+
+    if (taskList) {
+      taskList.addEventListener("click", async (event) => {
+        const startButton = event.target.closest("[data-task-start]");
+        const completeButton = event.target.closest("[data-task-complete]");
+        const deleteButton = event.target.closest("[data-task-delete]");
+        const taskId = startButton?.dataset.taskStart || completeButton?.dataset.taskComplete || deleteButton?.dataset.taskDelete || "";
+        const task = liriTasks.find((item) => item.id === taskId);
+        if (!task) return;
+        if (startButton) {
+          let projectId = task.linkedProjectId;
+          if (!projectId || !projectManager.readAll().some((project) => project.id === projectId)) {
+            const project = projectManager.createFromTask(task);
+            projectId = project.id;
+            task.linkedProjectId = projectId;
+            await saveLiriTask(task).catch(() => {});
+          } else {
+            projectManager.setActive(projectId);
+          }
+          setWorkroomTab("work");
+          setWorkSubtab("blog");
+          showScreen("writer");
+          showStep(1);
+          return;
+        }
+        if (completeButton) {
+          task.status = "업로드 완료";
+          task.updatedAt = new Date().toISOString();
+          await saveLiriTask(task).catch(() => projectManager.showToast("상태 저장에 실패했습니다."));
+          return;
+        }
+        if (deleteButton) {
+          liriTasks = liriTasks.filter((item) => item.id !== taskId);
+          renderLiriTasks();
+          await liriDeleteTaskFromSupabase(taskId).catch(() => projectManager.showToast("삭제 저장에 실패했습니다."));
+        }
+      });
+
+      taskList.addEventListener("change", async (event) => {
+        const statusSelect = event.target.closest("[data-task-status]");
+        if (!statusSelect) return;
+        const task = liriTasks.find((item) => item.id === statusSelect.dataset.taskStatus);
+        if (!task) return;
+        task.status = statusSelect.value;
+        task.updatedAt = new Date().toISOString();
+        await saveLiriTask(task).catch(() => projectManager.showToast("상태 저장에 실패했습니다."));
+      });
+    }
+
+    setWorkroomTab("work");
+    setWorkSubtab("blog");
+    loadLiriTasks();
 
     /* =========================================================
        Writer Steps
