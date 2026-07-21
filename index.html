@@ -34,6 +34,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
+<script src="./liri-engine.js"></script>
 <script>
 (function(){
   // 깃허브 배포 환경에서 항상 최신 파일 로드
@@ -2492,110 +2493,9 @@ else { setTimeout(()=>{ const i=document.getElementById('pw-input'); if(i)i.focu
     <button class="scr-nav-btn" onclick="openDrawer()" title="메뉴">☰</button>
     <button class="scr-nav-btn home" onclick="goScreen('home')" title="홈">🏠</button>
   </div>
-  <div class="page-top"><div class="page-title">💼 부업</div><div class="page-sub">블로그 · 마케팅</div></div>
-
-  <!-- 탭 -->
-  <div class="sidejob-tabs">
-    <button class="sidejob-tab active" id="sjtab-blog" onclick="switchSidejob('blog',this)">
-      <span class="st-ico">✍️</span><span>블로그</span>
-    </button>
-    <button class="sidejob-tab" id="sjtab-marketing" onclick="switchSidejob('marketing',this)">
-      <span class="st-ico">📣</span><span>마케팅</span>
-    </button>
-  </div>
-
-  <!-- ── 블로그 패널 ── -->
-  <div class="sidejob-panel active" id="sjp-blog">
-
-    <!-- 카테고리 탭 -->
-    <div class="blog-cat-tabs" id="blogCatTabs"></div>
-
-    <!-- ① 글 유형 -->
-    <div class="blog-field">
-      <label class="blog-lbl">① 글 유형</label>
-      <div class="blog-type-grid" id="blogTypes"></div>
-    </div>
-
-    <!-- ② 글 길이 -->
-    <div class="blog-field">
-      <label class="blog-lbl">② 글 길이</label>
-      <div class="blog-len-row" id="blogLengths"></div>
-    </div>
-
-    <!-- ③ 글 재료 (알뜰살뜰 / 일반) -->
-    <div class="blog-field" id="blogSaleWrap" style="display:none">
-      <label class="blog-lbl">③ 글 재료 — 💸 알뜰살뜰TIP</label>
-      <div class="blog-sale-box">
-        <div class="blog-sale-title">세일 정보 입력</div>
-        <div class="blog-sale-row"><span class="blog-sale-key">브랜드명</span><input id="b-saleBrand" placeholder="예: 올리브영"></div>
-        <div class="blog-sale-row"><span class="blog-sale-key">@아이디</span><input id="b-saleId" placeholder="예: @oliveyoung_official"></div>
-        <div class="blog-sale-row"><span class="blog-sale-key">세일명</span><input id="b-saleName" placeholder="예: 봄 맞이 뷰티 세일"></div>
-        <div class="blog-sale-row"><span class="blog-sale-key">기간</span><input id="b-salePeriod" placeholder="예: ~4/19"></div>
-        <div class="blog-sale-row"><span class="blog-sale-key">할인</span><input id="b-saleDiscount" placeholder="예: 최대 50%"></div>
-        <div class="blog-sale-row"><span class="blog-sale-key">구성</span><input id="b-saleComp" placeholder="예: 헤어케어, 스킨케어"></div>
-        <div class="blog-sale-row"><span class="blog-sale-key">형태</span><input id="b-saleType" placeholder="예: 온라인/오프라인"></div>
-        <div class="blog-sale-row"><span class="blog-sale-key">안내</span><input id="b-saleNote" placeholder="예: 앱 쿠폰 적용 필요"></div>
-        <div class="blog-sale-row"><span class="blog-sale-key">주요제품</span><input id="b-saleProducts" placeholder="예: 염색약, 립스틱"></div>
-      </div>
-      <label class="blog-lbl" style="margin-top:6px;">추가 메모 <span style="font-weight:400;opacity:.6">(선택)</span></label>
-      <textarea class="blog-textarea" id="b-saleExtra" rows="2" placeholder="추가로 하고 싶은 말 (없으면 비워도 돼요)"></textarea>
-    </div>
-    <div class="blog-field" id="blogContentWrap">
-      <label class="blog-lbl" id="blogContentLbl">③ 글 재료 <span class="req">*</span></label>
-      <textarea class="blog-textarea" id="blogProduct" rows="6"></textarea>
-      <div class="blog-hint" id="blogContentHint" style="font-size:10px;color:var(--text3);margin-top:5px;line-height:1.5;"></div>
-    </div>
-
-    <!-- ④ 링크 -->
-    <div class="blog-field">
-      <label class="blog-lbl">④ 링크 / 할인코드 <span style="font-weight:400;opacity:.6">(선택)</span></label>
-      <div id="blogLinks"></div>
-      <button class="blog-addlink" onclick="blogAddLink()">+ 링크 추가</button>
-    </div>
-
-    <!-- ⑤ 사진 업로드 -->
-    <div class="blog-field">
-      <label class="blog-lbl">⑤ 사진 <span style="font-weight:400;opacity:.6">(선택 · AI 분석)</span></label>
-      <div class="blog-photo-box" id="blogPhotoBox"
-        ondragover="blogDragOver(event)" ondragleave="blogDragLeave(event)" ondrop="blogDrop(event)"
-        onclick="document.getElementById('blogPhotoInput').click()">
-        <div class="blog-photo-ico">📸</div>
-        <div class="blog-photo-txt">사진 올리면 AI가 분석해서 글에 녹여줘요</div>
-        <div class="blog-photo-sub">간판·메뉴판·분위기 자동 파악 · 순서대로 글 흐름</div>
-        <label class="blog-photo-upload-btn">사진 선택</label>
-        <input type="file" id="blogPhotoInput" accept="image/*" multiple onchange="blogOnFilePick(event)">
-      </div>
-      <div class="blog-photo-grid" id="blogPhotoGrid" style="display:none"></div>
-      <div class="blog-photo-status" id="blogPhotoStatus"></div>
-    </div>
-
-    <!-- 필명 -->
-    <div class="blog-field">
-      <label class="blog-lbl">필명 <span style="font-weight:400;opacity:.6">(선택)</span></label>
-      <input class="blog-input" id="blogPenName" value="박리리" placeholder="예: 박리리">
-    </div>
-
-    <!-- 생성 버튼 -->
-    <button class="blog-gen-btn" id="blogGenBtn" onclick="blogGenerate()">✦ 블로그 글 생성</button>
-    <div class="blog-err" id="blogErr"></div>
-
-    <!-- 결과 -->
-    <div id="blogResult">
-      <div class="blog-empty"><div class="be-ico">🌸</div><div>① 글 유형 → ③ 재료 → ⑤ 사진<br>입력 후 생성 버튼!</div></div>
-    </div>
-  </div>
-
-  <!-- ── 마케팅 패널 ── -->
-  <div class="sidejob-panel" id="sjp-marketing">
-    <div class="marketing-coming">
-      <div class="mc-ico">📣</div>
-      <div class="mc-title">마케팅 도구</div>
-      <div class="mc-sub">곧 추가될 예정이에요!<br>인스타 캡션, 광고 카피, SNS 기획 등<br>마케팅 전용 도구가 들어올 거예요 ✨</div>
-    </div>
-  </div>
+  <div class="page-top"><div class="page-title">💼 박리리 AI Studio</div><div class="page-sub">네이버 블로그 글쓰기 작업실</div></div>
+  <div id="liri-implant-root"></div>
 </div>
-
-<!-- ══ 개인 ══ -->
 <div class="screen" id="scr-personal">
   <div class="scr-nav-top">
     <button class="scr-nav-btn" onclick="openDrawer()" title="메뉴">☰</button>
@@ -9739,17 +9639,1703 @@ async function bkEdit(id){
 }
 
 function renderSidejob(){
-  blogRenderCatTabs();
-  blogRenderTypes();
-  blogRenderLengths();
-  blogRenderLinks();
-  blogSyncContent();
+  window.liriImplantInit?.();
 }
 
-// ════════════════════════════════════════
-// 💼 부업 > ✍️ 블로그 작업실
-// ════════════════════════════════════════
+/* =========================================================
+   LIRI AI STUDIO CORRECT IMPLANT
+   Source: project index.html complete LIRI Studio
+========================================================= */
+(function(){
+  let initialized = false;
+  window.liriImplantInit = function(){
+    const host = document.getElementById('liri-implant-root');
+    if (!host || initialized) return;
+    initialized = true;
+    const root = host.shadowRoot || host.attachShadow({ mode: 'open' });
+    root.innerHTML = "<style>:host{display:block;contain:content;}\n\n    /* =========================================================\n       Base\n       ========================================================= */\n    :host {\n      --bg: #f8f8fa;\n      --surface: #ffffff;\n      --surface-soft: #fbf5f8;\n      --surface-warm: #fffafa;\n      --text: #202124;\n      --text-soft: #62666d;\n      --text-muted: #8a8f98;\n      --line: #ececf0;\n      --line-strong: #dedfe5;\n      --pink: #f4729c;\n      --pink-dark: #df477b;\n      --pink-soft: #fff0f5;\n      --mint: #54c7a7;\n      --blue: #6a9cf7;\n      --yellow: #f4b860;\n      --shadow: 0 18px 50px rgba(32, 33, 36, 0.08);\n      --shadow-soft: 0 10px 28px rgba(32, 33, 36, 0.06);\n      --radius-lg: 24px;\n      --radius-md: 18px;\n      --radius-sm: 14px;\n      --sidebar: 282px;\n      --ease: cubic-bezier(.2, .8, .2, 1);\n    }\n\n    * {\n      box-sizing: border-box;\n    }\n\n    :host {\n      scroll-behavior: smooth;\n    }\n\n    :host {\n      margin: 0;\n      min-height: 100vh;\n      background:\n        radial-gradient(circle at top left, rgba(244, 114, 156, 0.12), transparent 28rem),\n        linear-gradient(180deg, #ffffff 0%, var(--bg) 38%, #f7f7fa 100%);\n      color: var(--text);\n      font-family: -apple-system, BlinkMacSystemFont, \"SF Pro Display\", \"Apple SD Gothic Neo\", \"Noto Sans KR\", \"Malgun Gothic\", sans-serif;\n      letter-spacing: 0;\n    }\n\n    button,\n    input,\n    textarea,\n    select {\n      font: inherit;\n    }\n\n    button {\n      border: 0;\n      cursor: pointer;\n    }\n\n    .app-shell {\n      min-height: 100vh;\n      display: grid;\n      grid-template-columns: 1fr;\n    }\n\n    /* =========================================================\n       Navigation\n       ========================================================= */\n    .sidebar {\n      position: sticky;\n      top: 0;\n      z-index: 20;\n      display: flex;\n      align-items: center;\n      justify-content: space-between;\n      gap: 14px;\n      height: 74px;\n      padding: 14px 18px;\n      background: rgba(255, 255, 255, 0.86);\n      border-bottom: 1px solid var(--line);\n      backdrop-filter: blur(18px);\n    }\n\n    .brand {\n      display: inline-flex;\n      align-items: center;\n      gap: 11px;\n      min-width: 0;\n    }\n\n    .brand-mark {\n      width: 38px;\n      height: 38px;\n      display: grid;\n      place-items: center;\n      flex: 0 0 auto;\n      border-radius: 14px;\n      background: linear-gradient(145deg, #ffe1eb, #ffffff);\n      color: var(--pink-dark);\n      box-shadow: inset 0 0 0 1px rgba(244, 114, 156, 0.22), 0 10px 24px rgba(244, 114, 156, 0.18);\n    }\n\n    .brand-copy {\n      min-width: 0;\n    }\n\n    .brand-title {\n      margin: 0;\n      font-size: 16px;\n      font-weight: 800;\n      line-height: 1.18;\n      white-space: nowrap;\n    }\n\n    .brand-subtitle {\n      display: none;\n      margin-top: 3px;\n      color: var(--text-muted);\n      font-size: 12px;\n      font-weight: 600;\n    }\n\n    .nav-toggle {\n      width: 42px;\n      height: 42px;\n      display: grid;\n      place-items: center;\n      border-radius: 14px;\n      background: var(--surface);\n      color: var(--text);\n      box-shadow: inset 0 0 0 1px var(--line);\n    }\n\n    .nav-panel {\n      position: fixed;\n      inset: 74px 12px auto 12px;\n      z-index: 30;\n      display: none;\n      padding: 10px;\n      border: 1px solid var(--line);\n      border-radius: 20px;\n      background: rgba(255, 255, 255, 0.96);\n      box-shadow: var(--shadow);\n      backdrop-filter: blur(18px);\n    }\n\n    .nav-panel.is-open {\n      display: block;\n      animation: liftIn .18s var(--ease);\n    }\n\n    .nav-list {\n      display: grid;\n      gap: 6px;\n      margin: 0;\n      padding: 0;\n      list-style: none;\n    }\n\n    .nav-button {\n      width: 100%;\n      min-height: 48px;\n      display: flex;\n      align-items: center;\n      gap: 11px;\n      padding: 11px 12px;\n      border-radius: 14px;\n      background: transparent;\n      color: var(--text-soft);\n      text-align: left;\n      font-size: 14px;\n      font-weight: 700;\n      transition: background .18s var(--ease), color .18s var(--ease), transform .18s var(--ease);\n    }\n\n    .nav-button svg {\n      width: 19px;\n      height: 19px;\n      flex: 0 0 auto;\n    }\n\n    .nav-button:hover,\n    .nav-button.is-active {\n      background: var(--pink-soft);\n      color: var(--pink-dark);\n    }\n\n    .nav-button:active {\n      transform: scale(0.99);\n    }\n\n    /* =========================================================\n       Layout\n       ========================================================= */\n    .workspace {\n      width: 100%;\n      max-width: 1180px;\n      margin: 0 auto;\n      padding: 24px 16px 48px;\n    }\n\n    .screen {\n      display: none;\n      animation: pageIn .26s var(--ease);\n    }\n\n    .screen.is-active {\n      display: block;\n    }\n\n    .page-head {\n      display: grid;\n      gap: 10px;\n      margin-bottom: 22px;\n    }\n\n    .eyebrow {\n      width: max-content;\n      display: inline-flex;\n      align-items: center;\n      gap: 7px;\n      padding: 7px 10px;\n      border-radius: 999px;\n      background: rgba(244, 114, 156, 0.12);\n      color: var(--pink-dark);\n      font-size: 12px;\n      font-weight: 800;\n    }\n\n    .page-title {\n      margin: 0;\n      font-size: clamp(28px, 8vw, 48px);\n      line-height: 1.08;\n      font-weight: 850;\n      letter-spacing: 0;\n    }\n\n    .page-description {\n      max-width: 650px;\n      margin: 0;\n      color: var(--text-soft);\n      font-size: 15px;\n      line-height: 1.7;\n    }\n\n    .section-title {\n      margin: 0 0 14px;\n      font-size: 18px;\n      font-weight: 850;\n    }\n\n    .surface {\n      border: 1px solid var(--line);\n      border-radius: var(--radius-lg);\n      background: rgba(255, 255, 255, 0.86);\n      box-shadow: var(--shadow-soft);\n    }\n\n    .soft-panel {\n      padding: 18px;\n      border-radius: var(--radius-lg);\n      background: linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(255, 248, 251, 0.92));\n      border: 1px solid var(--line);\n    }\n\n    /* =========================================================\n       Home\n       ========================================================= */\n    .home-hero {\n      display: grid;\n      gap: 20px;\n      margin-bottom: 22px;\n      padding: 24px;\n      overflow: hidden;\n      position: relative;\n    }\n\n    .home-hero::after {\n      content: \"\";\n      position: absolute;\n      right: -56px;\n      top: -72px;\n      width: 220px;\n      height: 220px;\n      border-radius: 50%;\n      background: radial-gradient(circle, rgba(244, 114, 156, 0.16), transparent 68%);\n      pointer-events: none;\n    }\n\n    .quick-grid {\n      display: grid;\n      grid-template-columns: 1fr;\n      gap: 12px;\n    }\n\n    .recent-section {\n      display: grid;\n      gap: 14px;\n      margin-top: 28px;\n    }\n\n    .section-heading {\n      display: flex;\n      align-items: flex-end;\n      justify-content: space-between;\n      gap: 12px;\n    }\n\n    .section-heading h2 {\n      margin: 0;\n      font-size: 19px;\n      font-weight: 850;\n    }\n\n    .section-heading p {\n      margin: 5px 0 0;\n      color: var(--text-muted);\n      font-size: 12px;\n    }\n\n    .recent-grid,\n    .project-grid {\n      display: grid;\n      gap: 12px;\n    }\n\n    .recent-project-card,\n    .project-card {\n      display: grid;\n      gap: 14px;\n      padding: 16px;\n      border: 1px solid var(--line);\n      border-radius: var(--radius-lg);\n      background: #ffffff;\n      box-shadow: var(--shadow-soft);\n    }\n\n    .recent-project-card {\n      grid-template-columns: minmax(0, 1fr) auto;\n      align-items: center;\n    }\n\n    .project-card-top,\n    .project-card-meta,\n    .project-card-actions {\n      display: flex;\n      align-items: center;\n      justify-content: space-between;\n      gap: 10px;\n    }\n\n    .project-card-title {\n      margin: 0;\n      font-size: 15px;\n      font-weight: 850;\n    }\n\n    .project-card-subtitle,\n    .project-card-meta {\n      margin: 5px 0 0;\n      color: var(--text-muted);\n      font-size: 12px;\n    }\n\n    .project-status {\n      flex: 0 0 auto;\n      padding: 6px 8px;\n      border-radius: 999px;\n      background: var(--pink-soft);\n      color: var(--pink-dark);\n      font-size: 10px;\n      font-weight: 850;\n    }\n\n    .project-status.is-complete {\n      background: #eef9f5;\n      color: #328a6f;\n    }\n\n    .project-status.is-draft {\n      background: #f5f5f7;\n      color: var(--text-muted);\n    }\n\n    .progress-line {\n      height: 6px;\n      overflow: hidden;\n      border-radius: 999px;\n      background: #f0f0f3;\n    }\n\n    .progress-line span {\n      display: block;\n      height: 100%;\n      border-radius: inherit;\n      background: var(--pink);\n    }\n\n    .progress-value {\n      color: var(--text-soft);\n      font-size: 12px;\n      font-weight: 850;\n    }\n\n    .project-empty {\n      padding: 28px 18px;\n      border: 1px dashed rgba(244, 114, 156, 0.3);\n      border-radius: var(--radius-lg);\n      background: #fffafd;\n      color: var(--text-muted);\n      text-align: center;\n      font-size: 13px;\n    }\n\n    .project-card-cover img {\n      width: 100%;\n      height: 100%;\n      object-fit: cover;\n      display: block;\n    }\n\n    .menu-card {\n      min-height: 128px;\n      display: grid;\n      align-content: space-between;\n      gap: 18px;\n      padding: 18px;\n      border: 1px solid var(--line);\n      border-radius: var(--radius-lg);\n      background: var(--surface);\n      text-align: left;\n      box-shadow: var(--shadow-soft);\n      transition: transform .2s var(--ease), border-color .2s var(--ease), box-shadow .2s var(--ease);\n    }\n\n    .menu-card:hover {\n      transform: translateY(-3px);\n      border-color: rgba(244, 114, 156, 0.38);\n      box-shadow: var(--shadow);\n    }\n\n    .menu-card-top {\n      display: flex;\n      align-items: flex-start;\n      justify-content: space-between;\n      gap: 12px;\n    }\n\n    .card-icon {\n      width: 42px;\n      height: 42px;\n      display: grid;\n      place-items: center;\n      border-radius: 16px;\n      background: var(--surface-soft);\n      color: var(--pink-dark);\n      box-shadow: inset 0 0 0 1px rgba(244, 114, 156, 0.14);\n    }\n\n    .card-icon svg {\n      width: 21px;\n      height: 21px;\n    }\n\n    .arrow {\n      width: 31px;\n      height: 31px;\n      display: grid;\n      place-items: center;\n      border-radius: 50%;\n      color: var(--text-muted);\n      background: #f6f6f8;\n    }\n\n    .menu-card h3 {\n      margin: 0 0 7px;\n      font-size: 17px;\n      font-weight: 850;\n    }\n\n    .menu-card p {\n      margin: 0;\n      color: var(--text-muted);\n      font-size: 13px;\n      line-height: 1.55;\n    }\n\n    /* =========================================================\n       Writer\n       ========================================================= */\n    .writer-layout {\n      display: grid;\n      gap: 18px;\n    }\n\n    .progress-card {\n      padding: 16px;\n    }\n\n    .step-progress {\n      display: grid;\n      grid-template-columns: repeat(6, minmax(0, 1fr));\n      gap: 8px;\n    }\n\n    .step-dot {\n      min-width: 0;\n      display: grid;\n      gap: 7px;\n      justify-items: center;\n      padding: 8px 4px;\n      border-radius: 14px;\n      color: var(--text-muted);\n      background: #f8f8fa;\n      font-size: 11px;\n      font-weight: 800;\n      transition: color .2s var(--ease), background .2s var(--ease);\n    }\n\n    .step-dot span {\n      width: 24px;\n      height: 24px;\n      display: grid;\n      place-items: center;\n      border-radius: 50%;\n      background: #ffffff;\n      border: 1px solid var(--line-strong);\n      font-size: 11px;\n    }\n\n    .step-dot.is-active {\n      background: var(--pink-soft);\n      color: var(--pink-dark);\n    }\n\n    .step-dot.is-active span {\n      border-color: rgba(244, 114, 156, 0.45);\n      background: var(--pink);\n      color: #ffffff;\n    }\n\n    .step-panel {\n      display: none;\n      padding: 18px;\n    }\n\n    .step-panel.is-active {\n      display: block;\n      animation: pageIn .22s var(--ease);\n    }\n\n    .step-heading {\n      display: flex;\n      align-items: flex-start;\n      justify-content: space-between;\n      gap: 18px;\n      margin-bottom: 18px;\n    }\n\n    .step-heading h2 {\n      margin: 0 0 6px;\n      font-size: 22px;\n      font-weight: 850;\n    }\n\n    .step-heading p {\n      margin: 0;\n      color: var(--text-muted);\n      font-size: 14px;\n      line-height: 1.55;\n    }\n\n    .step-number {\n      flex: 0 0 auto;\n      padding: 8px 11px;\n      border-radius: 999px;\n      background: #f5f5f7;\n      color: var(--text-soft);\n      font-size: 12px;\n      font-weight: 850;\n    }\n\n    .writer-meta {\n      display: flex;\n      align-items: center;\n      flex-wrap: wrap;\n      gap: 8px;\n      margin-top: 12px;\n    }\n\n    .writer-project-name,\n    .save-status {\n      display: inline-flex;\n      align-items: center;\n      min-height: 28px;\n      padding: 0 9px;\n      border-radius: 999px;\n      font-size: 11px;\n      font-weight: 850;\n    }\n\n    .writer-project-name {\n      background: var(--pink-soft);\n      color: var(--pink-dark);\n    }\n\n    .save-status {\n      background: #eef9f5;\n      color: #328a6f;\n    }\n\n    .category-grid {\n      display: grid;\n      grid-template-columns: repeat(2, minmax(0, 1fr));\n      gap: 10px;\n    }\n\n    .choice-card {\n      min-height: 106px;\n      display: grid;\n      align-content: center;\n      justify-items: start;\n      gap: 10px;\n      padding: 16px;\n      border: 1px solid var(--line);\n      border-radius: var(--radius-md);\n      background: #ffffff;\n      color: var(--text);\n      text-align: left;\n      transition: transform .18s var(--ease), border-color .18s var(--ease), background .18s var(--ease);\n    }\n\n    .choice-card:hover,\n    .choice-card.is-selected {\n      transform: translateY(-2px);\n      border-color: rgba(244, 114, 156, 0.48);\n      background: var(--pink-soft);\n    }\n\n    .choice-card strong {\n      font-size: 16px;\n      font-weight: 850;\n    }\n\n    .choice-card small {\n      color: var(--text-muted);\n      font-size: 12px;\n      line-height: 1.4;\n    }\n\n    .form-grid {\n      display: grid;\n      grid-template-columns: 1fr;\n      gap: 12px;\n    }\n\n    .search-card {\n      display: grid;\n      gap: 14px;\n      padding: 18px;\n      border: 1px solid rgba(244, 114, 156, 0.24);\n      border-radius: var(--radius-lg);\n      background: linear-gradient(145deg, #fff8fb, #ffffff);\n    }\n\n    .search-label {\n      display: flex;\n      align-items: center;\n      gap: 9px;\n      color: var(--text);\n      font-size: 15px;\n      font-weight: 850;\n    }\n\n    .search-label .icon {\n      color: var(--pink-dark);\n    }\n\n    .search-input-wrap {\n      display: flex;\n      align-items: center;\n      gap: 10px;\n      padding: 7px 8px 7px 14px;\n      border: 1px solid var(--line);\n      border-radius: 15px;\n      background: #ffffff;\n    }\n\n    .search-input-wrap .input {\n      min-height: 42px;\n      padding: 9px 0;\n      background: transparent;\n    }\n\n    .search-button {\n      flex: 0 0 auto;\n      min-height: 42px;\n      padding: 0 15px;\n      border-radius: 12px;\n      background: var(--pink);\n      color: #ffffff;\n      font-size: 13px;\n      font-weight: 850;\n    }\n\n    .search-hint,\n    .ai-note {\n      margin: 0;\n      color: var(--text-muted);\n      font-size: 12px;\n      line-height: 1.55;\n    }\n\n    .lookup-state {\n      display: flex;\n      align-items: center;\n      gap: 10px;\n      padding: 12px 14px;\n      border-radius: 14px;\n      background: #f7f7f9;\n      color: var(--text-soft);\n      font-size: 13px;\n      font-weight: 750;\n    }\n\n    .lookup-state .pulse {\n      width: 8px;\n      height: 8px;\n      border-radius: 50%;\n      background: var(--pink);\n      box-shadow: 0 0 0 5px rgba(244, 114, 156, 0.12);\n    }\n\n    .lookup-state.is-loading .pulse {\n      animation: searchPulse 1s ease-in-out infinite;\n    }\n\n    .place-error {\n      display: grid;\n      gap: 5px;\n      margin-top: 16px;\n      padding: 15px;\n      border: 1px solid rgba(207, 87, 115, 0.22);\n      border-radius: var(--radius-md);\n      background: #fff5f7;\n      color: #b54764;\n      font-size: 13px;\n      line-height: 1.5;\n    }\n\n    .place-error span {\n      color: #9c6876;\n      font-size: 12px;\n    }\n\n    .place-result {\n      display: grid;\n      gap: 14px;\n      margin-top: 16px;\n      padding: 18px;\n      border: 1px solid var(--line);\n      border-radius: var(--radius-lg);\n      background: #ffffff;\n    }\n\n    .place-result-head {\n      display: flex;\n      align-items: flex-start;\n      justify-content: space-between;\n      gap: 14px;\n    }\n\n    .place-result-head h3,\n    .info-card h4 {\n      margin: 0;\n      font-size: 16px;\n      font-weight: 850;\n    }\n\n    .ai-badge {\n      flex: 0 0 auto;\n      padding: 6px 9px;\n      border-radius: 999px;\n      background: var(--pink-soft);\n      color: var(--pink-dark);\n      font-size: 11px;\n      font-weight: 850;\n    }\n\n    .place-info-grid {\n      display: grid;\n      grid-template-columns: repeat(2, minmax(0, 1fr));\n      gap: 9px;\n    }\n\n    .info-card {\n      display: grid;\n      gap: 6px;\n      min-height: 76px;\n      padding: 12px;\n      border-radius: 14px;\n      background: #f7f7f9;\n    }\n\n    .info-card small {\n      color: var(--text-muted);\n      font-size: 11px;\n      font-weight: 750;\n    }\n\n    .info-card p {\n      margin: 0;\n      color: var(--text-soft);\n      font-size: 13px;\n      line-height: 1.45;\n    }\n\n    .map-preview {\n      min-height: 126px;\n      display: grid;\n      place-items: center;\n      border-radius: 15px;\n      background: linear-gradient(135deg, rgba(115, 180, 255, 0.19), rgba(84, 199, 167, 0.16)), #f3f7fa;\n      color: var(--text-muted);\n      font-size: 13px;\n      font-weight: 800;\n    }\n\n    .field-card {\n      display: grid;\n      gap: 9px;\n      padding: 14px;\n      border: 1px solid var(--line);\n      border-radius: var(--radius-md);\n      background: #ffffff;\n    }\n\n    .field-card label {\n      color: var(--text-soft);\n      font-size: 13px;\n      font-weight: 800;\n    }\n\n    .input,\n    .textarea,\n    .select {\n      width: 100%;\n      min-height: 44px;\n      border: 1px solid transparent;\n      border-radius: 13px;\n      background: #f7f7f9;\n      color: var(--text);\n      outline: 0;\n      padding: 11px 12px;\n      transition: border-color .18s var(--ease), background .18s var(--ease), box-shadow .18s var(--ease);\n    }\n\n    .textarea {\n      min-height: 128px;\n      resize: vertical;\n      line-height: 1.6;\n    }\n\n    .input:focus,\n    .textarea:focus,\n    .select:focus {\n      border-color: rgba(244, 114, 156, 0.46);\n      background: #ffffff;\n      box-shadow: 0 0 0 4px rgba(244, 114, 156, 0.12);\n    }\n\n    .upload-layout {\n      display: grid;\n      gap: 14px;\n    }\n\n    .drop-zone {\n      min-height: 210px;\n      display: grid;\n      place-items: center;\n      padding: 22px;\n      border: 1.5px dashed rgba(244, 114, 156, 0.42);\n      border-radius: var(--radius-lg);\n      background: linear-gradient(145deg, #fff8fb, #ffffff);\n      text-align: center;\n      transition: border-color .18s var(--ease), background .18s var(--ease), transform .18s var(--ease);\n    }\n\n    .drop-zone.is-dragging {\n      border-color: var(--pink);\n      background: var(--pink-soft);\n      transform: translateY(-2px);\n    }\n\n    .photo-toolbar {\n      display: flex;\n      align-items: center;\n      justify-content: space-between;\n      gap: 12px;\n      flex-wrap: wrap;\n      padding: 12px 14px;\n      border: 1px solid var(--line);\n      border-radius: var(--radius-md);\n      background: #ffffff;\n    }\n\n    .photo-count {\n      color: var(--text-soft);\n      font-size: 13px;\n      font-weight: 850;\n    }\n\n    .photo-file-input {\n      position: absolute;\n      width: 1px;\n      height: 1px;\n      opacity: 0;\n      pointer-events: none;\n    }\n\n    .drop-zone strong {\n      display: block;\n      margin-top: 12px;\n      font-size: 17px;\n      font-weight: 850;\n    }\n\n    .drop-zone p {\n      margin: 6px 0 0;\n      color: var(--text-muted);\n      font-size: 13px;\n      line-height: 1.55;\n    }\n\n    .photo-grid {\n      display: grid;\n      grid-template-columns: repeat(2, minmax(0, 1fr));\n      gap: 12px;\n    }\n\n    .photo-card {\n      overflow: hidden;\n      border: 1px solid var(--line);\n      border-radius: var(--radius-md);\n      background: #ffffff;\n      transition: transform .18s var(--ease), border-color .18s var(--ease), box-shadow .18s var(--ease);\n    }\n\n    .photo-card.is-dragging {\n      opacity: .52;\n      transform: scale(.98);\n    }\n\n    .photo-card.is-drop-target {\n      border-color: rgba(244, 114, 156, 0.48);\n      box-shadow: 0 0 0 4px rgba(244, 114, 156, 0.12);\n    }\n\n    .photo-thumb {\n      aspect-ratio: 4 / 3;\n      display: grid;\n      place-items: center;\n      background:\n        linear-gradient(135deg, rgba(244, 114, 156, 0.20), rgba(106, 156, 247, 0.14)),\n        #fafafa;\n      color: rgba(32, 33, 36, 0.42);\n    }\n\n    .photo-thumb img {\n      width: 100%;\n      height: 100%;\n      object-fit: cover;\n      display: block;\n    }\n\n    .photo-:host {\n      display: grid;\n      gap: 9px;\n      padding: 11px;\n    }\n\n    .photo-title {\n      display: flex;\n      align-items: center;\n      justify-content: space-between;\n      gap: 8px;\n      font-size: 13px;\n      font-weight: 800;\n    }\n\n    .photo-ai-row {\n      display: flex;\n      align-items: center;\n      justify-content: space-between;\n      gap: 8px;\n    }\n\n    .photo-type {\n      color: var(--text-soft);\n      font-size: 12px;\n      font-weight: 850;\n    }\n\n    .photo-select {\n      width: 100%;\n      min-height: 40px;\n      padding: 0 34px 0 12px;\n      border: 1px solid var(--line);\n      border-radius: 13px;\n      background: #f8f8fa;\n      color: var(--text);\n      font-size: 13px;\n      font-weight: 850;\n      outline: 0;\n      appearance: none;\n      background-image: linear-gradient(45deg, transparent 50%, #9c6876 50%), linear-gradient(135deg, #9c6876 50%, transparent 50%);\n      background-position: calc(100% - 17px) 17px, calc(100% - 12px) 17px;\n      background-size: 5px 5px, 5px 5px;\n      background-repeat: no-repeat;\n    }\n\n    .photo-select:focus {\n      border-color: rgba(244, 114, 156, 0.46);\n      box-shadow: 0 0 0 4px rgba(244, 114, 156, 0.12);\n      background-color: #ffffff;\n    }\n\n    .photo-field {\n      display: grid;\n      gap: 6px;\n      padding: 10px;\n      border-radius: 15px;\n      background: #fbf8fa;\n    }\n\n    .photo-field label {\n      color: var(--text-muted);\n      font-size: 11px;\n      font-weight: 900;\n    }\n\n    .photo-current-type {\n      display: inline-flex;\n      align-items: center;\n      width: fit-content;\n      max-width: 100%;\n      padding: 6px 9px;\n      border-radius: 999px;\n      background: var(--pink-soft);\n      color: var(--pink-dark);\n      font-size: 11px;\n      font-weight: 900;\n    }\n\n    .photo-memo-field {\n      display: grid;\n      gap: 7px;\n    }\n\n    .photo-memo-field label {\n      color: var(--text-muted);\n      font-size: 11px;\n      font-weight: 900;\n    }\n\n    .photo-recommended {\n      padding: 5px 7px;\n      border-radius: 999px;\n      background: #eef9f5;\n      color: #328a6f;\n      font-size: 10px;\n      font-weight: 850;\n    }\n\n    .order-button {\n      width: 100%;\n      min-height: 48px;\n      margin-top: 2px;\n      border: 1px solid rgba(244, 114, 156, 0.26);\n      border-radius: 14px;\n      background: var(--pink-soft);\n      color: var(--pink-dark);\n      font-size: 13px;\n      font-weight: 850;\n    }\n\n    .photo-actions {\n      display: grid;\n      grid-template-columns: repeat(3, 1fr);\n      gap: 6px;\n    }\n\n    .photo-empty {\n      padding: 26px 18px;\n      border: 1px dashed rgba(244, 114, 156, 0.3);\n      border-radius: var(--radius-lg);\n      background: #fffafd;\n      color: var(--text-muted);\n      text-align: center;\n      font-size: 13px;\n      line-height: 1.6;\n    }\n\n    .mini-button {\n      min-height: 34px;\n      border-radius: 11px;\n      background: #f5f5f7;\n      color: var(--text-soft);\n      font-size: 12px;\n      font-weight: 800;\n    }\n\n    .memo-layout {\n      display: grid;\n      gap: 14px;\n    }\n\n    .question-layout {\n      display: grid;\n      gap: 14px;\n    }\n\n    .question-progress {\n      display: flex;\n      align-items: center;\n      justify-content: space-between;\n      color: var(--text-muted);\n      font-size: 12px;\n      font-weight: 800;\n    }\n\n    .question-card {\n      display: grid;\n      gap: 16px;\n      min-height: 250px;\n      padding: 22px;\n      border: 1px solid rgba(244, 114, 156, 0.24);\n      border-radius: var(--radius-lg);\n      background: linear-gradient(145deg, #fff8fb, #ffffff);\n    }\n\n    .question-card h3 {\n      margin: 0;\n      font-size: 24px;\n      line-height: 1.3;\n      letter-spacing: -0.02em;\n    }\n\n    .question-input {\n      min-height: 54px;\n      border: 1px solid var(--line);\n      border-radius: 14px;\n      background: #ffffff;\n      padding: 14px;\n      color: var(--text);\n      outline: 0;\n    }\n\n    .question-input:focus {\n      border-color: rgba(244, 114, 156, 0.46);\n      box-shadow: 0 0 0 4px rgba(244, 114, 156, 0.12);\n    }\n\n    .question-list {\n      display: grid;\n      gap: 8px;\n    }\n\n    .question-list span {\n      display: flex;\n      align-items: center;\n      gap: 8px;\n      color: var(--text-muted);\n      font-size: 12px;\n    }\n\n    .question-list span.is-selected {\n      color: var(--pink-dark);\n      font-weight: 850;\n    }\n\n    .question-list span::before {\n      content: \"\";\n      width: 6px;\n      height: 6px;\n      border-radius: 50%;\n      background: #d7d7dc;\n    }\n\n    .question-list span.is-selected::before {\n      background: var(--pink);\n    }\n\n    .memo-list {\n      display: grid;\n      grid-template-columns: repeat(2, minmax(0, 1fr));\n      gap: 10px;\n    }\n\n    .memo-item {\n      padding: 10px;\n      border: 1px solid var(--line);\n      border-radius: var(--radius-md);\n      background: #ffffff;\n      text-align: left;\n    }\n\n    .memo-item.is-selected {\n      border-color: rgba(244, 114, 156, 0.46);\n      background: var(--pink-soft);\n    }\n\n    .memo-preview {\n      aspect-ratio: 1 / 1;\n      margin-bottom: 9px;\n      border-radius: 14px;\n      background: linear-gradient(145deg, rgba(84, 199, 167, 0.18), rgba(244, 114, 156, 0.17));\n    }\n\n    .memo-item strong {\n      display: block;\n      font-size: 13px;\n      font-weight: 850;\n    }\n\n    .type-chips,\n    .option-grid {\n      display: grid;\n      grid-template-columns: repeat(2, minmax(0, 1fr));\n      gap: 9px;\n    }\n\n    .chip,\n    .check-card {\n      min-height: 46px;\n      display: flex;\n      align-items: center;\n      gap: 9px;\n      padding: 11px 12px;\n      border: 1px solid var(--line);\n      border-radius: 14px;\n      background: #ffffff;\n      color: var(--text-soft);\n      font-size: 13px;\n      font-weight: 800;\n    }\n\n    .chip.is-selected {\n      border-color: rgba(244, 114, 156, 0.46);\n      background: var(--pink-soft);\n      color: var(--pink-dark);\n    }\n\n    .check-card input {\n      accent-color: var(--pink);\n    }\n\n    .result-zone {\n      display: grid;\n      gap: 14px;\n    }\n\n    .generate-button {\n      min-height: 58px;\n      border-radius: 18px;\n      background: linear-gradient(135deg, var(--pink), var(--pink-dark));\n      color: #ffffff;\n      font-size: 17px;\n      font-weight: 900;\n      box-shadow: 0 18px 38px rgba(244, 114, 156, 0.28);\n    }\n\n    .preview-box {\n      min-height: 260px;\n      max-height: 620px;\n      overflow: auto;\n      padding: 18px;\n      border: 1px solid var(--line);\n      border-radius: var(--radius-lg);\n      background: #ffffff;\n      color: var(--text-soft);\n      font-family: \"SFMono-Regular\", Consolas, \"Liberation Mono\", monospace;\n      font-size: 12px;\n      line-height: 1.75;\n      white-space: pre-wrap;\n    }\n\n    .prompt-test-shell {\n      display: grid;\n      gap: 14px;\n    }\n\n    .prompt-test-grid {\n      display: grid;\n      gap: 14px;\n    }\n\n    .prompt-panel {\n      padding: 16px;\n      border: 1px solid var(--line);\n      border-radius: var(--radius-lg);\n      background: #ffffff;\n    }\n\n    .prompt-panel h3 {\n      margin: 0 0 10px;\n      font-size: 15px;\n      font-weight: 900;\n    }\n\n    .prompt-stat-grid,\n    .engine-status-grid {\n      display: grid;\n      gap: 8px;\n    }\n\n    .prompt-stat,\n    .engine-status-item {\n      display: flex;\n      align-items: center;\n      justify-content: space-between;\n      gap: 12px;\n      padding: 10px 12px;\n      border-radius: 12px;\n      background: #fbf8fa;\n      color: var(--text-muted);\n      font-size: 13px;\n      font-weight: 750;\n    }\n\n    .prompt-stat strong,\n    .engine-status-item strong {\n      color: var(--text);\n      text-align: right;\n    }\n\n    .prompt-warning-list {\n      display: grid;\n      gap: 8px;\n    }\n\n    .prompt-warning {\n      padding: 10px 12px;\n      border: 1px solid rgba(244, 114, 156, 0.2);\n      border-radius: 12px;\n      background: var(--pink-soft);\n      color: #8b5262;\n      font-size: 13px;\n      line-height: 1.45;\n    }\n\n    .prompt-warning.is-clear {\n      border-color: rgba(84, 199, 167, 0.22);\n      background: rgba(84, 199, 167, 0.1);\n      color: #3d766a;\n    }\n\n    .prompt-test-buttons {\n      display: flex;\n      flex-wrap: wrap;\n      gap: 8px;\n    }\n\n    .prompt-test-button {\n      min-height: 36px;\n      padding: 0 12px;\n      border-radius: 999px;\n      background: #f7f1f4;\n      color: var(--text-soft);\n      font-size: 12px;\n      font-weight: 850;\n      transition: transform .18s var(--ease), background .18s var(--ease), color .18s var(--ease);\n    }\n\n    .prompt-test-button.is-active {\n      background: var(--pink);\n      color: #ffffff;\n      box-shadow: 0 10px 22px rgba(244, 114, 156, 0.22);\n    }\n\n    .prompt-test-button:active {\n      transform: scale(0.98);\n    }\n\n    .prompt-copy-message {\n      min-height: 18px;\n      color: var(--pink-dark);\n      font-size: 12px;\n      font-weight: 850;\n    }\n\n    .final-result-layout {\n      display: grid;\n      gap: 14px;\n    }\n\n    .final-result-toolbar {\n      display: grid;\n      gap: 10px;\n    }\n\n    .final-result-actions {\n      display: flex;\n      flex-wrap: wrap;\n      gap: 8px;\n    }\n\n    .generation-mode-card,\n    .api-ready-card {\n      display: grid;\n      gap: 12px;\n      padding: 16px;\n      border: 1px solid var(--line);\n      border-radius: var(--radius-lg);\n      background: #ffffff;\n    }\n\n    .generation-mode-card h3,\n    .api-ready-card h3 {\n      margin: 0;\n      font-size: 15px;\n      font-weight: 900;\n    }\n\n    .generation-mode-options {\n      display: grid;\n      gap: 8px;\n    }\n\n    .generation-mode-option {\n      min-height: 44px;\n      display: flex;\n      align-items: center;\n      gap: 9px;\n      padding: 10px 12px;\n      border-radius: 13px;\n      background: #fbf8fa;\n      color: var(--text-soft);\n      font-size: 13px;\n      font-weight: 850;\n    }\n\n    .generation-mode-option input {\n      accent-color: var(--pink);\n    }\n\n    .generation-status {\n      display: inline-flex;\n      align-items: center;\n      width: fit-content;\n      min-height: 30px;\n      padding: 0 10px;\n      border-radius: 999px;\n      background: var(--pink-soft);\n      color: var(--pink-dark);\n      font-size: 12px;\n      font-weight: 900;\n    }\n\n    .api-ready-grid {\n      display: grid;\n      gap: 8px;\n    }\n\n    .api-ready-item {\n      display: flex;\n      align-items: center;\n      justify-content: space-between;\n      gap: 10px;\n      padding: 10px 12px;\n      border-radius: 12px;\n      background: #fbf8fa;\n      color: var(--text-muted);\n      font-size: 13px;\n      font-weight: 750;\n    }\n\n    .api-ready-item strong {\n      color: var(--text);\n      text-align: right;\n    }\n\n    .final-result-editor {\n      width: 100%;\n      min-height: 520px;\n      resize: vertical;\n      padding: 18px;\n      border: 1px solid var(--line);\n      border-radius: var(--radius-lg);\n      background: #ffffff;\n      color: var(--text);\n      font: inherit;\n      font-size: 14px;\n      line-height: 1.75;\n      outline: 0;\n    }\n\n    .final-result-editor:focus {\n      border-color: rgba(244, 114, 156, 0.46);\n      box-shadow: 0 0 0 4px rgba(244, 114, 156, 0.12);\n    }\n\n    .final-result-meta {\n      display: flex;\n      flex-wrap: wrap;\n      gap: 8px;\n      color: var(--text-muted);\n      font-size: 12px;\n      font-weight: 800;\n    }\n\n    @media (min-width: 980px) {\n      .prompt-test-grid {\n        grid-template-columns: minmax(0, 1.35fr) minmax(280px, .65fr);\n        align-items: start;\n      }\n    }\n\n    .step-actions {\n      display: flex;\n      align-items: center;\n      justify-content: space-between;\n      gap: 10px;\n      margin-top: 18px;\n    }\n\n    .primary-button,\n    .secondary-button {\n      min-height: 44px;\n      display: inline-flex;\n      align-items: center;\n      justify-content: center;\n      gap: 8px;\n      padding: 0 15px;\n      border-radius: 14px;\n      font-weight: 850;\n      transition: transform .18s var(--ease), opacity .18s var(--ease), background .18s var(--ease);\n    }\n\n    .primary-button {\n      background: var(--text);\n      color: #ffffff;\n    }\n\n    .primary-button:disabled {\n      cursor: not-allowed;\n      opacity: .34;\n    }\n\n    .secondary-button {\n      background: #f5f5f7;\n      color: var(--text-soft);\n    }\n\n    .primary-button:active,\n    .secondary-button:active,\n    .generate-button:active {\n      transform: scale(0.99);\n    }\n\n    /* =========================================================\n       Supporting Screens\n       ========================================================= */\n    .placeholder-grid {\n      display: grid;\n      gap: 14px;\n    }\n\n    .empty-card {\n      min-height: 240px;\n      display: grid;\n      place-items: center;\n      padding: 26px;\n      text-align: center;\n    }\n\n    .empty-card h2 {\n      margin: 0 0 8px;\n      font-size: 21px;\n      font-weight: 850;\n    }\n\n    .empty-card p {\n      max-width: 420px;\n      margin: 0;\n      color: var(--text-muted);\n      line-height: 1.65;\n    }\n\n    .settings-list {\n      display: grid;\n      gap: 12px;\n    }\n\n    .archive-header {\n      display: flex;\n      align-items: flex-end;\n      justify-content: space-between;\n      gap: 14px;\n      margin-bottom: 16px;\n    }\n\n    .archive-header h2 {\n      margin: 0;\n      font-size: 19px;\n      font-weight: 850;\n    }\n\n    .archive-header p {\n      margin: 5px 0 0;\n      color: var(--text-muted);\n      font-size: 12px;\n    }\n\n    .project-card-cover {\n      min-height: 118px;\n      display: grid;\n      place-items: center;\n      border-radius: 15px;\n      background: linear-gradient(135deg, rgba(244, 114, 156, 0.18), rgba(115, 180, 255, 0.16)), #fafafa;\n      color: rgba(32, 33, 36, 0.42);\n      font-size: 12px;\n      font-weight: 800;\n    }\n\n    .project-card-actions {\n      justify-content: flex-start;\n      flex-wrap: wrap;\n    }\n\n    .project-card-actions .primary-button,\n    .project-card-actions .mini-button {\n      flex: 1 1 auto;\n    }\n\n    .project-card-actions .mini-button {\n      min-height: 38px;\n      padding: 0 11px;\n    }\n\n    .modal-backdrop {\n      position: fixed;\n      inset: 0;\n      z-index: 20;\n      display: grid;\n      place-items: center;\n      padding: 18px;\n      background: rgba(32, 33, 36, 0.3);\n      backdrop-filter: blur(8px);\n    }\n\n    .modal-backdrop[hidden] {\n      display: none;\n    }\n\n    .project-modal {\n      width: min(100%, 470px);\n      display: grid;\n      gap: 18px;\n      padding: 22px;\n      border: 1px solid rgba(255, 255, 255, 0.72);\n      border-radius: 22px;\n      background: #ffffff;\n      box-shadow: 0 24px 80px rgba(32, 33, 36, 0.2);\n      animation: liftIn .22s var(--ease);\n    }\n\n    .modal-head {\n      display: flex;\n      align-items: flex-start;\n      justify-content: space-between;\n      gap: 14px;\n    }\n\n    .modal-head h2 {\n      margin: 0;\n      font-size: 21px;\n      font-weight: 900;\n    }\n\n    .modal-head p {\n      margin: 6px 0 0;\n      color: var(--text-muted);\n      font-size: 13px;\n      line-height: 1.5;\n    }\n\n    .close-button {\n      width: 34px;\n      height: 34px;\n      display: grid;\n      place-items: center;\n      flex: 0 0 auto;\n      border-radius: 50%;\n      background: #f5f5f7;\n      color: var(--text-muted);\n    }\n\n    .modal-form {\n      display: grid;\n      gap: 12px;\n    }\n\n    .modal-date {\n      display: flex;\n      align-items: center;\n      justify-content: space-between;\n      gap: 12px;\n      padding: 12px 14px;\n      border-radius: 13px;\n      background: #f7f7f9;\n      color: var(--text-muted);\n      font-size: 12px;\n    }\n\n    .modal-date strong {\n      color: var(--text-soft);\n      font-weight: 850;\n    }\n\n    .modal-actions {\n      display: flex;\n      justify-content: flex-end;\n      gap: 8px;\n      margin-top: 2px;\n    }\n\n    .toast {\n      position: fixed;\n      left: 50%;\n      bottom: 24px;\n      z-index: 30;\n      max-width: calc(100% - 36px);\n      padding: 12px 15px;\n      border-radius: 13px;\n      background: var(--text);\n      color: #ffffff;\n      font-size: 12px;\n      font-weight: 800;\n      box-shadow: var(--shadow);\n      transform: translate(-50%, 18px);\n      opacity: 0;\n      pointer-events: none;\n      transition: opacity .18s var(--ease), transform .18s var(--ease);\n    }\n\n    .toast.is-visible {\n      transform: translate(-50%, 0);\n      opacity: 1;\n    }\n\n    .setting-row {\n      display: grid;\n      grid-template-columns: 1fr auto;\n      align-items: center;\n      gap: 12px;\n      padding: 16px;\n      border: 1px solid var(--line);\n      border-radius: var(--radius-md);\n      background: #ffffff;\n    }\n\n    .setting-row h3 {\n      margin: 0 0 5px;\n      font-size: 15px;\n      font-weight: 850;\n    }\n\n    .setting-row p {\n      margin: 0;\n      color: var(--text-muted);\n      font-size: 13px;\n      line-height: 1.45;\n    }\n\n    .toggle {\n      width: 48px;\n      height: 28px;\n      position: relative;\n      border-radius: 999px;\n      background: #e7e8ec;\n    }\n\n    .toggle::after {\n      content: \"\";\n      position: absolute;\n      top: 4px;\n      left: 4px;\n      width: 20px;\n      height: 20px;\n      border-radius: 50%;\n      background: #ffffff;\n      box-shadow: 0 2px 7px rgba(0, 0, 0, 0.16);\n    }\n\n    .select-pill {\n      min-width: 116px;\n      min-height: 38px;\n      padding: 0 12px;\n      border: 1px solid var(--line);\n      border-radius: 999px;\n      background: #f7f7f9;\n      color: var(--text-soft);\n      font-weight: 800;\n    }\n\n    .engine-layout {\n      display: grid;\n      gap: 14px;\n    }\n\n    .engine-category-panel,\n    .engine-content {\n      padding: 16px;\n    }\n\n    .engine-category-panel h2,\n    .engine-content h2 {\n      margin: 0;\n      font-size: 16px;\n      font-weight: 850;\n    }\n\n    .engine-category-panel p,\n    .engine-content-head p {\n      margin: 6px 0 0;\n      color: var(--text-muted);\n      font-size: 12px;\n      line-height: 1.5;\n    }\n\n    .engine-category-list {\n      display: grid;\n      gap: 7px;\n      margin-top: 16px;\n    }\n\n    .engine-category {\n      width: 100%;\n      min-height: 46px;\n      display: flex;\n      align-items: center;\n      justify-content: space-between;\n      gap: 10px;\n      padding: 0 13px;\n      border: 1px solid transparent;\n      border-radius: 13px;\n      background: transparent;\n      color: var(--text-soft);\n      text-align: left;\n      font-size: 13px;\n      font-weight: 800;\n      transition: background .18s var(--ease), color .18s var(--ease), border-color .18s var(--ease), transform .18s var(--ease);\n    }\n\n    .engine-category:hover,\n    .engine-category.is-selected {\n      border-color: rgba(244, 114, 156, 0.24);\n      background: var(--pink-soft);\n      color: var(--pink-dark);\n      transform: translateX(2px);\n    }\n\n    .engine-category .icon {\n      width: 17px;\n      height: 17px;\n      opacity: .64;\n    }\n\n    .engine-content {\n      min-width: 0;\n    }\n\n    .engine-content-head {\n      display: flex;\n      align-items: flex-start;\n      justify-content: space-between;\n      gap: 12px;\n      margin-bottom: 16px;\n    }\n\n    .engine-status {\n      flex: 0 0 auto;\n      padding: 6px 9px;\n      border-radius: 999px;\n      background: #f5f5f7;\n      color: var(--text-muted);\n      font-size: 10px;\n      font-weight: 850;\n    }\n\n    .engine-meta-grid {\n      display: grid;\n      grid-template-columns: repeat(2, minmax(0, 1fr));\n      gap: 8px;\n      margin-bottom: 16px;\n    }\n\n    .engine-meta-item {\n      display: grid;\n      gap: 5px;\n      padding: 11px 12px;\n      border-radius: 13px;\n      background: #f7f7f9;\n    }\n\n    .engine-meta-item span {\n      color: var(--text-muted);\n      font-size: 10px;\n      font-weight: 800;\n    }\n\n    .engine-meta-item strong {\n      color: var(--text-soft);\n      font-size: 12px;\n      font-weight: 850;\n    }\n\n    .engine-tabs {\n      display: flex;\n      gap: 7px;\n      overflow-x: auto;\n      margin: 0 -2px 16px;\n      padding: 2px;\n      scrollbar-width: thin;\n    }\n\n    .engine-tab {\n      flex: 0 0 auto;\n      min-height: 36px;\n      padding: 0 12px;\n      border: 1px solid var(--line);\n      border-radius: 11px;\n      background: #ffffff;\n      color: var(--text-muted);\n      font-size: 12px;\n      font-weight: 800;\n      transition: background .18s var(--ease), color .18s var(--ease), border-color .18s var(--ease);\n    }\n\n    .engine-tab:hover,\n    .engine-tab.is-selected {\n      border-color: rgba(244, 114, 156, 0.3);\n      background: var(--pink-soft);\n      color: var(--pink-dark);\n    }\n\n    .engine-rule-grid {\n      display: grid;\n      grid-template-columns: repeat(2, minmax(0, 1fr));\n      gap: 10px;\n    }\n\n    .engine-rule-card {\n      min-height: 146px;\n      display: grid;\n      align-content: space-between;\n      gap: 18px;\n      padding: 15px;\n      border: 1px solid var(--line);\n      border-radius: var(--radius-md);\n      background: #ffffff;\n      transition: transform .18s var(--ease), border-color .18s var(--ease), box-shadow .18s var(--ease);\n    }\n\n    .engine-rule-card:hover {\n      transform: translateY(-2px);\n      border-color: rgba(244, 114, 156, 0.3);\n      box-shadow: var(--shadow-soft);\n    }\n\n    .engine-rule-card h3 {\n      margin: 0;\n      font-size: 14px;\n      font-weight: 850;\n    }\n\n    .engine-rule-list,\n    .engine-detail-list {\n      display: grid;\n      gap: 7px;\n      margin: 0;\n      padding: 0;\n      list-style: none;\n    }\n\n    .engine-rule-list {\n      max-height: 94px;\n      overflow: hidden;\n    }\n\n    .engine-rule-list li,\n    .engine-detail-list li {\n      position: relative;\n      padding-left: 12px;\n      color: var(--text-muted);\n      font-size: 11px;\n      line-height: 1.45;\n    }\n\n    .engine-rule-list li::before,\n    .engine-detail-list li::before {\n      content: \"\";\n      position: absolute;\n      top: .62em;\n      left: 0;\n      width: 5px;\n      height: 5px;\n      border-radius: 50%;\n      background: rgba(244, 114, 156, 0.56);\n    }\n\n    .engine-placeholder {\n      display: flex;\n      align-items: center;\n      gap: 7px;\n      color: var(--text-muted);\n      font-size: 11px;\n      line-height: 1.4;\n    }\n\n    .engine-placeholder::before {\n      content: \"\";\n      width: 6px;\n      height: 6px;\n      flex: 0 0 auto;\n      border-radius: 50%;\n      background: rgba(244, 114, 156, 0.56);\n    }\n\n    .engine-tab-content {\n      display: grid;\n      gap: 10px;\n      margin-top: 14px;\n      padding: 16px;\n      border: 1px solid var(--line);\n      border-radius: var(--radius-md);\n      background: #fbfbfc;\n    }\n\n    .engine-tab-content h3 {\n      margin: 0;\n      font-size: 14px;\n      font-weight: 850;\n    }\n\n    .engine-detail-group {\n      display: grid;\n      gap: 8px;\n    }\n\n    .engine-detail-group strong {\n      color: var(--pink-dark);\n      font-size: 11px;\n      font-weight: 850;\n    }\n\n    .engine-empty {\n      margin: 0;\n      color: var(--text-muted);\n      font-size: 12px;\n      line-height: 1.55;\n    }\n\n    .engine-common {\n      margin-top: 14px;\n      overflow: hidden;\n    }\n\n    .engine-common summary {\n      display: flex;\n      align-items: center;\n      justify-content: space-between;\n      gap: 14px;\n      padding: 18px;\n      cursor: pointer;\n      list-style: none;\n    }\n\n    .engine-common summary::-webkit-details-marker {\n      display: none;\n    }\n\n    .engine-common summary > span:first-child {\n      display: grid;\n      gap: 5px;\n    }\n\n    .engine-common summary strong {\n      font-size: 15px;\n      font-weight: 900;\n    }\n\n    .engine-common summary small {\n      color: var(--text-muted);\n      font-size: 12px;\n    }\n\n    .common-summary-grid {\n      display: grid;\n      grid-template-columns: 1fr;\n      gap: 10px;\n      padding: 0 18px 18px;\n    }\n\n    .common-summary-card {\n      display: grid;\n      gap: 9px;\n      padding: 14px;\n      border: 1px solid var(--line);\n      border-radius: var(--radius-md);\n      background: #ffffff;\n    }\n\n    .common-summary-card h3 {\n      margin: 0;\n      font-size: 13px;\n      font-weight: 850;\n    }\n\n    /* =========================================================\n       Utilities and Animation\n       ========================================================= */\n    .icon {\n      width: 22px;\n      height: 22px;\n      stroke: currentColor;\n      stroke-width: 2;\n      stroke-linecap: round;\n      stroke-linejoin: round;\n      fill: none;\n    }\n\n    .wide {\n      grid-column: 1 / -1;\n    }\n\n    .muted {\n      color: var(--text-muted);\n    }\n\n    @keyframes pageIn {\n      from {\n        opacity: 0;\n        transform: translateY(8px);\n      }\n      to {\n        opacity: 1;\n        transform: translateY(0);\n      }\n    }\n\n    @keyframes liftIn {\n      from {\n        opacity: 0;\n        transform: translateY(-8px) scale(.98);\n      }\n      to {\n        opacity: 1;\n        transform: translateY(0) scale(1);\n      }\n    }\n\n    @keyframes searchPulse {\n      0%, 100% { transform: scale(.82); opacity: .55; }\n      50% { transform: scale(1.18); opacity: 1; }\n    }\n\n    /* =========================================================\n       Responsive\n       ========================================================= */\n    @media (min-width: 720px) {\n      .workspace {\n        padding: 34px 28px 60px;\n      }\n\n      .quick-grid {\n        grid-template-columns: repeat(2, minmax(0, 1fr));\n      }\n\n      .recent-grid,\n      .project-grid {\n        grid-template-columns: repeat(2, minmax(0, 1fr));\n      }\n\n      .category-grid,\n      .photo-grid,\n      .memo-list,\n      .type-chips,\n      .option-grid {\n        grid-template-columns: repeat(3, minmax(0, 1fr));\n      }\n\n      .form-grid {\n        grid-template-columns: repeat(2, minmax(0, 1fr));\n      }\n\n      .memo-layout,\n      .upload-layout,\n      .engine-layout {\n        grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);\n      }\n\n      .engine-category-panel {\n        align-self: start;\n        position: sticky;\n        top: 28px;\n      }\n\n      .engine-rule-grid {\n        grid-template-columns: repeat(3, minmax(0, 1fr));\n      }\n\n      .common-summary-grid {\n        grid-template-columns: repeat(2, minmax(0, 1fr));\n      }\n    }\n\n    @media (min-width: 980px) {\n      .app-shell {\n        grid-template-columns: var(--sidebar) minmax(0, 1fr);\n      }\n\n      .sidebar {\n        height: 100vh;\n        align-self: start;\n        flex-direction: column;\n        align-items: stretch;\n        justify-content: flex-start;\n        padding: 24px 18px;\n        border-right: 1px solid var(--line);\n        border-bottom: 0;\n      }\n\n      .brand-subtitle {\n        display: block;\n      }\n\n      .nav-toggle {\n        display: none;\n      }\n\n      .nav-panel {\n        position: static;\n        display: block;\n        padding: 18px 0 0;\n        border: 0;\n        border-radius: 0;\n        background: transparent;\n        box-shadow: none;\n        backdrop-filter: none;\n      }\n\n      .workspace {\n        max-width: 1220px;\n        padding: 46px 42px 72px;\n      }\n\n      .home-hero {\n        min-height: 270px;\n        align-content: end;\n        padding: 34px;\n      }\n\n      .quick-grid {\n        grid-template-columns: repeat(5, minmax(0, 1fr));\n      }\n\n      .recent-grid {\n        grid-template-columns: repeat(3, minmax(0, 1fr));\n      }\n\n      .project-grid {\n        grid-template-columns: repeat(3, minmax(0, 1fr));\n      }\n\n      .menu-card {\n        min-height: 180px;\n      }\n\n      .progress-card {\n        position: sticky;\n        top: 28px;\n      }\n\n      .step-progress {\n        grid-template-columns: repeat(6, minmax(0, 1fr));\n      }\n\n      .step-dot {\n        grid-template-columns: 1fr;\n        justify-items: center;\n        text-align: center;\n      }\n\n      .step-panel {\n        padding: 24px;\n      }\n    }\n  </style>\n<div class=\"app-shell\">\n    <aside class=\"sidebar\">\n      <div class=\"brand\" aria-label=\"박리리 AI Studio\">\n        <div class=\"brand-mark\" aria-hidden=\"true\">\n          <svg class=\"icon\" viewBox=\"0 0 24 24\"><path d=\"M12 3v18\"></path><path d=\"M7 8h7.5a3.5 3.5 0 0 1 0 7H7\"></path></svg>\n        </div>\n        <div class=\"brand-copy\">\n          <p class=\"brand-title\">박리리 AI Studio</p>\n          <p class=\"brand-subtitle\">Blog writing workspace</p>\n        </div>\n      </div>\n      <button class=\"nav-toggle\" type=\"button\" aria-label=\"메뉴 열기\" data-nav-toggle>\n        <svg class=\"icon\" viewBox=\"0 0 24 24\"><path d=\"M4 7h16\"></path><path d=\"M4 12h16\"></path><path d=\"M4 17h16\"></path></svg>\n      </button>\n      <nav class=\"nav-panel\" data-nav-panel>\n        <ul class=\"nav-list\">\n          <li><button class=\"nav-button is-active\" type=\"button\" data-screen-target=\"home\"><svg class=\"icon\" viewBox=\"0 0 24 24\"><path d=\"m3 10 9-7 9 7\"></path><path d=\"M5 10v10h14V10\"></path></svg>HOME</button></li>\n          <li><button class=\"nav-button\" type=\"button\" data-screen-target=\"writer\" data-create-project><svg class=\"icon\" viewBox=\"0 0 24 24\"><path d=\"M12 20h9\"></path><path d=\"M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z\"></path></svg>새 글 작성</button></li>\n          <li><button class=\"nav-button\" type=\"button\" data-screen-target=\"archive\"><svg class=\"icon\" viewBox=\"0 0 24 24\"><path d=\"M4 7h16\"></path><path d=\"M6 7v13h12V7\"></path><path d=\"M9 11h6\"></path><path d=\"M8 4h8l1 3H7Z\"></path></svg>글 보관함</button></li>\n          <li><button class=\"nav-button\" type=\"button\" data-screen-target=\"photos\"><svg class=\"icon\" viewBox=\"0 0 24 24\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"14\" rx=\"2\"></rect><path d=\"m3 16 5-5 4 4 2-2 7 6\"></path><circle cx=\"15.5\" cy=\"9.5\" r=\"1.5\"></circle></svg>사진 관리</button></li>\n          <li><button class=\"nav-button\" type=\"button\" data-screen-target=\"guide\"><svg class=\"icon\" viewBox=\"0 0 24 24\"><path d=\"M4 19.5A2.5 2.5 0 0 1 6.5 17H20\"></path><path d=\"M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z\"></path></svg>작성 지침</button></li>\n          <li><button class=\"nav-button\" type=\"button\" data-screen-target=\"engine\"><svg class=\"icon\" viewBox=\"0 0 24 24\"><path d=\"M12 3v3\"></path><path d=\"M12 18v3\"></path><path d=\"m4.22 4.22 2.12 2.12\"></path><path d=\"m17.66 17.66 2.12 2.12\"></path><path d=\"M3 12h3\"></path><path d=\"M18 12h3\"></path><path d=\"m4.22 19.78 2.12-2.12\"></path><path d=\"m17.66 6.34 2.12-2.12\"></path><circle cx=\"12\" cy=\"12\" r=\"4\"></circle></svg>LIRI ENGINE</button></li>\n          <li><button class=\"nav-button\" type=\"button\" data-screen-target=\"settings\"><svg class=\"icon\" viewBox=\"0 0 24 24\"><path d=\"M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z\"></path><path d=\"M19.4 15a1.8 1.8 0 0 0 .36 1.98l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.8 1.8 0 0 0 15 19.4a1.8 1.8 0 0 0-1 .58l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.8 1.8 0 0 0 8.6 15a1.8 1.8 0 0 0-1.98-.36l-.08.03a2 2 0 1 1-1.53-3.7l.08-.03A1.8 1.8 0 0 0 6 9.4a1.8 1.8 0 0 0-.58-1l-.06-.06A2 2 0 1 1 8.2 5.5l.06.06A1.8 1.8 0 0 0 10 4.6a1.8 1.8 0 0 0 1-.58l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.8 1.8 0 0 0 15.4 9c.24.67.77 1.2 1.44 1.44l.08.03a2 2 0 1 1 1.53 3.7l-.08-.03A1.8 1.8 0 0 0 19.4 15Z\"></path></svg>설정</button></li>\n        </ul>\n      </nav>\n    </aside>\n\n    <main class=\"workspace\">\n      <section class=\"screen is-active\" id=\"home\" data-screen>\n        <div class=\"home-hero surface\">\n          <div class=\"page-head\">\n            <span class=\"eyebrow\">TODAY'S WRITING</span>\n            <h1 class=\"page-title\">오늘도 좋은 글을 써볼까요?</h1>\n            <p class=\"page-description\">박리리 AI Studio는 여행, 맛집, 카페, 숙소 이야기를 차분하게 정리하는 블로그 작업실입니다.</p>\n          </div>\n        </div>\n        <div class=\"quick-grid\">\n          <button class=\"menu-card\" type=\"button\" data-screen-target=\"writer\" data-create-project>\n            <span class=\"menu-card-top\"><span class=\"card-icon\"><svg class=\"icon\" viewBox=\"0 0 24 24\"><path d=\"M12 20h9\"></path><path d=\"M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z\"></path></svg></span><span class=\"arrow\">→</span></span>\n            <span><h3>새 글 작성</h3><p>단계별로 글 재료를 정리합니다.</p></span>\n          </button>\n          <button class=\"menu-card\" type=\"button\" data-screen-target=\"archive\">\n            <span class=\"menu-card-top\"><span class=\"card-icon\"><svg class=\"icon\" viewBox=\"0 0 24 24\"><path d=\"M4 7h16\"></path><path d=\"M6 7v13h12V7\"></path><path d=\"M9 11h6\"></path></svg></span><span class=\"arrow\">→</span></span>\n            <span><h3>글 보관함</h3><p>작성한 글을 모아볼 공간입니다.</p></span>\n          </button>\n          <button class=\"menu-card\" type=\"button\" data-screen-target=\"photos\">\n            <span class=\"menu-card-top\"><span class=\"card-icon\"><svg class=\"icon\" viewBox=\"0 0 24 24\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"14\" rx=\"2\"></rect><path d=\"m3 16 5-5 4 4 2-2 7 6\"></path></svg></span><span class=\"arrow\">→</span></span>\n            <span><h3>사진 관리</h3><p>사진 카드와 메모를 관리합니다.</p></span>\n          </button>\n          <button class=\"menu-card\" type=\"button\" data-screen-target=\"guide\">\n            <span class=\"menu-card-top\"><span class=\"card-icon\"><svg class=\"icon\" viewBox=\"0 0 24 24\"><path d=\"M4 19.5A2.5 2.5 0 0 1 6.5 17H20\"></path><path d=\"M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z\"></path></svg></span><span class=\"arrow\">→</span></span>\n            <span><h3>작성 지침</h3><p>향후 AI 규칙이 들어갈 자리입니다.</p></span>\n          </button>\n          <button class=\"menu-card\" type=\"button\" data-screen-target=\"settings\">\n            <span class=\"menu-card-top\"><span class=\"card-icon\"><svg class=\"icon\" viewBox=\"0 0 24 24\"><path d=\"M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z\"></path><path d=\"M4 12h2\"></path><path d=\"M18 12h2\"></path><path d=\"M12 4v2\"></path><path d=\"M12 18v2\"></path></svg></span><span class=\"arrow\">→</span></span>\n            <span><h3>설정</h3><p>테마와 작성 환경을 조정합니다.</p></span>\n          </button>\n          <button class=\"menu-card\" type=\"button\" data-screen-target=\"engine\">\n            <span class=\"menu-card-top\"><span class=\"card-icon\"><svg class=\"icon\" viewBox=\"0 0 24 24\"><path d=\"M12 3v3\"></path><path d=\"M12 18v3\"></path><path d=\"m4.22 4.22 2.12 2.12\"></path><path d=\"m17.66 17.66 2.12 2.12\"></path><path d=\"M3 12h3\"></path><path d=\"M18 12h3\"></path><path d=\"m4.22 19.78 2.12-2.12\"></path><path d=\"m17.66 6.34 2.12-2.12\"></path><circle cx=\"12\" cy=\"12\" r=\"4\"></circle></svg></span><span class=\"arrow\">→</span></span>\n            <span><h3>LIRI ENGINE</h3><p>AI가 참고할 글쓰기 규칙을 관리합니다.</p></span>\n          </button>\n        </div>\n        <section class=\"recent-section\">\n          <div class=\"section-heading\"><div><h2>최근 작업</h2><p>최근에 수정한 프로젝트를 이어서 작성하세요.</p></div><button class=\"secondary-button\" type=\"button\" data-screen-target=\"archive\">전체 보기</button></div>\n          <div class=\"recent-grid\" data-recent-projects></div>\n        </section>\n      </section>\n\n      <section class=\"screen\" id=\"writer\" data-screen>\n        <div class=\"page-head\">\n          <span class=\"eyebrow\">NEW POST</span>\n          <h1 class=\"page-title\">새 글 작성</h1>\n          <p class=\"page-description\">카테고리부터 사진 메모, AI 옵션, 결과 미리보기까지 한 흐름으로 정리합니다.</p>\n          <div class=\"writer-meta\"><span class=\"writer-project-name\" data-writer-project-name>프로젝트를 선택해주세요</span><span class=\"save-status\" data-save-status>자동 저장 대기</span></div>\n        </div>\n        <div class=\"writer-layout\">\n          <aside class=\"progress-card surface\">\n            <div class=\"step-progress\" data-step-progress>\n              <button class=\"step-dot is-active\" type=\"button\" data-step-target=\"1\"><span>1</span>STEP1</button>\n              <button class=\"step-dot\" type=\"button\" data-step-target=\"2\"><span>2</span>STEP2</button>\n              <button class=\"step-dot\" type=\"button\" data-step-target=\"3\"><span>3</span>STEP3</button>\n              <button class=\"step-dot\" type=\"button\" data-step-target=\"4\"><span>4</span>STEP4</button>\n              <button class=\"step-dot\" type=\"button\" data-step-target=\"5\"><span>5</span>STEP5</button>\n              <button class=\"step-dot\" type=\"button\" data-step-target=\"6\"><span>6</span>STEP6</button>\n              <button class=\"step-dot\" type=\"button\" data-step-target=\"7\"><span>7</span>STEP7</button>\n            </div>\n          </aside>\n\n          <div class=\"surface\">\n            <article class=\"step-panel is-active\" data-step=\"1\">\n              <div class=\"step-heading\"><div><h2>카테고리 선택</h2><p>오늘 작성할 글의 성격을 먼저 골라주세요.</p></div><span class=\"step-number\">STEP1</span></div>\n              <div class=\"category-grid\">\n                <button class=\"choice-card\" type=\"button\" data-category=\"travel\"><strong>여행</strong><small>일정, 장소, 코스 중심 글</small></button>\n                <button class=\"choice-card\" type=\"button\" data-category=\"restaurant\"><strong>맛집</strong><small>메뉴, 가격, 방문 후기</small></button>\n                <button class=\"choice-card\" type=\"button\" data-category=\"cafe\"><strong>카페</strong><small>분위기, 음료, 포토존</small></button>\n                <button class=\"choice-card\" type=\"button\" data-category=\"stay\"><strong>숙소</strong><small>객실, 위치, 편의시설</small></button>\n                <button class=\"choice-card\" type=\"button\" data-category=\"experience\"><strong>체험</strong><small>클래스, 액티비티, 프로그램</small></button>\n                <button class=\"choice-card\" type=\"button\" data-category=\"tip\"><strong>알뜰살뜰 TIP</strong><small>팁, 정보, 절약 노하우</small></button>\n                <button class=\"choice-card\" type=\"button\" data-category=\"daily\"><strong>일상</strong><small>기록하고 싶은 하루</small></button>\n              </div>\n              <div class=\"step-actions\"><span></span><button class=\"primary-button\" type=\"button\" data-next-step disabled>다음</button></div>\n            </article>\n\n            <article class=\"step-panel\" data-step=\"2\">\n              <div class=\"step-heading\"><div><h2>장소 검색</h2><p>네이버지도 URL 또는 장소명 중 하나만 입력하면 AI가 장소 정보를 준비합니다.</p></div><span class=\"step-number\">STEP2</span></div>\n              <div class=\"search-card\">\n                <label class=\"search-label\" for=\"place-search\"><svg class=\"icon\" viewBox=\"0 0 24 24\"><circle cx=\"11\" cy=\"11\" r=\"6.5\"></circle><path d=\"m16 16 4.5 4.5\"></path></svg>장소 검색</label>\n                <div class=\"search-input-wrap\"><input class=\"input\" id=\"place-search\" type=\"text\" placeholder=\"네이버지도 URL 또는 장소명을 입력하세요\"><button class=\"search-button\" type=\"button\" data-place-search>검색</button></div>\n                <p class=\"search-hint\">예: https://map.naver.com/... · 후쿠오카 미야지다케 신사 · 성수 어니언</p>\n              </div>\n              <div class=\"lookup-state\" data-lookup-state><span class=\"pulse\"></span><span>검색하면 AI가 장소 정보를 정리해드려요.</span></div>\n              <div class=\"place-result\" data-place-result hidden></div>\n              <div class=\"place-error\" data-place-error hidden><strong>장소를 찾을 수 없습니다.</strong><span>장소명이나 네이버지도 URL을 확인하고 다시 검색해주세요.</span></div>\n              <div class=\"step-actions\"><button class=\"secondary-button\" type=\"button\" data-prev-step>이전</button><button class=\"primary-button\" type=\"button\" data-next-step>다음</button></div>\n            </article>\n\n            <article class=\"step-panel\" data-step=\"3\">\n              <div class=\"step-heading\"><div><h2>사진 업로드</h2><p>사진을 올리면 AI가 장면을 분석해 글의 순서를 제안합니다.</p></div><span class=\"step-number\">STEP3</span></div>\n              <div class=\"upload-layout\">\n                <input class=\"photo-file-input\" id=\"photo-file-input\" type=\"file\" accept=\"image/*\" multiple data-photo-input>\n                <div class=\"drop-zone\" data-photo-drop-zone>\n                  <div>\n                    <svg class=\"icon\" viewBox=\"0 0 24 24\"><path d=\"M12 16V4\"></path><path d=\"m7 9 5-5 5 5\"></path><path d=\"M20 16.5V19a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2.5\"></path></svg>\n                    <strong>사진을 여기에 드래그</strong>\n                    <p>파일 선택으로도 여러 장을 한 번에 추가할 수 있어요.</p>\n                    <button class=\"secondary-button\" type=\"button\" style=\"margin-top:14px;\" data-photo-add>사진 추가</button>\n                  </div>\n                </div>\n                <div class=\"photo-toolbar\">\n                  <span class=\"photo-count\" data-photo-count>총 0장</span>\n                  <span class=\"muted\">드래그해서 순서를 바꿀 수 있어요.</span>\n                </div>\n                <div class=\"photo-empty\" data-photo-empty>아직 업로드한 사진이 없습니다.</div>\n                <div class=\"photo-grid\" data-photo-list></div>\n                <button class=\"order-button\" type=\"button\" data-photo-recommend-order>✨ 박리리 추천 순서 적용</button>\n              </div>\n              <div class=\"step-actions\"><button class=\"secondary-button\" type=\"button\" data-prev-step>이전</button><button class=\"primary-button\" type=\"button\" data-next-step>다음</button></div>\n            </article>\n\n            <article class=\"step-panel\" data-step=\"4\">\n              <div class=\"step-heading\"><div><h2>사진 메모</h2><p>업로드한 사진 순서대로 짧은 메모를 남겨주세요. 글의 흐름 재료로 사용됩니다.</p></div><span class=\"step-number\">STEP4</span></div>\n              <div class=\"memo-layout\" data-photo-memo-layout>\n                <div class=\"photo-empty\" data-photo-memo-empty>사진을 먼저 업로드하면 이곳에 메모 카드가 표시됩니다.</div>\n                <div class=\"photo-grid\" data-photo-memo-list></div>\n              </div>\n              <div class=\"step-actions\"><button class=\"secondary-button\" type=\"button\" data-prev-step>이전</button><button class=\"primary-button\" type=\"button\" data-next-step>다음</button></div>\n            </article>\n\n            <article class=\"step-panel\" data-step=\"5\">\n              <div class=\"step-heading\"><div><h2>짧은 질문</h2><p>AI가 글을 준비할 때 필요한 핵심 질문만 확인합니다.</p></div><span class=\"step-number\">STEP5</span></div>\n              <div class=\"question-layout\" data-question-flow>\n                <div class=\"question-progress\"><span data-question-count>Q1 / 3</span><span>AI 인터뷰</span></div>\n                <div class=\"question-card\">\n                  <span class=\"eyebrow\">QUESTION 01</span>\n                  <h3 data-question-text>왜 방문했나요?</h3>\n                  <input class=\"question-input\" type=\"text\" placeholder=\"짧게 답해주세요.\">\n                  <div class=\"question-list\" data-question-list></div>\n                  <div class=\"step-actions\" style=\"margin-top:0;\"><button class=\"secondary-button\" type=\"button\" data-question-prev>이전 질문</button><button class=\"primary-button\" type=\"button\" data-question-next>다음 질문</button></div>\n                </div>\n              </div>\n              <div class=\"step-actions\"><button class=\"secondary-button\" type=\"button\" data-prev-step>이전</button><button class=\"primary-button\" type=\"button\" data-next-step>다음</button></div>\n            </article>\n\n            <article class=\"step-panel\" data-step=\"6\">\n              <div class=\"step-heading\"><div><h2>Prompt 테스트 모드</h2><p>AI 연결 전, 실제 전달될 Prompt와 엔진 적용 상태를 먼저 검수합니다.</p></div><span class=\"step-number\">STEP6</span></div>\n              <div class=\"result-zone\">\n                <div class=\"option-grid\">\n                  <label class=\"check-card\"><input type=\"checkbox\" checked data-ai-option=\"style\"> 박리리 스타일</label>\n                  <label class=\"check-card\"><input type=\"checkbox\" checked data-ai-option=\"seo\"> SEO 강화</label>\n                  <label class=\"check-card\"><input type=\"checkbox\" checked data-ai-option=\"emotional\"> 감성 강화</label>\n                  <label class=\"check-card\"><input type=\"checkbox\" checked data-ai-option=\"informative\"> 정보 강화</label>\n                  <label class=\"check-card\"><input type=\"checkbox\" checked data-ai-option=\"titleRecommend\"> 제목 추천</label>\n                  <label class=\"check-card\"><input type=\"checkbox\" checked data-ai-option=\"tagRecommend\"> 태그 추천</label>\n                  <label class=\"check-card\"><input type=\"checkbox\" checked data-ai-option=\"lineBreak\"> 줄바꿈 유지</label>\n                  <label class=\"check-card\"><input type=\"checkbox\" checked data-ai-option=\"emoji\"> 이모지 자동</label>\n                </div>\n                <button class=\"generate-button\" type=\"button\" data-generate-post>AI 생성</button>\n                <div class=\"prompt-test-shell\">\n                  <div class=\"prompt-panel\">\n                    <h3>카테고리별 테스트</h3>\n                    <div class=\"prompt-test-buttons\" data-prompt-test-buttons>\n                      <button class=\"prompt-test-button\" type=\"button\" data-prompt-test-category=\"travel\">여행 테스트</button>\n                      <button class=\"prompt-test-button\" type=\"button\" data-prompt-test-category=\"restaurant\">맛집 테스트</button>\n                      <button class=\"prompt-test-button\" type=\"button\" data-prompt-test-category=\"cafe\">카페 테스트</button>\n                      <button class=\"prompt-test-button\" type=\"button\" data-prompt-test-category=\"stay\">숙소 테스트</button>\n                      <button class=\"prompt-test-button\" type=\"button\" data-prompt-test-category=\"experience\">체험 테스트</button>\n                      <button class=\"prompt-test-button\" type=\"button\" data-prompt-test-category=\"tip\">알뜰살뜰 TIP 테스트</button>\n                      <button class=\"prompt-test-button\" type=\"button\" data-prompt-test-category=\"daily\">일상 테스트</button>\n                    </div>\n                  </div>\n                  <div class=\"prompt-test-grid\">\n                    <div>\n                      <div class=\"preview-box\" data-preview-box>Prompt를 생성하면 Project 정보, 사진 정보, 사용자 답변, 압축 공통 규칙, 선택 카테고리 규칙 순서로 표시됩니다.</div>\n                    </div>\n                    <aside class=\"prompt-test-side\">\n                      <div class=\"prompt-panel\">\n                        <h3>Prompt 통계</h3>\n                        <div class=\"prompt-stat-grid\" data-prompt-stats></div>\n                      </div>\n                      <div class=\"prompt-panel\">\n                        <h3>Engine 적용 확인</h3>\n                        <div class=\"engine-status-grid\" data-engine-status></div>\n                      </div>\n                      <div class=\"prompt-panel\">\n                        <h3>누락 체크</h3>\n                        <div class=\"prompt-warning-list\" data-prompt-warnings></div>\n                      </div>\n                    </aside>\n                  </div>\n                </div>\n                <div class=\"step-actions\" style=\"margin-top:0;\"><button class=\"secondary-button\" type=\"button\" data-copy-prompt>전체 Prompt 복사</button><button class=\"secondary-button\" type=\"button\">다운로드</button></div>\n                <p class=\"prompt-copy-message\" data-copy-message></p>\n              </div>\n              <div class=\"step-actions\"><button class=\"secondary-button\" type=\"button\" data-prev-step>이전</button><button class=\"primary-button\" type=\"button\" data-next-step>STEP7 결과 화면으로 이동</button></div>\n            </article>\n\n            <article class=\"step-panel\" data-step=\"7\">\n              <div class=\"step-heading\"><div><h2>블로그 글 결과</h2><p>Mock 테스트 또는 Supabase Edge Function 기반 AI 생성을 실행하고 결과를 수정·복사할 수 있습니다.</p></div><span class=\"step-number\">STEP7</span></div>\n              <div class=\"final-result-layout\">\n                <div class=\"final-result-toolbar\">\n                  <div class=\"generation-mode-card\">\n                    <h3>생성 모드</h3>\n                    <div class=\"generation-mode-options\">\n                      <label class=\"generation-mode-option\"><input type=\"radio\" name=\"generationMode\" value=\"mock\" checked data-generation-mode> Mock 테스트</label>\n                      <label class=\"generation-mode-option\"><input type=\"radio\" name=\"generationMode\" value=\"ai\" data-generation-mode> AI 생성</label>\n                    </div>\n                    <span class=\"generation-status\" data-generation-status>대기중</span>\n                  </div>\n                  <div class=\"api-ready-card\">\n                    <h3>API 준비 상태</h3>\n                    <div class=\"api-ready-grid\">\n                      <div class=\"api-ready-item\"><span>OpenAI API 상태</span><strong>Supabase Edge Function 연결</strong></div>\n                      <div class=\"api-ready-item\"><span>Function</span><strong>generate-liri-blog</strong></div>\n                      <div class=\"api-ready-item\"><span>모델</span><strong>gpt-4.1-mini</strong></div>\n                      <div class=\"api-ready-item\"><span>API Key 저장 방식</span><strong>Supabase Secret · 브라우저 노출 없음</strong></div><div class=\"api-ready-item\"><span>DB 저장</span><strong>아직 미연결</strong></div>\n                    </div>\n                  </div>\n                  <button class=\"generate-button\" type=\"button\" data-generate-result>블로그 글 생성하기</button>\n                  <div class=\"final-result-actions\">\n                    <button class=\"secondary-button\" type=\"button\" data-regenerate-result>다시 생성</button>\n                    <button class=\"secondary-button\" type=\"button\" data-copy-result=\"all\">전체 결과 복사</button>\n                    <button class=\"secondary-button\" type=\"button\" data-copy-result=\"titles\">제목만 복사</button>\n                    <button class=\"secondary-button\" type=\"button\" data-copy-result=\"body\">본문만 복사</button>\n                    <button class=\"secondary-button\" type=\"button\" data-copy-result=\"tags\">태그만 복사</button>\n                  </div>\n                  <div class=\"final-result-meta\" data-result-meta>\n                    <span>Mock 결과 대기</span>\n                  </div>\n                  <p class=\"prompt-copy-message\" data-result-copy-message></p>\n                </div>\n                <textarea class=\"final-result-editor\" data-result-editor placeholder=\"블로그 글 생성하기를 누르면 최종 결과 Mock 글이 이곳에 표시됩니다. 생성 후 직접 수정할 수 있어요.\"></textarea>\n              </div>\n              <div class=\"step-actions\"><button class=\"secondary-button\" type=\"button\" data-prev-step>Prompt 다시 보기</button><span></span></div>\n            </article>\n          </div>\n        </div>\n      </section>\n\n      <section class=\"screen\" id=\"engine\" data-screen>\n        <div class=\"page-head\">\n          <span class=\"eyebrow\">LIRI ENGINE</span>\n          <h1 class=\"page-title\">박리리 엔진</h1>\n          <p class=\"page-description\">AI가 글을 준비할 때 참고할 카테고리별 작성 규칙을 관리하는 공간입니다.</p>\n        </div>\n\n        <div class=\"engine-layout\">\n          <aside class=\"engine-category-panel surface\">\n            <h2>카테고리</h2>\n            <p>규칙을 관리할 글의 성격을 선택하세요.</p>\n            <div class=\"engine-category-list\">\n              <button class=\"engine-category is-selected\" type=\"button\" data-engine-category=\"여행\">여행<svg class=\"icon\" viewBox=\"0 0 24 24\"><path d=\"m9 18 6-6-6-6\"></path></svg></button>\n              <button class=\"engine-category\" type=\"button\" data-engine-category=\"맛집\">맛집<svg class=\"icon\" viewBox=\"0 0 24 24\"><path d=\"m9 18 6-6-6-6\"></path></svg></button>\n              <button class=\"engine-category\" type=\"button\" data-engine-category=\"카페\">카페<svg class=\"icon\" viewBox=\"0 0 24 24\"><path d=\"m9 18 6-6-6-6\"></path></svg></button>\n              <button class=\"engine-category\" type=\"button\" data-engine-category=\"숙소\">숙소<svg class=\"icon\" viewBox=\"0 0 24 24\"><path d=\"m9 18 6-6-6-6\"></path></svg></button>\n              <button class=\"engine-category\" type=\"button\" data-engine-category=\"체험\">체험<svg class=\"icon\" viewBox=\"0 0 24 24\"><path d=\"m9 18 6-6-6-6\"></path></svg></button>\n              <button class=\"engine-category\" type=\"button\" data-engine-category=\"일상\">일상<svg class=\"icon\" viewBox=\"0 0 24 24\"><path d=\"m9 18 6-6-6-6\"></path></svg></button>\n              <button class=\"engine-category\" type=\"button\" data-engine-category=\"알뜰살뜰TIP\">알뜰살뜰TIP<svg class=\"icon\" viewBox=\"0 0 24 24\"><path d=\"m9 18 6-6-6-6\"></path></svg></button>\n            </div>\n          </aside>\n\n          <section class=\"engine-content surface\">\n            <div class=\"engine-content-head\"><div><h2 data-engine-title>여행 작성 규칙</h2><p>liri-engine.js의 카테고리별 규칙을 이곳에서 확인합니다.</p></div><span class=\"engine-status\">Read only</span></div>\n            <div class=\"engine-meta-grid\" data-engine-meta></div>\n            <div class=\"engine-tabs\" role=\"tablist\" aria-label=\"엔진 규칙 분류\">\n              <button class=\"engine-tab is-selected\" type=\"button\" data-engine-tab=\"글 구조\">글 구조</button>\n              <button class=\"engine-tab\" type=\"button\" data-engine-tab=\"문체\">문체</button>\n              <button class=\"engine-tab\" type=\"button\" data-engine-tab=\"SEO\">SEO</button>\n              <button class=\"engine-tab\" type=\"button\" data-engine-tab=\"사진 흐름\">사진 흐름</button>\n              <button class=\"engine-tab\" type=\"button\" data-engine-tab=\"질문 템플릿\">질문 템플릿</button>\n              <button class=\"engine-tab\" type=\"button\" data-engine-tab=\"키워드\">키워드</button>\n              <button class=\"engine-tab\" type=\"button\" data-engine-tab=\"태그\">태그</button>\n              <button class=\"engine-tab\" type=\"button\" data-engine-tab=\"금지 표현\">금지 표현</button>\n              <button class=\"engine-tab\" type=\"button\" data-engine-tab=\"마무리\">마무리</button>\n            </div>\n            <div class=\"engine-rule-grid\" data-engine-rule-grid></div>\n            <div class=\"engine-tab-content\" data-engine-tab-content></div>\n          </section>\n        </div>\n        <details class=\"engine-common surface\" data-common-engine>\n          <summary><span><strong>COMMON ENGINE</strong><small>버전: 2.0-1 · 역할: 박리리 블로그 전용 콘텐츠 에디터 · 적용 범위: 모든 카테고리</small></span><span class=\"engine-status\">Read only</span></summary>\n          <div class=\"common-summary-grid\" data-common-summary></div>\n        </details>\n      </section>\n\n      <section class=\"screen\" id=\"archive\" data-screen>\n        <div class=\"page-head\"><span class=\"eyebrow\">ARCHIVE</span><h1 class=\"page-title\">글 보관함</h1><p class=\"page-description\">앞으로 작성한 글을 모아두는 공간입니다.</p></div>\n        <div class=\"surface\" style=\"padding:18px;\">\n          <div class=\"archive-header\"><div><h2>프로젝트 목록</h2><p>작성 중인 글과 완료된 글을 한 곳에서 관리합니다.</p></div><button class=\"primary-button\" type=\"button\" data-create-project>새 프로젝트</button></div>\n          <div class=\"project-grid\" data-project-list></div>\n        </div>\n      </section>\n\n      <section class=\"screen\" id=\"photos\" data-screen>\n        <div class=\"page-head\"><span class=\"eyebrow\">PHOTO LIBRARY</span><h1 class=\"page-title\">사진 관리</h1><p class=\"page-description\">사진을 카드 형태로 정리하는 레이아웃입니다.</p></div>\n        <div class=\"photo-grid\">\n          <div class=\"photo-card\"><div class=\"photo-thumb\">Photo</div><div class=\"photo-body\"><div class=\"photo-title\">여행 사진 <span class=\"muted\">12장</span></div></div></div>\n          <div class=\"photo-card\"><div class=\"photo-thumb\">Photo</div><div class=\"photo-body\"><div class=\"photo-title\">맛집 사진 <span class=\"muted\">8장</span></div></div></div>\n          <div class=\"photo-card\"><div class=\"photo-thumb\">Photo</div><div class=\"photo-body\"><div class=\"photo-title\">카페 사진 <span class=\"muted\">6장</span></div></div></div>\n        </div>\n      </section>\n\n      <section class=\"screen\" id=\"guide\" data-screen>\n        <div class=\"page-head\"><span class=\"eyebrow\">GUIDE</span><h1 class=\"page-title\">작성 지침</h1><p class=\"page-description\">향후 AI가 참고할 작성 규칙을 보여주는 화면입니다.</p></div>\n        <div class=\"empty-card surface\"><div><h2>준비중</h2><p>박리리 스타일, 금지 표현, 문단 규칙 같은 기준이 이곳에 정리될 예정입니다.</p></div></div>\n      </section>\n\n      <section class=\"screen\" id=\"settings\" data-screen>\n        <div class=\"page-head\"><span class=\"eyebrow\">SETTINGS</span><h1 class=\"page-title\">설정</h1><p class=\"page-description\">테마와 글쓰기 환경을 조정하는 메뉴입니다.</p></div>\n        <div class=\"settings-list surface\" style=\"padding:14px;\">\n          <div class=\"setting-row\"><div><h3>테마</h3><p>화이트톤 기본 테마</p></div><select class=\"select-pill\" aria-label=\"테마\"><option>Light</option></select></div>\n          <div class=\"setting-row\"><div><h3>다크모드</h3><p>추후 전환 기능 추가 예정</p></div><span class=\"toggle\" aria-hidden=\"true\"></span></div>\n          <div class=\"setting-row\"><div><h3>폰트크기</h3><p>읽기 편한 기본 크기</p></div><select class=\"select-pill\" aria-label=\"폰트크기\"><option>기본</option></select></div>\n          <div class=\"setting-row\"><div><h3>작성 스타일</h3><p>박리리 톤을 기본값으로 사용</p></div><select class=\"select-pill\" aria-label=\"작성 스타일\"><option>박리리</option></select></div>\n        </div>\n      </section>\n    </main>\n  </div>\n\n  <div class=\"modal-backdrop\" data-project-modal hidden>\n    <section class=\"project-modal\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"project-modal-title\">\n      <div class=\"modal-head\">\n        <div><h2 id=\"project-modal-title\">새 프로젝트 만들기</h2><p>프로젝트를 만든 뒤 STEP1부터 이어서 작성합니다.</p></div>\n        <button class=\"close-button\" type=\"button\" aria-label=\"프로젝트 창 닫기\" data-close-project-modal><svg class=\"icon\" viewBox=\"0 0 24 24\"><path d=\"m6 6 12 12\"></path><path d=\"m18 6-12 12\"></path></svg></button>\n      </div>\n      <form class=\"modal-form\" data-project-form>\n        <div class=\"field-card\"><label for=\"project-name\">프로젝트명</label><input class=\"input\" id=\"project-name\" name=\"projectName\" type=\"text\" placeholder=\"예: 후쿠오카 미야지다케 신사\" required></div>\n        <div class=\"modal-date\"><span>자동 생성 날짜</span><strong data-project-date></strong></div>\n        <div class=\"field-card\"><label for=\"project-category\">카테고리</label><select class=\"select\" id=\"project-category\" name=\"category\"><option>맛집</option><option>카페</option><option>여행</option><option>숙소</option><option>체험</option><option>알뜰살뜰 TIP</option><option>일상</option></select></div>\n        <div class=\"field-card\"><label for=\"project-status\">상태</label><select class=\"select\" id=\"project-status\" name=\"status\"><option>작성중</option><option>임시저장</option><option>완료</option></select></div>\n        <div class=\"modal-actions\"><button class=\"secondary-button\" type=\"button\" data-close-project-modal>취소</button><button class=\"primary-button\" type=\"submit\">프로젝트 생성</button></div>\n      </form>\n    </section>\n  </div>\n  <div class=\"toast\" data-toast role=\"status\" aria-live=\"polite\"></div>";
+    const liriDocument = { querySelector: root.querySelector.bind(root), querySelectorAll: root.querySelectorAll.bind(root), addEventListener: root.addEventListener.bind(root), createElement: document.createElement.bind(document), execCommand: document.execCommand ? document.execCommand.bind(document) : undefined, body: document.body };
+    (function(){
+      const document = liriDocument;
+      const visionStyle = document.createElement("style");
+      visionStyle.textContent = ".photo-analysis-actions{display:flex;flex-wrap:wrap;gap:8px}.photo-analysis-summary{display:grid;gap:4px;padding:12px 14px;border:1px solid rgba(244,114,156,.22);border-radius:18px;background:#fff0f5;color:#8b5262;font-size:12px;line-height:1.5}.photo-analysis-summary strong{color:#df477b;font-size:13px}.photo-analysis-box{display:grid;gap:6px;padding:10px;border-radius:12px;background:#fbf8fa;color:#62666d;font-size:12px;line-height:1.55}.photo-analysis-box strong{color:#202124;font-size:12px}.analysis-status{display:inline-flex;align-items:center;width:fit-content;min-height:24px;padding:0 9px;border-radius:999px;background:#f0eef1;color:#8a8f98;font-size:11px;font-weight:850}.analysis-status.is-analyzing{background:rgba(115,180,255,.16);color:#4570a7}.analysis-status.is-done{background:rgba(84,199,167,.14);color:#357465}.analysis-status.is-error{background:rgba(244,114,156,.16);color:#df477b}";
+      root.appendChild(visionStyle);
+      (function injectLiriVisionControls(){
+        const controls = '<div class="photo-analysis-actions"><button class="secondary-button" type="button" data-photo-analyze-all>📸 전체 사진 AI 분석</button><button class="secondary-button" type="button" data-photo-analyze-selected>⭐ 대표/선택 사진만 분석</button><button class="secondary-button" type="button" data-photo-reanalyze>🔁 분석 다시 하기</button></div>';
+        const photoEmpty = document.querySelector("[data-photo-empty]");
+        if (photoEmpty && !document.querySelector("[data-photo-analysis-summary]")) {
+          photoEmpty.insertAdjacentHTML("beforebegin", controls + '<div class="photo-analysis-summary" data-photo-analysis-summary hidden></div>');
+        }
+        const memoEmpty = document.querySelector("[data-photo-memo-empty]");
+        if (memoEmpty && document.querySelectorAll("[data-photo-analyze-selected]").length < 2) {
+          memoEmpty.insertAdjacentHTML("beforebegin", controls);
+        }
+        const apiGrid = document.querySelector(".api-ready-grid");
+        if (apiGrid && !apiGrid.textContent.includes("analyze-liri-photo")) {
+          apiGrid.insertAdjacentHTML("beforeend", '<div class="api-ready-item"><span>사진 분석 Function</span><strong>analyze-liri-photo</strong></div>');
+        }
+      })();
+    /* =========================================================
+       Project Management and LocalStorage
+       ========================================================= */
+    const projectModal = document.querySelector("[data-project-modal]");
+    const projectForm = document.querySelector("[data-project-form]");
+    const projectDate = document.querySelector("[data-project-date]");
+    const recentProjects = document.querySelector("[data-recent-projects]");
+    const projectList = document.querySelector("[data-project-list]");
+    const toast = document.querySelector("[data-toast]");
+    const writerProjectName = document.querySelector("[data-writer-project-name]");
+    const saveStatus = document.querySelector("[data-save-status]");
+    const categoryMap = {
+      restaurant: "맛집",
+      cafe: "카페",
+      travel: "여행",
+      stay: "숙소",
+      experience: "체험",
+      tip: "알뜰살뜰 TIP",
+      daily: "일상"
+    };
+    const categoryAliasMap = {
+      "맛집": "restaurant",
+      "카페": "cafe",
+      "여행": "travel",
+      "숙소": "stay",
+      "체험": "experience",
+      "알뜰살뜰TIP": "tip",
+      "알뜰살뜰 TIP": "tip",
+      "일상": "daily"
+    };
 
+    function getCategoryKey(category) {
+      if (window.LIRI_ENGINE) return window.LIRI_ENGINE.normalizeCategoryKey(category);
+      return categoryAliasMap[category] || category || "travel";
+    }
+
+    function getCategoryLabel(category) {
+      return categoryMap[getCategoryKey(category)] || category || "여행";
+    }
+
+    function liriFileToDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ""));
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function liriFileToCompressedDataUrl(file, maxSize = 1280, quality = 0.82) {
+      const dataUrl = await liriFileToDataUrl(file);
+      return await new Promise((resolve) => {
+        const image = new Image();
+        image.onload = () => {
+          const ratio = Math.min(1, maxSize / Math.max(image.width, image.height));
+          const width = Math.max(1, Math.round(image.width * ratio));
+          const height = Math.max(1, Math.round(image.height * ratio));
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const context = canvas.getContext("2d");
+          if (!context) { resolve(dataUrl); return; }
+          context.drawImage(image, 0, 0, width, height);
+          resolve(canvas.toDataURL("image/jpeg", quality));
+        };
+        image.onerror = () => resolve(dataUrl);
+        image.src = dataUrl;
+      });
+    }
+
+    function liriIsInvalidPreviewUrl(url) {
+      return !url || /^blob:null/i.test(url) || /^blob:/i.test(url);
+    }
+
+    const LIRI_PHOTO_ANALYSIS_FUNCTION_NAME = "analyze-liri-photo";
+
+    function liriGetSupabaseConfig() {
+      return {
+        supabaseUrl: window.SUPABASE_URL || window.supabaseUrl || window.APP_SUPABASE_URL || (typeof SB_URL !== "undefined" ? SB_URL : "") || "",
+        supabaseAnonKey: window.SUPABASE_ANON_KEY || window.supabaseAnonKey || window.APP_SUPABASE_ANON_KEY || (typeof SB_KEY !== "undefined" ? SB_KEY : "") || ""
+      };
+    }
+
+    async function liriAnalyzePhotoWithVision(photo, project) {
+      if (!photo.previewUrl || liriIsInvalidPreviewUrl(photo.previewUrl) || !photo.previewUrl.startsWith("data:image/")) {
+        throw new Error("분석 가능한 사진 미리보기가 없습니다. 사진을 다시 업로드해주세요.");
+      }
+      const { supabaseUrl, supabaseAnonKey } = liriGetSupabaseConfig();
+      if (!supabaseUrl || !supabaseAnonKey) throw new Error("Supabase URL 또는 anon key를 찾을 수 없습니다.");
+      const response = await fetch(`${supabaseUrl}/functions/v1/${LIRI_PHOTO_ANALYSIS_FUNCTION_NAME}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${supabaseAnonKey}`, "apikey": supabaseAnonKey },
+        body: JSON.stringify({ imageDataUrl: photo.previewUrl, fileName: photo.fileName, photoType: photo.type, memo: photo.memo, category: project.category, projectTitle: project.title })
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(data?.error || data?.message || "사진 분석 요청에 실패했습니다.");
+      return { analysisText: data?.analysisText || data?.content || "", usage: data?.usage || null, model: data?.model || "gpt-4o-mini", analyzedAt: data?.analyzedAt || new Date().toISOString() };
+    }
+
+    const projectManager = (() => {
+      const storageKey = "liriStudio.projects";
+      const state = { activeProjectId: "", toastTimer: null };
+
+      function emptyPlaceInfo() {
+        return { name: "", address: "", phone: "", website: "", openingHours: "", category: "", keywords: [], description: "", mapImage: "" };
+      }
+
+      function normalizePhotoData(photo, index = 0) {
+        return {
+          id: photo.id || `photo-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 7)}`,
+          fileName: photo.fileName || "업로드 사진",
+          previewUrl: liriIsInvalidPreviewUrl(photo.previewUrl) ? "" : photo.previewUrl || "",
+          sortOrder: Number.isFinite(Number(photo.sortOrder)) ? Number(photo.sortOrder) : index,
+          type: photo.type || "Unknown",
+          memo: photo.memo || "",
+          isRepresentative: Boolean(photo.isRepresentative),
+          analysisText: photo.analysisText || "",
+          analysisStatus: ["none", "analyzing", "done", "error"].includes(photo.analysisStatus) ? photo.analysisStatus : "none",
+          analysisError: photo.analysisError || "",
+          analysisUsage: photo.analysisUsage || null,
+          analyzedAt: photo.analyzedAt || ""
+        };
+      }
+
+      function createProjectModel({ title, category, status, id, createdAt, updatedAt } = {}) {
+        return {
+          id: id || `project-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          title: title || "새 프로젝트",
+          createdAt: createdAt || new Date().toISOString(),
+          updatedAt: updatedAt || new Date().toISOString(),
+          status: status || "작성중",
+          progress: status === "완료" ? 100 : 0,
+          category: getCategoryLabel(category || "여행"),
+          placeInfo: emptyPlaceInfo(),
+          photos: [],
+          answers: [],
+          aiOptions: { style: "박리리", seo: true, emotional: true, informative: true, emoji: true, lineBreak: true, titleRecommend: true, tagRecommend: true },
+          generatedPost: "",
+          generatedResult: { createdAt: "", category: "", content: "", titleCandidates: [], tags: [] },
+          seoTags: [],
+          hashtags: [],
+          metadata: { version: "1.0", lastStep: 1 }
+        };
+      }
+
+      function normalizeProject(raw) {
+        const model = createProjectModel({
+          id: raw.id,
+          title: raw.title || raw.name,
+          category: raw.category,
+          status: raw.status,
+          createdAt: raw.createdAt,
+          updatedAt: raw.updatedAt
+        });
+        return {
+          ...model,
+          progress: Number.isFinite(Number(raw.progress)) ? Number(raw.progress) : model.progress,
+          placeInfo: { ...model.placeInfo, ...(raw.placeInfo || {}) , keywords: Array.isArray(raw.placeInfo?.keywords) ? raw.placeInfo.keywords : [] },
+          photos: Array.isArray(raw.photos) ? raw.photos.map(normalizePhotoData).sort((a, b) => a.sortOrder - b.sortOrder) : [],
+          answers: Array.isArray(raw.answers) ? raw.answers.filter(Boolean) : [],
+          aiOptions: { ...model.aiOptions, ...(raw.aiOptions || {}) },
+          generatedPost: raw.generatedPost || "",
+          generatedResult: {
+            ...model.generatedResult,
+            ...(raw.generatedResult || {}),
+            titleCandidates: Array.isArray(raw.generatedResult?.titleCandidates) ? raw.generatedResult.titleCandidates : [],
+            tags: Array.isArray(raw.generatedResult?.tags) ? raw.generatedResult.tags : []
+          },
+          seoTags: Array.isArray(raw.seoTags) ? raw.seoTags : [],
+          hashtags: Array.isArray(raw.hashtags) ? raw.hashtags : [],
+          metadata: { ...model.metadata, ...(raw.metadata || {}), lastStep: Number(raw.metadata?.lastStep || raw.currentStep || 1) }
+        };
+      }
+
+      function readAll() {
+        try {
+          const raw = JSON.parse(localStorage.getItem(storageKey) || "[]");
+          const projects = Array.isArray(raw) ? raw.map(normalizeProject) : [];
+          if (JSON.stringify(raw) !== JSON.stringify(projects)) writeAll(projects);
+          return projects;
+        } catch (error) {
+          return [];
+        }
+      }
+
+      function writeAll(projects) {
+        localStorage.setItem(storageKey, JSON.stringify(projects));
+      }
+
+      function formatDate(dateValue) {
+        return new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(dateValue));
+      }
+
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", "\"": "&quot;" }[character]));
+      }
+
+      function projectStatusClass(status) {
+        if (status === "완료") return "is-complete";
+        if (status === "임시저장") return "is-draft";
+        return "";
+      }
+
+      function projectCardMarkup(project, compact = false) {
+        const statusClass = projectStatusClass(project.status);
+        const progress = Math.max(0, Math.min(100, Number(project.progress) || 0));
+        const representativePhoto = project.photos.find((photo) => photo.isRepresentative) || project.photos[0];
+        const cover = representativePhoto?.previewUrl
+          ? `<img src="${escapeHtml(representativePhoto.previewUrl)}" alt="${escapeHtml(representativePhoto.fileName)}" onerror="this.closest('.project-card-cover').textContent='대표사진 영역';">`
+          : "대표사진 영역";
+        if (compact) {
+          return `<article class="recent-project-card"><div><div class="project-card-top"><h3 class="project-card-title">${escapeHtml(project.title)}</h3><span class="project-status ${statusClass}">${escapeHtml(project.status)}</span></div><p class="project-card-subtitle">${escapeHtml(project.category)} · 오늘 수정</p><div class="project-card-meta"><span class="progress-value">${progress}%</span><span>${escapeHtml(formatDate(project.updatedAt))}</span></div><div class="progress-line"><span style="width:${progress}%"></span></div></div><button class="secondary-button" type="button" data-resume-project="${project.id}">이어서 작성</button></article>`;
+        }
+        return `<article class="project-card"><div class="project-card-cover">${cover}</div><div class="project-card-top"><div><h3 class="project-card-title">${escapeHtml(project.title)}</h3><p class="project-card-subtitle">${escapeHtml(project.category)} · 작성일 ${escapeHtml(formatDate(project.createdAt))}</p></div><span class="project-status ${statusClass}">${escapeHtml(project.status)}</span></div><div class="project-card-meta"><span>진행률</span><span class="progress-value">${progress}%</span></div><div class="progress-line"><span style="width:${progress}%"></span></div><div class="project-card-actions"><button class="primary-button" type="button" data-resume-project="${project.id}">이어서 작성하기</button><button class="mini-button" type="button" data-project-action="duplicate" data-project-id="${project.id}">복제</button><button class="mini-button" type="button" data-project-action="rename" data-project-id="${project.id}">이름 변경</button><button class="mini-button" type="button" data-project-action="delete" data-project-id="${project.id}">삭제</button></div></article>`;
+      }
+
+      function render() {
+        const projects = readAll().sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+        recentProjects.innerHTML = projects.length ? projects.slice(0, 3).map((project) => projectCardMarkup(project, true)).join("") : `<div class="project-empty">아직 작업 중인 프로젝트가 없습니다. 새 글 작성에서 프로젝트를 만들어보세요.</div>`;
+        projectList.innerHTML = projects.length ? projects.map((project) => projectCardMarkup(project)).join("") : `<div class="project-empty">아직 보관된 프로젝트가 없습니다.</div>`;
+      }
+
+      function getActive() {
+        return readAll().find((project) => project.id === state.activeProjectId) || null;
+      }
+
+      function update(mutator, message = "자동 저장됨") {
+        if (!state.activeProjectId) return;
+        const projects = readAll();
+        const index = projects.findIndex((project) => project.id === state.activeProjectId);
+        if (index < 0) return;
+        const project = projects[index];
+        mutator(project);
+        project.updatedAt = new Date().toISOString();
+        writeAll(projects);
+        render();
+        saveStatus.textContent = message;
+      }
+
+      function remove(projectId) {
+        writeAll(readAll().filter((project) => project.id !== projectId));
+        if (state.activeProjectId === projectId) state.activeProjectId = "";
+        render();
+        showToast("프로젝트가 삭제되었습니다.");
+      }
+
+      function setActive(projectId) {
+        state.activeProjectId = projectId;
+        const project = getActive();
+        if (project) {
+          writerProjectName.textContent = project.title;
+          hydrateWriterProject(project);
+        }
+      }
+
+      function showToast(message) {
+        window.clearTimeout(state.toastTimer);
+        toast.textContent = message;
+        toast.classList.add("is-visible");
+        state.toastTimer = window.setTimeout(() => toast.classList.remove("is-visible"), 2200);
+      }
+
+      function openModal() {
+        projectDate.textContent = formatDate(new Date());
+        projectForm.reset();
+        projectModal.hidden = false;
+        projectForm.querySelector("[name=projectName]").focus();
+      }
+
+      function closeModal() {
+        projectModal.hidden = true;
+      }
+
+      function create(event) {
+        event.preventDefault();
+        const formData = new FormData(projectForm);
+        const project = createProjectModel({ title: formData.get("projectName").trim(), category: formData.get("category"), status: formData.get("status") });
+        const projects = readAll();
+        projects.unshift(project);
+        writeAll(projects);
+        setActive(project.id);
+        closeModal();
+        showScreen("writer");
+        showStep(1);
+        render();
+        showToast("프로젝트가 생성되었습니다.");
+      }
+
+      function seedDemo() {
+        const projects = readAll();
+        if (projects.length) return;
+        const project = createProjectModel({ id: "demo-fukuoka", title: "후쿠오카 미야지다케 신사", category: "여행", status: "작성중" });
+        project.progress = 65;
+        project.metadata.lastStep = 3;
+        writeAll([project]);
+      }
+
+      return { create, closeModal, escapeHtml, getActive, openModal, readAll, remove, render, setActive, showToast, update, seedDemo, state };
+    })();
+
+    function hydrateWriterProject(project) {
+      writerProjectName.textContent = project.title;
+      categoryButtons.forEach((button) => button.classList.toggle("is-selected", button.dataset.category === getCategoryKey(project.category)));
+      firstNextButton.disabled = !project.category;
+      placeSearchInput.value = project.placeInfo.name || "";
+      document.querySelectorAll("[data-ai-option]").forEach((option) => { option.checked = project.aiOptions[option.dataset.aiOption] !== false; });
+      photoManager.render(project.photos);
+      photoManager.renderMemo(project.photos);
+      questionManager.render(0);
+      latestPrompt = "";
+      if (typeof renderPromptPlaceholder === "function") renderPromptPlaceholder();
+      if (project.placeInfo.name) {
+        renderPlaceResult(project.placeInfo);
+      } else {
+        placeResult.hidden = true;
+      }
+    }
+
+    projectManager.seedDemo();
+    projectManager.render();
+
+    /* =========================================================
+       Screen Navigation
+       ========================================================= */
+    const screens = document.querySelectorAll("[data-screen]");
+    const navButtons = document.querySelectorAll("[data-screen-target]");
+    const navPanel = document.querySelector("[data-nav-panel]");
+    const navToggle = document.querySelector("[data-nav-toggle]");
+
+    function showScreen(screenId) {
+      screens.forEach((screen) => {
+        screen.classList.toggle("is-active", screen.id === screenId);
+      });
+
+      document.querySelectorAll(".nav-button").forEach((button) => {
+        button.classList.toggle("is-active", button.dataset.screenTarget === screenId);
+      });
+
+      navPanel.classList.remove("is-open");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    navButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        if (button.hasAttribute("data-create-project")) {
+          projectManager.openModal();
+          return;
+        }
+        showScreen(button.dataset.screenTarget);
+      });
+    });
+
+    document.querySelectorAll('[data-create-project]:not([data-screen-target])').forEach((button) => {
+      button.addEventListener("click", projectManager.openModal);
+    });
+
+    navToggle.addEventListener("click", () => {
+      navPanel.classList.toggle("is-open");
+    });
+
+    projectForm.addEventListener("submit", projectManager.create);
+    document.querySelectorAll("[data-close-project-modal]").forEach((button) => {
+      button.addEventListener("click", projectManager.closeModal);
+    });
+
+    function resumeProject(projectId) {
+      const project = projectManager.readAll().find((item) => item.id === projectId);
+      if (!project) return;
+      projectManager.setActive(projectId);
+      showScreen("writer");
+      showStep(project.metadata.lastStep || 1);
+      projectManager.render();
+    }
+
+    function handleProjectAction(action, projectId) {
+      const projects = projectManager.readAll();
+      const project = projects.find((item) => item.id === projectId);
+      if (!project) return;
+      if (action === "delete") {
+        projectManager.remove(projectId);
+        return;
+      }
+      projectManager.showToast(action === "duplicate" ? "복제 기능은 다음 단계에서 연결됩니다." : "이름 변경 기능은 다음 단계에서 연결됩니다.");
+    }
+
+    document.addEventListener("click", (event) => {
+      const resumeButton = event.target.closest("[data-resume-project]");
+      if (resumeButton) {
+        resumeProject(resumeButton.dataset.resumeProject);
+        return;
+      }
+      const actionButton = event.target.closest("[data-project-action]");
+      if (actionButton) handleProjectAction(actionButton.dataset.projectAction, actionButton.dataset.projectId);
+    });
+
+    projectModal.addEventListener("click", (event) => {
+      if (event.target === projectModal) projectManager.closeModal();
+    });
+
+    /* =========================================================
+       Writer Steps
+       ========================================================= */
+    let currentStep = 1;
+    const maxStep = 7;
+    const stepPanels = document.querySelectorAll("[data-step]");
+    const stepDots = document.querySelectorAll("[data-step-target]");
+    const nextButtons = document.querySelectorAll("[data-next-step]");
+    const prevButtons = document.querySelectorAll("[data-prev-step]");
+    const categoryButtons = document.querySelectorAll("[data-category]");
+    const firstNextButton = document.querySelector('[data-step="1"] [data-next-step]');
+    const writer = document.querySelector("#writer");
+    const stepProgressValues = [0, 16, 32, 48, 64, 82, 100];
+
+    function showStep(step) {
+      currentStep = Math.min(Math.max(step, 1), maxStep);
+
+      stepPanels.forEach((panel) => {
+        panel.classList.toggle("is-active", Number(panel.dataset.step) === currentStep);
+      });
+
+      stepDots.forEach((dot) => {
+        dot.classList.toggle("is-active", Number(dot.dataset.stepTarget) === currentStep);
+      });
+
+      projectManager.update((project) => {
+        project.progress = stepProgressValues[currentStep - 1];
+        project.metadata.lastStep = currentStep;
+      }, "자동 저장됨");
+
+      if (currentStep === 4) photoManager.renderMemo(projectManager.getActive()?.photos || []);
+      if (currentStep === 5) questionManager.render();
+      if (currentStep === 6 && !latestPrompt && typeof renderPromptPlaceholder === "function") renderPromptPlaceholder();
+      if (currentStep === 7 && typeof renderGeneratedResult === "function") renderGeneratedResult();
+    }
+
+    stepDots.forEach((dot) => {
+      dot.addEventListener("click", () => showStep(Number(dot.dataset.stepTarget)));
+    });
+
+    nextButtons.forEach((button) => {
+      button.addEventListener("click", () => showStep(currentStep + 1));
+    });
+
+    prevButtons.forEach((button) => {
+      button.addEventListener("click", () => showStep(currentStep - 1));
+    });
+
+    categoryButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        categoryButtons.forEach((item) => item.classList.remove("is-selected"));
+        button.classList.add("is-selected");
+        firstNextButton.disabled = false;
+        projectManager.update((project) => {
+          project.category = getCategoryLabel(button.dataset.category);
+          project.answers = [];
+        }, "카테고리 저장됨");
+        if (typeof photoManager !== "undefined") photoManager.syncTypesForCategory();
+        questionManager.render(0);
+      });
+    });
+
+    /* =========================================================
+       Photo Manager
+       ========================================================= */
+    const photoManager = (() => {
+      const dropZone = document.querySelector("[data-photo-drop-zone]");
+      const fileInput = document.querySelector("[data-photo-input]");
+      const addButton = document.querySelector("[data-photo-add]");
+      const photoList = document.querySelector("[data-photo-list]");
+      const photoCount = document.querySelector("[data-photo-count]");
+      const emptyState = document.querySelector("[data-photo-empty]");
+      const memoList = document.querySelector("[data-photo-memo-list]");
+      const memoEmptyState = document.querySelector("[data-photo-memo-empty]");
+      const recommendOrderButton = document.querySelector("[data-photo-recommend-order]");
+      const analyzeAllButtons = document.querySelectorAll("[data-photo-analyze-all]");
+      const analyzeSelectedButtons = document.querySelectorAll("[data-photo-analyze-selected]");
+      const reanalyzeButtons = document.querySelectorAll("[data-photo-reanalyze]");
+      const analysisSummary = document.querySelector("[data-photo-analysis-summary]");
+      const photoTypeMap = {
+        travel: ["대표사진 / 도입", "가는길", "교통", "외관 / 입구", "주요장소", "풍경", "디테일", "포토존", "음식 / 카페", "기념품", "노을 / 야경", "마무리", "기타"],
+        restaurant: ["대표사진 / 도입", "외관", "입구", "내부", "좌석", "메뉴판", "주문메뉴", "음식 전체샷", "음식 상세샷", "사이드 / 디저트", "영수증 / 안내", "마무리", "기타"],
+        cafe: ["대표사진 / 도입", "외관", "입구", "내부", "좌석", "메뉴판", "음료", "디저트", "음료 / 디저트 전체샷", "포토존", "작업 / 공부 공간", "야외석", "마무리", "기타"],
+        stay: ["대표사진 / 도입", "외관", "로비", "체크인", "복도", "객실 전체", "침대", "테이블 / 수납", "욕실", "어메니티", "뷰", "조식", "부대시설", "주차", "마무리", "기타"],
+        experience: ["대표사진 / 도입", "외관", "입구", "내부", "체험공간", "자리 / 세팅", "준비물", "재료", "설명 / 안내", "진행과정", "중간결과", "완성결과", "패키지 / 포장", "포토존", "인증샷", "마무리", "기타"],
+        tip: ["대표사진 / 도입", "세일 배너", "브랜드 화면", "제품 목록", "제품 상세", "가격 / 할인", "쿠폰 / 혜택", "구매 화면", "링크 안내", "비교 화면", "마무리", "기타"],
+        daily: ["대표사진 / 도입", "하루 시작", "이동", "음식", "카페", "산책", "작업", "운동", "쇼핑", "사람 / 약속", "집", "감정 기록", "마무리", "기타"]
+      };
+      let draggedPhotoId = "";
+
+      function sortedPhotos(photos = []) {
+        return [...photos].sort((a, b) => Number(a.sortOrder) - Number(b.sortOrder));
+      }
+
+      function getPhotoTypes(category = projectManager.getActive()?.category) {
+        return photoTypeMap[getCategoryKey(category)] || photoTypeMap.travel;
+      }
+
+      function getFallbackPhotoType(category) {
+        const types = getPhotoTypes(category);
+        return types.includes("기타") ? "기타" : types[0];
+      }
+
+      function getValidPhotoType(type, category) {
+        const types = getPhotoTypes(category);
+        if (types.includes(type)) return type;
+        return getFallbackPhotoType(category);
+      }
+
+      function normalizePhotos(photos) {
+        const category = projectManager.getActive()?.category;
+        const ordered = sortedPhotos(photos).map((photo, index) => ({
+          id: photo.id,
+          fileName: photo.fileName,
+          previewUrl: photo.previewUrl,
+          sortOrder: index,
+          type: getValidPhotoType(photo.type, category),
+          memo: photo.memo || "",
+          isRepresentative: Boolean(photo.isRepresentative),
+          analysisText: photo.analysisText || "",
+          analysisStatus: ["none", "analyzing", "done", "error"].includes(photo.analysisStatus) ? photo.analysisStatus : "none",
+          analysisError: photo.analysisError || "",
+          analysisUsage: photo.analysisUsage || null,
+          analyzedAt: photo.analyzedAt || ""
+        }));
+        if (ordered.length && !ordered.some((photo) => photo.isRepresentative)) ordered[0].isRepresentative = true;
+        return ordered.map((photo, index) => ({ ...photo, isRepresentative: photo.isRepresentative && ordered.findIndex((item) => item.isRepresentative) === index }));
+      }
+
+      function savePhotos(photos, message = "사진 자동 저장됨") {
+        const normalized = normalizePhotos(photos);
+        projectManager.update((project) => { project.photos = normalized; }, message);
+        const savedPhotos = projectManager.getActive()?.photos || normalized;
+        render(savedPhotos);
+        renderMemo(savedPhotos);
+      }
+
+      function createPhoto(file, sortOrder, shouldRepresent, previewUrl = "") {
+        return {
+          id: `photo-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          fileName: file.name,
+          previewUrl,
+          sortOrder,
+          type: getFallbackPhotoType(),
+          memo: "",
+          isRepresentative: shouldRepresent,
+          analysisText: "",
+          analysisStatus: "none",
+          analysisError: "",
+          analysisUsage: null,
+          analyzedAt: ""
+        };
+      }
+
+      async function addFiles(files) {
+        const activeProject = projectManager.getActive();
+        if (!activeProject) {
+          projectManager.showToast("먼저 프로젝트를 선택해주세요.");
+          return;
+        }
+        const imageFiles = Array.from(files).filter((file) => file.type.startsWith("image/"));
+        if (!imageFiles.length) {
+          projectManager.showToast("이미지 파일만 업로드할 수 있습니다.");
+          return;
+        }
+        const currentPhotos = sortedPhotos(activeProject.photos);
+        const hasRepresentative = currentPhotos.some((photo) => photo.isRepresentative);
+        const nextPhotos = [];
+        for (let index = 0; index < imageFiles.length; index += 1) {
+          const file = imageFiles[index];
+          let previewUrl = "";
+          try {
+            previewUrl = file.size <= 900 * 1024 ? await liriFileToDataUrl(file) : await liriFileToCompressedDataUrl(file);
+          } catch (error) {
+            previewUrl = "";
+          }
+          nextPhotos.push(createPhoto(file, currentPhotos.length + index, !hasRepresentative && index === 0, previewUrl));
+        }
+        savePhotos([...currentPhotos, ...nextPhotos], "사진이 저장되었습니다.");
+      }
+
+      function photoTypeOptions(selectedType) {
+        const validType = getValidPhotoType(selectedType);
+        return getPhotoTypes().map((type) => `<option value="${projectManager.escapeHtml(type)}"${type === validType ? " selected" : ""}>${projectManager.escapeHtml(type)}</option>`).join("");
+      }
+
+      function photoPreviewMarkup(photo, index) {
+        if (photo.previewUrl && !liriIsInvalidPreviewUrl(photo.previewUrl)) {
+          return `<img src="${projectManager.escapeHtml(photo.previewUrl)}" alt="${projectManager.escapeHtml(photo.fileName)}" onerror="this.parentElement.textContent='미리보기 만료';">`;
+        }
+        return `사진 ${index + 1}`;
+      }
+
+      function analysisStatusLabel(status) {
+        const labels = { none: "미분석", analyzing: "분석중", done: "분석완료", error: "오류" };
+        return labels[status] || labels.none;
+      }
+
+      function analysisMarkup(photo) {
+        const status = photo.analysisStatus || "none";
+        const text = photo.analysisText || (status === "error" ? photo.analysisError : "");
+        return `<div class="photo-analysis-box"><span class="analysis-status is-${projectManager.escapeHtml(status)}">${projectManager.escapeHtml(analysisStatusLabel(status))}</span><strong>AI 분석 결과</strong><span>${projectManager.escapeHtml(text || "분석 없음")}</span>${photo.analysisUsage?.total_tokens ? `<span class="muted">총 토큰 ${projectManager.escapeHtml(String(photo.analysisUsage.total_tokens))}</span>` : ""}</div>`;
+      }
+
+      function renderAnalysisSummary(photos = []) {
+        if (!analysisSummary) return;
+        const analyzed = photos.filter((photo) => photo.analysisStatus === "done").length;
+        const errors = photos.filter((photo) => photo.analysisStatus === "error").length;
+        const totalTokens = photos.reduce((sum, photo) => sum + (Number(photo.analysisUsage?.total_tokens) || 0), 0);
+        analysisSummary.hidden = !(analyzed || errors || totalTokens);
+        analysisSummary.innerHTML = `<strong>사진 분석 요약</strong><span>분석완료 ${analyzed}장 · 오류 ${errors}장${totalTokens ? ` · 총 토큰 ${totalTokens.toLocaleString("ko-KR")}` : ""}</span>`;
+      }
+
+      function render(photos = []) {
+        const ordered = normalizePhotos(photos);
+        photoCount.textContent = `총 ${ordered.length}장`;
+        emptyState.hidden = ordered.length > 0;
+        photoList.hidden = ordered.length === 0;
+        photoList.innerHTML = ordered.map((photo, index) => `
+          <article class="photo-card" draggable="true" data-photo-id="${projectManager.escapeHtml(photo.id)}">
+            <div class="photo-thumb">${photoPreviewMarkup(photo, index)}</div>
+            <div class="photo-body">
+              <div class="photo-title"><span>${projectManager.escapeHtml(photo.fileName)}</span><span class="muted">#${index + 1}</span></div>
+              <div class="photo-ai-row"><span class="photo-current-type">${projectManager.escapeHtml(photo.type)}</span><span class="photo-recommended">${projectManager.escapeHtml(getCategoryLabel(projectManager.getActive()?.category))}</span></div>
+              ${analysisMarkup(photo)}
+              <div class="photo-field">
+                <label for="photo-type-${projectManager.escapeHtml(photo.id)}">사진 종류</label>
+                <select class="photo-select" id="photo-type-${projectManager.escapeHtml(photo.id)}" data-photo-type="${projectManager.escapeHtml(photo.id)}" aria-label="사진 종류 변경">${photoTypeOptions(photo.type)}</select>
+              </div>
+              <div class="photo-actions">
+                <button class="mini-button" type="button" data-photo-representative="${projectManager.escapeHtml(photo.id)}">${photo.isRepresentative ? "대표사진" : "대표 선택"}</button>
+                <button class="mini-button" type="button" data-photo-delete="${projectManager.escapeHtml(photo.id)}">삭제</button>
+                <button class="mini-button" type="button" title="드래그해서 이동">순서</button>
+              </div>
+            </div>
+          </article>
+        `).join("");
+        renderAnalysisSummary(ordered);
+      }
+
+      function getFlowBadge(index, total) {
+        if (index === 0) return "도입";
+        if (index === total - 1) return "마무리";
+        return "본문";
+      }
+
+      function renderMemo(photos = []) {
+        const ordered = normalizePhotos(photos);
+        memoEmptyState.hidden = ordered.length > 0;
+        memoList.hidden = ordered.length === 0;
+        memoList.innerHTML = ordered.map((photo, index) => `
+          <article class="photo-card" data-photo-memo-card="${projectManager.escapeHtml(photo.id)}">
+            <div class="photo-thumb">${photoPreviewMarkup(photo, index)}</div>
+            <div class="photo-body">
+              <div class="photo-title"><span>${projectManager.escapeHtml(photo.fileName)}</span><span class="photo-recommended">${getFlowBadge(index, ordered.length)}</span></div>
+              <div class="photo-field">
+                <label for="memo-photo-type-${projectManager.escapeHtml(photo.id)}">사진 종류</label>
+                <select class="photo-select" id="memo-photo-type-${projectManager.escapeHtml(photo.id)}" data-photo-memo-type="${projectManager.escapeHtml(photo.id)}" aria-label="사진 종류 변경">${photoTypeOptions(photo.type)}</select>
+              </div>
+              <div class="photo-memo-field">
+                <label for="photo-memo-${projectManager.escapeHtml(photo.id)}">사진 메모</label>
+                <textarea class="textarea" id="photo-memo-${projectManager.escapeHtml(photo.id)}" rows="3" maxlength="180" data-photo-memo="${projectManager.escapeHtml(photo.id)}" placeholder="이 사진에서 꼭 남기고 싶은 한 줄을 적어주세요.">${projectManager.escapeHtml(photo.memo)}</textarea>
+              </div>
+              ${analysisMarkup(photo)}
+            </div>
+          </article>
+        `).join("");
+      }
+
+      function removePhoto(photoId) {
+        const photos = sortedPhotos(projectManager.getActive()?.photos || []).filter((photo) => photo.id !== photoId);
+        savePhotos(photos, "사진이 삭제되었습니다.");
+      }
+
+      function setRepresentative(photoId) {
+        const photos = sortedPhotos(projectManager.getActive()?.photos || []).map((photo) => ({ ...photo, isRepresentative: photo.id === photoId }));
+        savePhotos(photos, "대표사진이 저장되었습니다.");
+      }
+
+      function updateType(photoId, type) {
+        const photos = sortedPhotos(projectManager.getActive()?.photos || []).map((photo) => photo.id === photoId ? { ...photo, type: getValidPhotoType(type) } : photo);
+        savePhotos(photos, "사진 종류가 저장되었습니다.");
+      }
+
+      function syncTypesForCategory() {
+        const photos = sortedPhotos(projectManager.getActive()?.photos || []);
+        if (!photos.length) return;
+        savePhotos(photos.map((photo) => ({ ...photo, type: getValidPhotoType(photo.type) })), "카테고리별 사진 종류가 적용되었습니다.");
+      }
+
+      function getValidPhotoTypeForPrompt(type, category) {
+        return getValidPhotoType(type, category);
+      }
+
+      function reorderPhotos(targetPhotoId) {
+        if (!draggedPhotoId || draggedPhotoId === targetPhotoId) return;
+        const photos = sortedPhotos(projectManager.getActive()?.photos || []);
+        const fromIndex = photos.findIndex((photo) => photo.id === draggedPhotoId);
+        const toIndex = photos.findIndex((photo) => photo.id === targetPhotoId);
+        if (fromIndex < 0 || toIndex < 0) return;
+        const [movedPhoto] = photos.splice(fromIndex, 1);
+        photos.splice(toIndex, 0, movedPhoto);
+        savePhotos(photos, "사진 순서가 저장되었습니다.");
+      }
+
+      function setPhotoAnalysisState(photoId, patch, message = "사진 분석 상태 저장됨") {
+        const photos = sortedPhotos(projectManager.getActive()?.photos || []).map((photo) => (
+          photo.id === photoId ? { ...photo, ...patch } : photo
+        ));
+        projectManager.update((project) => { project.photos = normalizePhotos(photos); }, message);
+        const savedPhotos = projectManager.getActive()?.photos || photos;
+        render(savedPhotos);
+        renderMemo(savedPhotos);
+      }
+
+      function getPhotosForAnalysis(mode, force = false) {
+        const photos = sortedPhotos(projectManager.getActive()?.photos || []);
+        const scoped = mode === "selected" ? photos.filter((photo, index) => photo.isRepresentative || index === 0) : photos;
+        return force ? scoped : scoped.filter((photo) => photo.analysisStatus !== "done");
+      }
+
+      async function analyzePhotos(mode = "all", force = false) {
+        const project = projectManager.getActive();
+        if (!project) return;
+        const photos = getPhotosForAnalysis(mode, force);
+        if (!photos.length) {
+          projectManager.showToast(force ? "분석할 사진이 없습니다." : "이미 분석된 사진은 건너뛰었습니다.");
+          return;
+        }
+        if (!force && mode === "all") {
+          const ok = confirm("사진 분석은 OpenAI API 크레딧을 사용합니다. 업로드된 전체 사진을 분석할까요?");
+          if (!ok) return;
+        }
+        let totalTokens = 0;
+        let doneCount = 0;
+        let errorCount = 0;
+        for (const photo of photos) {
+          setPhotoAnalysisState(photo.id, { analysisStatus: "analyzing", analysisError: "" }, "사진 분석중");
+          try {
+            const result = await liriAnalyzePhotoWithVision({ ...photo, analysisStatus: "analyzing" }, project);
+            totalTokens += Number(result.usage?.total_tokens) || 0;
+            doneCount += 1;
+            setPhotoAnalysisState(photo.id, { analysisText: result.analysisText, analysisStatus: "done", analysisError: "", analysisUsage: result.usage, analyzedAt: result.analyzedAt }, "사진 분석 완료");
+          } catch (error) {
+            errorCount += 1;
+            setPhotoAnalysisState(photo.id, { analysisStatus: "error", analysisError: error instanceof Error ? error.message : "사진 분석 중 오류가 발생했습니다." }, "사진 분석 오류");
+          }
+        }
+        projectManager.showToast(`사진 분석 완료 ${doneCount}장 · 오류 ${errorCount}장${totalTokens ? ` · 총 토큰 ${totalTokens.toLocaleString("ko-KR")}` : ""}`);
+      }
+
+      addButton.addEventListener("click", () => fileInput.click());
+      fileInput.addEventListener("change", () => {
+        addFiles(fileInput.files);
+        fileInput.value = "";
+      });
+
+      ["dragenter", "dragover"].forEach((eventName) => {
+        dropZone.addEventListener(eventName, (event) => {
+          event.preventDefault();
+          dropZone.classList.add("is-dragging");
+        });
+      });
+
+      ["dragleave", "drop"].forEach((eventName) => {
+        dropZone.addEventListener(eventName, () => dropZone.classList.remove("is-dragging"));
+      });
+
+      dropZone.addEventListener("drop", (event) => {
+        event.preventDefault();
+        addFiles(event.dataTransfer.files);
+      });
+
+      photoList.addEventListener("click", (event) => {
+        const deleteButton = event.target.closest("[data-photo-delete]");
+        const representativeButton = event.target.closest("[data-photo-representative]");
+        if (deleteButton) removePhoto(deleteButton.dataset.photoDelete);
+        if (representativeButton) setRepresentative(representativeButton.dataset.photoRepresentative);
+      });
+
+      photoList.addEventListener("change", (event) => {
+        const typeSelect = event.target.closest("[data-photo-type]");
+        if (typeSelect) updateType(typeSelect.dataset.photoType, typeSelect.value);
+      });
+
+      photoList.addEventListener("dragstart", (event) => {
+        const card = event.target.closest("[data-photo-id]");
+        if (!card) return;
+        draggedPhotoId = card.dataset.photoId;
+        card.classList.add("is-dragging");
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/plain", draggedPhotoId);
+      });
+
+      photoList.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        const card = event.target.closest("[data-photo-id]");
+        photoList.querySelectorAll(".photo-card").forEach((item) => item.classList.remove("is-drop-target"));
+        if (card && card.dataset.photoId !== draggedPhotoId) card.classList.add("is-drop-target");
+      });
+
+      photoList.addEventListener("drop", (event) => {
+        event.preventDefault();
+        const card = event.target.closest("[data-photo-id]");
+        if (card) reorderPhotos(card.dataset.photoId);
+      });
+
+      photoList.addEventListener("dragend", () => {
+        draggedPhotoId = "";
+        photoList.querySelectorAll(".photo-card").forEach((item) => item.classList.remove("is-dragging", "is-drop-target"));
+      });
+
+      memoList.addEventListener("input", (event) => {
+        const memoInput = event.target.closest("[data-photo-memo]");
+        if (!memoInput) return;
+        const photos = sortedPhotos(projectManager.getActive()?.photos || []).map((photo) => (
+          photo.id === memoInput.dataset.photoMemo ? { ...photo, memo: memoInput.value } : photo
+        ));
+        projectManager.update((project) => { project.photos = normalizePhotos(photos); }, "사진 메모 자동 저장됨");
+      });
+
+      memoList.addEventListener("change", (event) => {
+        const typeSelect = event.target.closest("[data-photo-memo-type]");
+        if (typeSelect) updateType(typeSelect.dataset.photoMemoType, typeSelect.value);
+      });
+
+      recommendOrderButton.addEventListener("click", () => {
+        projectManager.showToast("박리리 추천 순서 적용은 다음 단계에서 연결됩니다.");
+      });
+
+      analyzeAllButtons.forEach((button) => {
+        button.addEventListener("click", () => analyzePhotos("all", false));
+      });
+
+      analyzeSelectedButtons.forEach((button) => {
+        button.addEventListener("click", () => analyzePhotos("selected", false));
+      });
+
+      reanalyzeButtons.forEach((button) => {
+        button.addEventListener("click", () => analyzePhotos("all", true));
+      });
+
+      render([]);
+      renderMemo([]);
+      return { addFiles, getValidPhotoTypeForPrompt, render, renderMemo, syncTypesForCategory };
+    })();
+
+    /* =========================================================
+       Place Lookup Preview
+       ========================================================= */
+    const placeSearchButton = document.querySelector("[data-place-search]");
+    const placeSearchInput = document.querySelector("#place-search");
+    const lookupState = document.querySelector("[data-lookup-state]");
+    const placeResult = document.querySelector("[data-place-result]");
+
+    function setLookupState(message, isLoading = false) {
+      lookupState.querySelector("span:last-child").textContent = message;
+      lookupState.classList.toggle("is-loading", isLoading);
+    }
+
+    function mockPlaceSearch(query) {
+      return new Promise((resolve, reject) => {
+        window.setTimeout(() => {
+          const normalizedQuery = query.toLowerCase();
+          if (normalizedQuery.includes("없는") || normalizedQuery.includes("실패") || normalizedQuery.includes("not found")) {
+            reject(new Error("PLACE_NOT_FOUND"));
+            return;
+          }
+
+          if (normalizedQuery.includes("미야지다케") || normalizedQuery.includes("후쿠오카")) {
+            resolve({ name: "후쿠오카 미야지다케 신사", address: "후쿠오카현 후쿠츠시 미야지모토모토마치 7-1", phone: "+81-940-52-0018", website: "공식 안내 페이지 확인 예정", openingHours: "06:00 - 18:00", keywords: ["후쿠오카 여행", "신사", "미야지다케"], description: "바다와 산을 함께 바라볼 수 있는 후쿠오카의 대표적인 여행지입니다.", mapImage: "mock-map-fukuoka", category: "여행" });
+            return;
+          }
+
+          if (normalizedQuery.includes("어니언")) {
+            resolve({ name: "성수 어니언", address: "서울 성동구 아차산로9길 8", phone: "02-1234-5678", website: "공식 채널 확인 예정", openingHours: "매일 08:00 - 22:00", keywords: ["성수 카페", "베이커리"], description: "오래된 공장 건물의 결을 살린 공간에서 베이커리와 커피를 즐길 수 있는 성수동 카페입니다.", mapImage: "mock-map-seongsu", category: "카페" });
+            return;
+          }
+
+          resolve({ name: query, address: "Mock Data Provider가 준비한 주소입니다.", phone: "02-0000-0000", website: "공식 홈페이지 확인 예정", openingHours: "매일 10:00 - 20:00", keywords: ["장소 추천", "방문 후기"], description: "입력한 장소를 바탕으로 향후 API가 채워갈 대표 설명입니다.", mapImage: "mock-map-default", category: "장소" });
+        }, 520);
+      });
+    }
+
+    function renderPlaceResult(placeInfo) {
+      const keywords = Array.isArray(placeInfo.keywords) ? placeInfo.keywords.join(" · ") : "";
+      placeResult.innerHTML = `<div class="place-result-head"><div><h3>${projectManager.escapeHtml(placeInfo.name)}</h3><p class="ai-note">Mock Data Provider가 장소 정보를 준비했어요.</p></div><span class="ai-badge">검색 성공</span></div><div class="place-info-grid"><div class="info-card"><small>주소</small><p>${projectManager.escapeHtml(placeInfo.address)}</p></div><div class="info-card"><small>전화번호</small><p>${projectManager.escapeHtml(placeInfo.phone)}</p></div><div class="info-card"><small>운영시간</small><p>${projectManager.escapeHtml(placeInfo.openingHours)}</p></div><div class="info-card"><small>홈페이지</small><p>${projectManager.escapeHtml(placeInfo.website)}</p></div><div class="info-card"><small>대표 키워드</small><p>${projectManager.escapeHtml(keywords)}</p></div><div class="info-card"><small>카테고리</small><p>${projectManager.escapeHtml(placeInfo.category)}</p></div></div><div class="info-card"><small>대표 설명</small><p>${projectManager.escapeHtml(placeInfo.description)}</p></div><div class="map-preview"><svg class="icon" viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>${projectManager.escapeHtml(placeInfo.mapImage)} · 지도 미리보기</div><div class="step-actions" style="margin-top:0;"><button class="secondary-button" type="button" data-place-edit>수정</button><button class="primary-button" type="button" data-place-confirm>확인</button></div>`;
+      placeResult.hidden = false;
+      placeResult.querySelector("[data-place-confirm]").addEventListener("click", () => setLookupState("장소 정보가 프로젝트에 저장되었습니다. 다음 단계로 이동해주세요."));
+      placeResult.querySelector("[data-place-edit]").addEventListener("click", () => { placeSearchInput.focus(); placeSearchInput.select(); });
+    }
+
+    async function handlePlaceSearch() {
+      const query = placeSearchInput.value.trim();
+      placeResult.hidden = true;
+      placeError.hidden = true;
+      if (!query) {
+        placeSearchInput.focus();
+        setLookupState("장소명 또는 네이버지도 URL을 입력해주세요.");
+        placeError.hidden = false;
+        return;
+      }
+
+      placeSearchButton.disabled = true;
+      placeSearchInput.disabled = true;
+      setLookupState("장소 정보를 검색하는 중...", true);
+      try {
+        const placeInfo = await mockPlaceSearch(query);
+        projectManager.update((project) => { project.placeInfo = placeInfo; }, "장소 정보 자동 저장됨");
+        renderPlaceResult(placeInfo);
+        setLookupState("장소 정보를 찾았습니다. 확인하거나 수정할 수 있습니다.");
+      } catch (error) {
+        setLookupState("검색에 실패했습니다. 다시 검색해주세요.");
+        placeError.hidden = false;
+      } finally {
+        placeSearchButton.disabled = false;
+        placeSearchInput.disabled = false;
+      }
+    }
+
+    const placeError = document.querySelector("[data-place-error]");
+    placeSearchButton.addEventListener("click", handlePlaceSearch);
+
+    /* =========================================================
+       Category Question System
+       ========================================================= */
+    const questionText = document.querySelector("[data-question-text]");
+    const questionCount = document.querySelector("[data-question-count]");
+    const questionEyebrow = document.querySelector("[data-question-flow] .eyebrow");
+    const questionList = document.querySelector("[data-question-list]");
+    const questionInput = document.querySelector(".question-input");
+    const questionPrevButton = document.querySelector("[data-question-prev]");
+    const questionNextButton = document.querySelector("[data-question-next]");
+    const questionData = {
+      default: ["왜 방문했나요?", "가장 좋았던 점은?", "누구에게 추천하고 싶나요?"]
+    };
+
+    const questionManager = (() => {
+      const state = { currentQuestion: 0 };
+
+      function getQuestionsForActiveProject() {
+        return questionData.default;
+      }
+
+      function findAnswer(project, question) {
+        return project?.answers.find((item) => item.question === question)?.answer || "";
+      }
+
+      function render(index = state.currentQuestion) {
+        const project = projectManager.getActive();
+        const questions = getQuestionsForActiveProject();
+        state.currentQuestion = Math.min(Math.max(index, 0), questions.length - 1);
+        const current = questions[state.currentQuestion];
+        questionEyebrow.textContent = `QUESTION ${String(state.currentQuestion + 1).padStart(2, "0")}`;
+        questionText.textContent = current;
+        questionCount.textContent = `Q${state.currentQuestion + 1} / ${questions.length}`;
+        questionInput.value = findAnswer(project, current);
+        questionInput.placeholder = state.currentQuestion === questions.length - 1 ? "예: 네, 다시 방문하고 싶어요." : "짧게 답해주세요.";
+        questionPrevButton.disabled = state.currentQuestion === 0;
+        questionNextButton.disabled = state.currentQuestion === questions.length - 1;
+        questionList.innerHTML = questions.map((question, index) => `<span class="${index === state.currentQuestion ? "is-selected" : ""}">Q${index + 1} ${projectManager.escapeHtml(question)}</span>`).join("");
+      }
+
+      function saveCurrentAnswer() {
+        const questions = getQuestionsForActiveProject();
+        const question = questions[state.currentQuestion];
+        projectManager.update((project) => {
+          const existingIndex = project.answers.findIndex((item) => item.question === question);
+          const answer = { question, answer: questionInput.value };
+          if (existingIndex >= 0) {
+            project.answers[existingIndex] = answer;
+          } else {
+            project.answers.push(answer);
+          }
+        }, "답변 자동 저장됨");
+      }
+
+      function move(direction) {
+        saveCurrentAnswer();
+        render(state.currentQuestion + direction);
+        questionInput.focus();
+      }
+
+      questionInput.addEventListener("input", saveCurrentAnswer);
+      questionPrevButton.addEventListener("click", () => move(-1));
+      questionNextButton.addEventListener("click", () => move(1));
+
+      return { render };
+    })();
+
+    document.querySelectorAll("[data-ai-option]").forEach((option) => {
+      option.addEventListener("change", () => {
+        projectManager.update((project) => { project.aiOptions[option.dataset.aiOption] = option.checked; }, "AI 옵션 저장됨");
+      });
+    });
+
+    /* =========================================================
+       AI Prompt Builder
+       ========================================================= */
+    const generatePostButton = document.querySelector("[data-generate-post]");
+    const copyPromptButton = document.querySelector("[data-copy-prompt]");
+    const previewBox = document.querySelector("[data-preview-box]");
+    const promptStats = document.querySelector("[data-prompt-stats]");
+    const engineStatus = document.querySelector("[data-engine-status]");
+    const promptWarnings = document.querySelector("[data-prompt-warnings]");
+    const promptTestButtons = document.querySelectorAll("[data-prompt-test-category]");
+    const copyMessage = document.querySelector("[data-copy-message]");
+    let latestPrompt = "";
+    let promptTestCategory = "";
+
+    function formatPromptValue(value, fallback = "미입력") {
+      if (Array.isArray(value)) return value.length ? value.join(", ") : fallback;
+      return value || fallback;
+    }
+
+    function getPromptPhotoRole(index, total, photo) {
+      if (photo.isRepresentative || index === 0) return "대표사진 / 도입";
+      if (index === total - 1) return "마무리";
+      return "본문";
+    }
+
+    function getEnabledAiOptions(aiOptions) {
+      const optionLabels = {
+        style: "박리리 블로그 스타일",
+        seo: "SEO 강화",
+        emotional: "감성 강화",
+        informative: "정보 강화",
+        titleRecommend: "제목 추천",
+        tagRecommend: "태그 추천",
+        lineBreak: "줄바꿈 유지",
+        emoji: "이모지 자동"
+      };
+      return Object.entries(optionLabels)
+        .filter(([key]) => aiOptions[key] !== false)
+        .map(([, label]) => label);
+    }
+
+    function promptDivider(title) {
+      return `\n\n============================================================\n${title}\n============================================================\n`;
+    }
+
+
+    const LIRI_FUNCTION_NAME = "generate-liri-blog";
+    const LIRI_COMPRESSED_COMMON_RULES = "[공통 작성 규칙]\n- 박리리의 네이버 블로그 글처럼 자연스럽고 깔끔한 후기체로 작성한다.\n- 정보 전달은 정확하게, 후기 문장은 부드럽게 쓴다.\n- 사용자가 입력한 사실, 장소정보, 사진 메모, 질문 답변을 우선한다.\n- 없는 정보는 절대 지어내지 않는다.\n- 사진 순서에 맞춰 글 흐름을 구성한다.\n- 문단은 짧게 나누고 모바일에서 읽기 좋게 작성한다.\n- 과장된 광고 문구를 피한다.\n- 너무 딱딱한 설명문처럼 쓰지 않는다.\n- 네이버 블로그에 바로 붙여넣을 수 있는 완성글로 작성한다.\n\n[박리리 말투 규칙]\n- 요즘 밈, 과한 유행어, 억지 리액션은 사용하지 않는다.\n- “성공각, 저장각, 못 참지, 모먼트, 갓벽, 도랏다, 미쳤다” 같은 표현은 기본적으로 쓰지 않는다.\n- 사용자가 직접 쓴 표현도 너무 과하면 자연스럽게 순화한다.\n- 글은 2030 블로그 후기처럼 자연스럽게 쓰되, 과하게 가볍지 않게 쓴다.\n- 정보 문단은 깔끔하고 정확하게 쓴다.\n- 후기 문단은 부드럽고 편안한 말투로 쓴다.\n- ㅎㅎ, ㅋㅋ는 자연스러운 곳에만 아주 소량 사용한다.\n- 이모지는 제목, 구분선, 포인트 문장에만 적당히 사용한다.\n- 사용자의 사진 메모 표현은 살리되, 블로그 문장으로 자연스럽게 다듬는다.\n- “했습니다/되었습니다” 위주의 딱딱한 문체는 피한다.\n- “좋더라구요, 느껴졌어요, 괜찮았어요, 추천드려요, 싶었어요”처럼 자연스러운 후기체를 사용한다.";
+    const LIRI_COMPRESSED_CATEGORY_RULES = {"travel":"[카테고리 작성 규칙: 여행]\n- 이동 동선, 가는 방법, 현장 분위기, 여행 팁을 중심으로 작성한다.\n- 여행 정보 60%, 감성 후기 40% 비율로 작성한다.\n- 교통, 소요시간, 입장료, 운영시간, 추천 시간대는 입력된 정보만 사용한다.\n- 사진 순서에 맞춰 이동 흐름과 방문 흐름을 자연스럽게 연결한다.","restaurant":"[카테고리 작성 규칙: 맛집]\n- 위치, 메뉴, 주문한 음식, 맛 표현, 가격, 웨이팅, 예약, 주차 정보를 중심으로 작성한다.\n- 음식 맛은 사용자가 입력한 표현을 바탕으로 구체적으로 작성한다.\n- 사진 순서에 따라 외관 → 내부 → 메뉴판 → 음식 → 총평 흐름을 만든다.\n- 과한 맛 표현은 피하고 실제 후기처럼 자연스럽게 쓴다.","cafe":"[카테고리 작성 규칙: 카페]\n- 공간 분위기, 좌석, 메뉴, 음료/디저트, 포토존, 작업/데이트 적합성을 중심으로 작성한다.\n- 감성은 살리되 정보도 놓치지 않는다.\n- 사진 순서에 따라 외관 → 내부 → 좌석 → 메뉴 → 음료/디저트 → 포토존 흐름을 만든다.","stay":"[카테고리 작성 규칙: 숙소]\n- 위치, 체크인, 객실, 침대, 욕실, 어메니티, 뷰, 조식, 주차, 장단점을 중심으로 작성한다.\n- 실제 숙박 후기로 보이도록 편안하지만 정확하게 작성한다.\n- 사진 순서에 따라 로비 → 객실 → 침대 → 욕실 → 부대시설 → 총평 흐름을 만든다.","experience":"[카테고리 작성 규칙: 체험]\n- 체험 전 분위기, 공간, 준비물, 설명/안내, 진행과정, 결과물, 포토존, 추천대상을 중심으로 작성한다.\n- 원데이클래스나 이색데이트 후기처럼 자연스럽게 쓴다.\n- 초보자 가능 여부, 난이도, 소요시간, 예약 팁은 입력된 정보만 사용한다.\n- 사진 순서에 따라 입구 → 공간 → 세팅 → 설명 → 진행 → 완성 → 포토존 흐름을 만든다.","daily":"[카테고리 작성 규칙: 일상]\n- 정보성 글보다 하루 기록과 감정을 중심으로 작성한다.\n- 사진 순서에 맞춰 하루 흐름을 자연스럽게 이어간다.\n- 너무 거창한 교훈이나 과한 감성 문장은 피한다.","tip":"[카테고리 작성 규칙: 알뜰살뜰TIP]\n- 좋은 정보 공유 목적의 글로 작성한다.\n- 제목은 [알뜰살뜰TIP] 형식에 맞춘다.\n- 할인 기간, 할인 내용, 구성, 구매 방법, 링크 영역을 깔끔하게 정리한다.\n- 직접 구매나 사용 경험이 없는 경우 체험한 것처럼 쓰지 않는다."};
+    function liriBuildCompressedCommonRules(){ return LIRI_COMPRESSED_COMMON_RULES; }
+    function liriBuildCompressedCategoryRules(category){ return LIRI_COMPRESSED_CATEGORY_RULES[getCategoryKey(category)] || LIRI_COMPRESSED_CATEGORY_RULES.travel; }
+    function liriEstimatePromptCostLevel(prompt){ const length = prompt.length; if(length < 6000) return "낮음"; if(length < 12000) return "보통"; if(length < 20000) return "높음"; return "매우 높음"; }
+
+    function getPromptProject(project, categoryOverride = "") {
+      return categoryOverride ? { ...project, category: getCategoryLabel(categoryOverride) } : project;
+    }
+
+    function buildPrompt(project) {
+      const place = project.placeInfo || {};
+      const photos = [...(project.photos || [])].sort((a, b) => Number(a.sortOrder) - Number(b.sortOrder));
+      const answers = project.answers || [];
+      const enabledOptions = getEnabledAiOptions(project.aiOptions || {});
+      const photoLines = photos.length ? photos.map((photo, index) => String(index + 1) + ". 타입: " + formatPromptValue(photoManager.getValidPhotoTypeForPrompt(photo.type, project.category), "기타") + "\n   사용자 메모: " + formatPromptValue(photo.memo, "입력 없음") + "\n   AI 사진 분석: " + formatPromptValue(photo.analysisText, "분석 없음")).join("\n") : "- 입력된 사진 없음";
+      const answerLines = answers.length ? answers.map((item) => "- " + formatPromptValue(item.question) + ": " + formatPromptValue(item.answer, "입력 없음")).join("\n") : "- 입력 없음";
+      return ["너는 네이버 블로그 글을 작성하는 박리리 전용 블로그 에디터다.", "", liriBuildCompressedCommonRules(), "", liriBuildCompressedCategoryRules(project.category), "", "[프로젝트 정보]\n- 프로젝트명: " + formatPromptValue(project.title, "입력 없음") + "\n- 카테고리: " + formatPromptValue(project.category, "입력 없음") + "\n- 상태: " + formatPromptValue(project.status, "입력 없음") + "\n- 진행률: " + formatPromptValue(String(project.progress || 0) + "%", "입력 없음") + "\n- 장소명: " + formatPromptValue(place.name, "입력 없음") + "\n- 주소: " + formatPromptValue(place.address, "입력 없음") + "\n- 운영시간: " + formatPromptValue(place.openingHours, "입력 없음") + "\n- 전화번호: " + formatPromptValue(place.phone, "입력 없음") + "\n- 홈페이지: " + formatPromptValue(place.website, "입력 없음") + "\n- 장소 카테고리: " + formatPromptValue(place.category, "입력 없음") + "\n- 대표 키워드: " + formatPromptValue(place.keywords, "입력 없음") + "\n- 대표 설명: " + formatPromptValue(place.description, "입력 없음") + "\n\n입력 없음으로 표시된 정보는 본문에서 확정 정보처럼 쓰지 마세요.", "", "[사진 순서 및 메모]\n" + photoLines + "\n\n사진 파일 자체는 제공되지 않습니다. 위 타입, 사용자 메모, AI 사진 분석을 함께 근거로 글 흐름을 구성하세요.", "", "[사용자 답변]\n" + answerLines, "", "[AI 옵션]\n" + (enabledOptions.length ? enabledOptions.map((option) => "- " + option).join("\n") : "- 선택된 옵션 없음"), "", "[최종 출력 형식]\n아래 순서로 네이버 블로그에 바로 붙여넣을 수 있는 글을 작성하세요.\n\n1. 제목 후보 3개\n2. 도입 문구\n3. 인사말\n4. 기본정보\n5. 본문\n   - 사진 순서에 따라 자연스럽게 작성\n   - 사진마다 번호를 직접 쓰지는 말 것\n6. 이용 팁 / 알뜰 팁\n7. 추천 대상\n8. 마무리\n9. SEO 태그 10~15개\n\n규칙:\n- 개발자 설명, 엔진 설명, 프롬프트 설명은 출력하지 않는다.\n- 사용자가 입력하지 않은 정보는 만들지 않는다.\n- 사진 메모와 AI 사진 분석을 단순 나열하지 말고 자연스러운 글로 풀어쓴다.\n- 너무 딱딱한 정보문이 아니라 실제 후기처럼 작성한다."].filter(Boolean).join("\n");
+    }
+
+    function hasPhotoMemo(project) {
+      return (project.photos || []).some((photo) => (photo.memo || "").trim());
+    }
+
+    function hasAnswers(project) {
+      return (project.answers || []).some((item) => (item.answer || "").trim());
+    }
+
+    function getEngineMeta(project) {
+      const common = window.LIRI_ENGINE?.getCommonEngine?.();
+      const category = window.LIRI_ENGINE?.getEngine?.(project.category);
+      return {
+        common,
+        category,
+        categoryType: category?.sections ? "Section-based" : "Legacy Simple"
+      };
+    }
+
+    function getPromptStats(prompt, project) {
+      const engineMeta = getEngineMeta(project);
+      const photos = project.photos || [];
+      return [["Prompt 길이", prompt.length.toLocaleString("ko-KR") + "자"], ["예상 비용 등급", liriEstimatePromptCostLevel(prompt)], ["포함된 사진 수", photos.length.toLocaleString("ko-KR") + "장"], ["메모 있는 사진 수", photos.filter((photo) => (photo.memo || "").trim()).length.toLocaleString("ko-KR") + "장"], ["AI 사진 분석", photos.filter((photo) => (photo.analysisText || "").trim()).length.toLocaleString("ko-KR") + "장"], ["선택 카테고리", formatPromptValue(project.category)], ["Common Rules", "압축 적용"], ["Category Rules", engineMeta.category ? "선택 카테고리 압축 적용" : "압축 기본값 적용"], ["전체 엔진 전문", "미포함"]];
+    }
+
+    function getPromptWarnings(project) {
+      const engineMeta = getEngineMeta(project);
+      const warnings = [];
+      if (!(project.title || "").trim()) warnings.push("프로젝트 제목이 없습니다. 제목 후보의 방향이 약해질 수 있습니다.");
+      if (!(project.category || "").trim()) warnings.push("카테고리가 없습니다. Category Engine을 정확히 선택하기 어렵습니다.");
+      if (!(project.photos || []).length) warnings.push("사진이 없습니다. 사진 흐름 기반 본문 구성이 약해질 수 있습니다.");
+      if (!hasPhotoMemo(project)) warnings.push("사진 메모가 없습니다. 사진별 설명이 약해질 수 있습니다.");
+      if (!hasAnswers(project)) warnings.push("사용자 답변이 없습니다. 실제 경험 표현이 부족할 수 있습니다.");
+      if (!engineMeta.common) warnings.push("Common Engine이 누락되었습니다. 박리리 공통 작성 기준이 반영되지 않습니다.");
+      if (!engineMeta.category) warnings.push("Category Engine이 누락되었습니다. 카테고리별 전문 규칙이 반영되지 않습니다.");
+      return warnings;
+    }
+
+    function renderPromptStats(prompt, project) {
+      promptStats.innerHTML = getPromptStats(prompt, project)
+        .map(([label, value]) => `<div class="prompt-stat"><span>${projectManager.escapeHtml(label)}</span><strong>${projectManager.escapeHtml(value)}</strong></div>`)
+        .join("");
+    }
+
+    function renderEngineStatus(project) {
+      const engineMeta = getEngineMeta(project);
+      const rows = [
+        ["Common Engine", engineMeta.common ? `${engineMeta.common.label} / v${engineMeta.common.version}` : "누락"],
+        ["Category Engine", engineMeta.category ? `${engineMeta.category.label} / v${engineMeta.category.version || "1.0"}` : "누락"],
+        ["Engine Type", engineMeta.category ? engineMeta.categoryType : "확인 필요"]
+      ];
+      engineStatus.innerHTML = rows
+        .map(([label, value]) => `<div class="engine-status-item"><span>${projectManager.escapeHtml(label)}</span><strong>${projectManager.escapeHtml(value)}</strong></div>`)
+        .join("");
+    }
+
+    function renderPromptWarnings(project) {
+      const warnings = getPromptWarnings(project);
+      promptWarnings.innerHTML = warnings.length
+        ? warnings.map((warning) => `<div class="prompt-warning">⚠ ${projectManager.escapeHtml(warning)}</div>`).join("")
+        : `<div class="prompt-warning is-clear">필수 검수 항목이 모두 준비되었습니다.</div>`;
+    }
+
+    function renderPromptTest(project, prompt) {
+      previewBox.textContent = prompt;
+      renderPromptStats(prompt, project);
+      renderEngineStatus(project);
+      renderPromptWarnings(project);
+      promptTestButtons.forEach((button) => {
+        button.classList.toggle("is-active", button.dataset.promptTestCategory === getCategoryKey(project.category));
+      });
+    }
+
+    function generatePromptPreview(categoryOverride = "") {
+      const activeProject = projectManager.getActive();
+      if (!activeProject) return;
+      const promptProject = getPromptProject(activeProject, categoryOverride);
+      latestPrompt = buildPrompt(promptProject);
+      renderPromptTest(promptProject, latestPrompt);
+      copyMessage.textContent = "";
+      projectManager.showToast(categoryOverride ? `${getCategoryLabel(categoryOverride)} 엔진으로 테스트 Prompt를 갱신했습니다.` : "Prompt가 생성되었습니다.");
+    }
+
+    function renderPromptPlaceholder() {
+      const project = projectManager.getActive();
+      if (!project) return;
+      const placeholder = "Prompt를 생성하면 Project 정보, 사진 정보, 사용자 답변, COMMON ENGINE, CATEGORY ENGINE 순서로 표시됩니다.";
+      renderPromptStats("", project);
+      renderEngineStatus(project);
+      renderPromptWarnings(project);
+      previewBox.textContent = placeholder;
+      promptTestButtons.forEach((button) => button.classList.remove("is-active"));
+    }
+
+    generatePostButton.addEventListener("click", () => {
+      promptTestCategory = "";
+      generatePromptPreview();
+    });
+
+    promptTestButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        promptTestCategory = button.dataset.promptTestCategory;
+        generatePromptPreview(promptTestCategory);
+      });
+    });
+
+    copyPromptButton.addEventListener("click", async () => {
+      const prompt = latestPrompt || previewBox.textContent.trim();
+      if (!prompt || prompt.startsWith("Prompt를 생성하면")) {
+        projectManager.showToast("먼저 Prompt를 생성해주세요.");
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(prompt);
+        copyMessage.textContent = "Prompt가 복사되었습니다.";
+        projectManager.showToast("Prompt가 복사되었습니다.");
+      } catch (error) {
+        const textarea = document.createElement("textarea");
+        textarea.value = prompt;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        textarea.remove();
+        copyMessage.textContent = "Prompt가 복사되었습니다.";
+        projectManager.showToast("Prompt가 복사되었습니다.");
+      }
+    });
+
+    /* =========================================================
+       Mock Blog Result Builder
+       ========================================================= */
+    const generateResultButton = document.querySelector("[data-generate-result]");
+    const regenerateResultButton = document.querySelector("[data-regenerate-result]");
+    const resultEditor = document.querySelector("[data-result-editor]");
+    const resultMeta = document.querySelector("[data-result-meta]");
+    const resultCopyMessage = document.querySelector("[data-result-copy-message]");
+    const copyResultButtons = document.querySelectorAll("[data-copy-result]");
+    const generationModeInputs = document.querySelectorAll("[data-generation-mode]");
+    const generationStatusBadge = document.querySelector("[data-generation-status]");
+    let latestResultParts = { titleCandidates: [], body: "", tags: [] };
+    let generationMode = "mock";
+    let generationStatus = "idle";
+    let generationError = "";
+
+    function getGenerationStatusLabel(status) {
+      const statusLabels = {
+        idle: "대기중",
+        generating: "생성중",
+        success: "생성 완료",
+        error: "오류 발생"
+      };
+      return statusLabels[status] || statusLabels.idle;
+    }
+
+    function setGenerationState(status, error = "") {
+      generationStatus = status;
+      generationError = error;
+      generationStatusBadge.textContent = error ? `${getGenerationStatusLabel(status)} · ${error}` : getGenerationStatusLabel(status);
+      generateResultButton.disabled = status === "generating";
+      regenerateResultButton.disabled = status === "generating";
+    }
+
+    function getAnswerText(project, keyword, fallback = "") {
+      const answer = (project.answers || []).find((item) => item.question.includes(keyword));
+      return answer?.answer?.trim() || fallback;
+    }
+
+    function getPlaceName(project) {
+      return project.placeInfo?.name || project.title || "이번 장소";
+    }
+
+    function getPhotoResultLines(project) {
+      const photos = [...(project.photos || [])].sort((a, b) => Number(a.sortOrder) - Number(b.sortOrder));
+      if (!photos.length) return "아직 사진이 없어 사진 순서별 본문은 생성 대기 상태입니다.";
+      return photos.map((photo, index) => {
+        const type = photoManager.getValidPhotoTypeForPrompt(photo.type, project.category);
+        const memo = photo.memo?.trim() || "이 사진에 대한 메모가 아직 없습니다.";
+        const analysis = photo.analysisText?.trim() || "분석 없음";
+        return `${index + 1}번째 사진: ${type}\n사용자 메모: ${memo}\nAI 사진 분석: ${analysis}`;
+      }).join("\n\n");
+    }
+
+    function getBasicInfoBlock(project, label = "기본정보") {
+      const place = project.placeInfo || {};
+      return `[${label}]
+장소명: ${formatPromptValue(place.name, getPlaceName(project))}
+주소: ${formatPromptValue(place.address)}
+운영시간: ${formatPromptValue(place.openingHours)}
+전화번호: ${formatPromptValue(place.phone)}
+홈페이지: ${formatPromptValue(place.website)}
+카테고리: ${formatPromptValue(place.category, project.category || "미입력")}`;
+    }
+
+    function buildTitleCandidates(project) {
+      const category = getCategoryKey(project.category);
+      const title = project.title || getPlaceName(project);
+      const place = getPlaceName(project);
+      const titleMap = {
+        travel: [`${title} 여행 코스로 남기고 싶은 기록`, `${place} 다녀온 후기와 사진 흐름`, `${project.category || "여행"} 추천 ${place} 방문 기록`],
+        restaurant: [`${title} 맛집 후기 메뉴와 분위기 정리`, `${place} 다녀온 솔직한 식사 기록`, `${project.category || "맛집"} 추천 ${place} 방문 후기`],
+        cafe: [`${title} 카페 분위기와 음료 후기`, `${place} 사진 찍기 좋았던 카페 기록`, `${project.category || "카페"} 추천 ${place} 다녀온 후기`],
+        stay: [`${title} 숙소 후기 객실과 위치 정리`, `${place} 체크인부터 객실까지 이용 기록`, `${project.category || "숙소"} 추천 ${place} 솔직 후기`],
+        experience: [`${title} 체험 후기 과정과 결과물 기록`, `${place} 원데이클래스 다녀온 후기`, `${project.category || "체험"} 추천 ${place} 이용 기록`],
+        tip: [`${title} 알뜰살뜰하게 정리한 TIP`, `${place} 혜택과 구매 포인트 정리`, `${project.category || "TIP"} 꼭 확인할 정보 모음`],
+        daily: [`${title} 일상 기록`, `별일 없지만 남겨두고 싶은 ${title}`, `${place}와 함께한 하루의 기록`]
+      };
+      return titleMap[category] || titleMap.travel;
+    }
+
+    function buildSeoTags(project, titleCandidates) {
+      const category = getCategoryLabel(project.category);
+      const place = getPlaceName(project).replace(/\s+/g, "");
+      const keywords = project.placeInfo?.keywords || [];
+      return [...new Set([
+        `#${category.replace(/\s+/g, "")}`,
+        `#${place}`,
+        ...keywords.map((keyword) => `#${String(keyword).replace(/\s+/g, "")}`),
+        "#박리리블로그",
+        "#방문후기",
+        "#사진기록"
+      ])].slice(0, 12);
+    }
+
+    function generateMockBlogResult(project) {
+      const category = getCategoryKey(project.category);
+      const categoryLabel = getCategoryLabel(project.category);
+      const place = getPlaceName(project);
+      const titles = buildTitleCandidates(project);
+      const tags = buildSeoTags(project, titles);
+      const visitReason = getAnswerText(project, "왜", "방문 이유는 STEP5 답변을 바탕으로 더 자연스럽게 정리될 예정입니다.");
+      const bestPoint = getAnswerText(project, "좋았던", "가장 좋았던 점은 사용자의 답변을 바탕으로 보완될 예정입니다.");
+      const recommendTarget = getAnswerText(project, "누구", "추천 대상은 사용자 답변을 바탕으로 정리될 예정입니다.");
+      const photoFlow = getPhotoResultLines(project);
+      const basicInfoLabel = { restaurant: "맛집 기본정보", cafe: "카페 기본정보", stay: "숙소 기본정보", experience: "체험 기본정보", tip: "정보 기본값", daily: "기록 정보", travel: "기본정보" }[category] || "기본정보";
+      const introMap = {
+        travel: `복잡한 일상에서 잠시 벗어나 ${place}의 분위기를 천천히 담아봤어요.`,
+        restaurant: `오늘은 ${place}에서 먹고 느낀 점을 사진 순서대로 정리해보려고 해요.`,
+        cafe: `${place}에서 보낸 시간은 공간 분위기와 메뉴를 함께 남기기 좋았던 기록이었어요.`,
+        stay: `${place}에서 머물며 느낀 객실, 위치, 이용 흐름을 차분히 정리해볼게요.`,
+        experience: `직접 해보고 결과물이 남는 ${place} 체험은 생각보다 더 오래 기억에 남더라고요.`,
+        tip: `오늘은 필요한 분들이 빠르게 확인할 수 있도록 ${place} 관련 정보를 정리해볼게요.`,
+        daily: `요즘은 별일 아닌 하루도 조금씩 남겨두고 싶어지더라고요.`
+      };
+      const categorySections = {
+        travel: ["[가는 방법]\n장소 정보와 사진 메모를 바탕으로 이동 흐름을 정리할 영역입니다.", "[사진 순서별 여행 흐름]", "[여행 TIP]\n방문 전 확인하면 좋을 포인트를 정리할 영역입니다."],
+        restaurant: ["[위치]\n장소 정보가 있으면 위치와 접근성을 정리합니다.", "[메뉴 후기]\n사진 메모와 답변을 바탕으로 메뉴 후기를 정리합니다.", "[사진 순서별 음식/공간 설명]", "[웨이팅/주차/예약 TIP]\n제공된 정보가 있을 때만 확정적으로 작성합니다."],
+        cafe: ["[공간 분위기]\n내부, 좌석, 포토존 사진을 중심으로 분위기를 정리합니다.", "[음료/디저트 후기]\n메모가 있는 사진을 중심으로 메뉴 후기를 정리합니다.", "[좌석/포토존]\n사진 흐름에 맞춰 추천 포인트를 정리합니다."],
+        stay: ["[위치/체크인]\n위치와 체크인 흐름을 정리할 영역입니다.", "[객실/침대/욕실/어메니티]\n사진 메모를 바탕으로 객실 후기를 정리합니다.", "[조식/주차/부대시설]\n제공된 정보가 있을 때만 작성합니다."],
+        experience: ["[예약/위치]\n예약과 위치 정보가 있으면 이곳에 정리합니다.", "[체험 과정]\n사진 순서대로 진행 과정을 정리합니다.", "[난이도]\n초보자 관점의 난이도는 답변과 메모를 바탕으로 정리합니다.", "[결과물 후기]\n완성 결과와 만족도를 정리할 영역입니다.", "[이용 TIP]\n준비물, 소요시간, 추천 상황을 정리합니다."],
+        tip: ["[고정 문구]\n필요한 분들이 빠르게 확인할 수 있도록 핵심만 정리해볼게요.", "[인삿말]\n안녕하세요 박리리입니다.", "[세일 정보]\n할인율, 기간, 조건이 제공되면 정리합니다.", "[제품 소개]\n사진과 메모를 바탕으로 제품을 소개합니다.", "[링크 영역]\n링크가 제공되면 이곳에 정리합니다."],
+        daily: ["[하루 분위기]\n그날의 온도와 기분을 담는 영역입니다.", "[사진 순서별 기록]", "[작은 에피소드]\n사진 메모와 답변을 바탕으로 사소한 장면을 살립니다.", "[짧은 생각]\n무리하게 결론 내리지 않고 자연스럽게 정리합니다."]
+      };
+      const photoHeading = ["restaurant", "cafe", "stay", "experience", "tip", "daily"].includes(category)
+        ? categorySections[category].find((section) => section.includes("사진 순서별")) || "[사진 순서별 본문]"
+        : "[사진 순서별 여행 흐름]";
+      const sections = (categorySections[category] || categorySections.travel).map((section) => section.includes("사진 순서별") ? `${photoHeading}\n${photoFlow}` : section).join("\n\n");
+      const content = `[제목 후보]
+${titles.map((title, index) => `${index + 1}. ${title}`).join("\n")}
+
+[도입 문구]
+${introMap[category] || introMap.travel}
+
+[본문]
+안녕하세요 박리리입니다.
+이번 글은 ${categoryLabel} 카테고리의 Mock 결과 화면을 확인하기 위한 임시 생성본입니다.
+방문 이유: ${visitReason}
+가장 좋았던 점: ${bestPoint}
+
+${getBasicInfoBlock(project, basicInfoLabel)}
+
+${sections}
+
+[추천 대상]
+${recommendTarget}
+
+[마무리]
+아직 실제 AI 생성 전 단계라 문장은 간단하지만, 이 영역에 최종 블로그 글이 들어오게 됩니다.
+작성 후에는 직접 수정하고 전체 또는 일부만 복사할 수 있습니다.
+
+[SEO 태그]
+${tags.join(" ")}`;
+      return { createdAt: new Date().toISOString(), category: project.category, content, titleCandidates: titles, tags, isMock: true };
+    }
+
+    function getPromptForAI(project) {
+      return buildPrompt(project);
+    }
+
+    async function generateAIBlogResult(project) {
+      const prompt = getPromptForAI(project);
+      if (!prompt || !prompt.trim()) throw new Error("AI 생성에 사용할 Prompt가 비어 있습니다.");
+      const supabaseUrl = window.SUPABASE_URL || window.supabaseUrl || window.APP_SUPABASE_URL || (typeof SB_URL !== "undefined" ? SB_URL : "") || "";
+      const supabaseAnonKey = window.SUPABASE_ANON_KEY || window.supabaseAnonKey || window.APP_SUPABASE_ANON_KEY || (typeof SB_KEY !== "undefined" ? SB_KEY : "") || "";
+      if (!supabaseUrl || !supabaseAnonKey) throw new Error("Supabase URL 또는 anon key를 찾을 수 없습니다. 기존 anthropic-proxy 호출부의 Supabase 설정을 재사용하도록 연결해주세요.");
+      if (prompt.length > 20000) { const longPromptOk = confirm("Prompt 길이가 길어 API 비용이 높아질 수 있습니다. 그래도 생성할까요?"); if (!longPromptOk) throw new Error("사용자가 AI 생성을 취소했습니다."); }
+      const costOk = confirm("AI 생성은 OpenAI API 크레딧을 사용합니다. 현재 Prompt로 글을 생성할까요?");
+      if (!costOk) throw new Error("사용자가 AI 생성을 취소했습니다.");
+      const functionUrl = supabaseUrl + "/functions/v1/" + LIRI_FUNCTION_NAME;
+      let response;
+      try { response = await fetch(functionUrl, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + supabaseAnonKey, "apikey": supabaseAnonKey }, body: JSON.stringify({ prompt, category: project.category || "여행", projectTitle: project.title || "박리리 블로그 글" }) }); }
+      catch (error) { throw new Error("네트워크 오류로 AI 생성 요청을 보내지 못했습니다."); }
+      const data = await response.json().catch(() => null);
+      if (!response.ok) { const rawMessage = data?.error || data?.message || "AI 생성 요청에 실패했습니다."; const lowered = String(rawMessage).toLowerCase(); const friendlyMessage = String(rawMessage).includes("OPENAI_API_KEY") ? "OPENAI_API_KEY Secret을 찾을 수 없습니다. Supabase Secret 설정을 확인해주세요." : lowered.includes("credit") || lowered.includes("quota") ? "OpenAI 크레딧 또는 사용량 한도를 확인해주세요." : rawMessage; throw new Error(friendlyMessage); }
+      return { createdAt: data?.createdAt || new Date().toISOString(), category: data?.category || project.category, content: data?.content || "", titleCandidates: Array.isArray(data?.titleCandidates) ? data.titleCandidates : [], tags: Array.isArray(data?.tags) ? data.tags : [], model: data?.model || "gpt-4.1-mini", usage: data?.usage || null, isMock: false };
+    }
+
+    async function generateBlogResult(project) {
+      if (generationMode === "ai") {
+        return await generateAIBlogResult(project);
+      }
+      return generateMockBlogResult(project);
+    }
+
+    function saveGeneratedResult(result) {
+      projectManager.update((project) => {
+        project.generatedResult = result;
+        project.generatedPost = result.content;
+        project.seoTags = result.tags;
+        project.hashtags = result.tags;
+      }, "블로그 글 결과 저장됨");
+    }
+
+    function getResultSection(content, sectionTitle) {
+      const escapedTitle = sectionTitle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const match = content.match(new RegExp(`\\[${escapedTitle}\\]\\n([\\s\\S]*?)(?=\\n\\n\\[[^\\]]+\\]|$)`));
+      return match ? match[1].trim() : "";
+    }
+
+    function parseResultParts(content, fallback = latestResultParts) {
+      const titleText = getResultSection(content, "제목 후보");
+      const tagText = getResultSection(content, "SEO 태그") || getResultSection(content, "태그");
+      return {
+        titleCandidates: titleText ? titleText.split("\n").map((line) => line.trim()).filter(Boolean) : (fallback.titleCandidates || []),
+        body: content,
+        tags: tagText ? tagText.split(/\s+/).map((tag) => tag.trim()).filter(Boolean) : (fallback.tags || [])
+      };
+    }
+
+    function renderGeneratedResult() {
+      const project = projectManager.getActive();
+      if (!project) return;
+      const result = project.generatedResult || {};
+      resultEditor.value = result.content || "";
+      latestResultParts = { titleCandidates: result.titleCandidates || [], body: result.content || "", tags: result.tags || [] };
+      if (result.content) {
+        const usage = result.usage || null;
+        const usageMeta = [usage?.input_tokens != null ? "<span>입력 토큰 " + projectManager.escapeHtml(Number(usage.input_tokens).toLocaleString("ko-KR")) + "</span>" : "", usage?.output_tokens != null ? "<span>출력 토큰 " + projectManager.escapeHtml(Number(usage.output_tokens).toLocaleString("ko-KR")) + "</span>" : "", usage?.total_tokens != null ? "<span>총 토큰 " + projectManager.escapeHtml(Number(usage.total_tokens).toLocaleString("ko-KR")) + "</span>" : ""].filter(Boolean).join("");
+        resultMeta.innerHTML = "<span>생성 모드 " + (result.isMock === false ? "AI" : "Mock") + "</span><span>모델 " + projectManager.escapeHtml(result.model || (result.isMock === false ? "gpt-4.1-mini" : "Mock")) + "</span><span>생성 상태 완료</span><span>카테고리 " + projectManager.escapeHtml(result.category || project.category) + "</span><span>" + result.content.length.toLocaleString("ko-KR") + "자</span>" + usageMeta;
+      } else { resultMeta.innerHTML = "<span>Mock 결과 대기</span>"; }
+      resultCopyMessage.textContent = "";
+    }
+
+    async function handleGenerateBlogResult() {
+      const project = projectManager.getActive();
+      if (!project) return;
+      setGenerationState("generating");
+      resultMeta.innerHTML = "<span>블로그 글을 생성하는 중입니다...</span>";
+      try { if (generationMode === "mock") await new Promise((resolve) => window.setTimeout(resolve, 260)); const result = await generateBlogResult(project); saveGeneratedResult(result); renderGeneratedResult(); setGenerationState("success"); projectManager.showToast(generationMode === "ai" ? "AI 블로그 글 결과가 생성되었습니다." : "Mock 블로그 글 결과가 생성되었습니다."); }
+      catch (error) { const message = error instanceof Error ? error.message : "결과 생성에 실패했습니다."; setGenerationState("error", message); resultMeta.innerHTML = "<span>AI 생성 중 오류가 발생했습니다.</span><span>오류 내용: " + projectManager.escapeHtml(message) + "</span>"; projectManager.showToast(message); }
+    }
+
+    function getResultCopyText(type) {
+      const content = resultEditor.value.trim();
+      const parts = parseResultParts(content);
+      if (type === "titles") return parts.titleCandidates.join("\n");
+      if (type === "tags") return parts.tags.join(" ");
+      if (type === "body") {
+        return content
+          .replace(/\[제목 후보\][\s\S]*?\n\n(?=\[도입 문구\])/, "")
+          .replace(/\[SEO 태그\][\s\S]*$/, "")
+          .trim();
+      }
+      return content;
+    }
+
+    async function copyResult(type) {
+      const text = getResultCopyText(type);
+      if (!text) {
+        projectManager.showToast("먼저 블로그 글 결과를 생성해주세요.");
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (error) {
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        textarea.remove();
+      }
+      resultCopyMessage.textContent = "블로그 글 결과가 복사되었습니다.";
+      projectManager.showToast("블로그 글 결과가 복사되었습니다.");
+    }
+
+    generationModeInputs.forEach((input) => {
+      input.addEventListener("change", () => {
+        if (!input.checked) return;
+        generationMode = input.value === "ai" ? "ai" : "mock";
+        setGenerationState("idle");
+        projectManager.showToast(generationMode === "ai" ? "AI 생성 모드입니다. generate-liri-blog Function을 호출합니다." : "Mock 테스트 모드입니다.");
+      });
+    });
+    generateResultButton.addEventListener("click", handleGenerateBlogResult);
+    regenerateResultButton.addEventListener("click", handleGenerateBlogResult);
+    resultEditor.addEventListener("input", () => {
+      const project = projectManager.getActive();
+      if (!project) return;
+      const parsedParts = parseResultParts(resultEditor.value);
+      const result = {
+        ...(project.generatedResult || {}),
+        createdAt: project.generatedResult?.createdAt || new Date().toISOString(),
+        category: project.category,
+        content: resultEditor.value,
+        titleCandidates: parsedParts.titleCandidates,
+        tags: parsedParts.tags
+      };
+      latestResultParts = parsedParts;
+      saveGeneratedResult(result);
+    });
+    copyResultButtons.forEach((button) => {
+      button.addEventListener("click", () => copyResult(button.dataset.copyResult));
+    });
+
+    /* =========================================================
+       LIRI Engine Data View
+       ========================================================= */
+    const categoryEngineMap = {
+      "여행": "travel",
+      "맛집": "restaurant",
+      "카페": "cafe",
+      "숙소": "stay",
+      "체험": "experience",
+      "일상": "daily",
+      "알뜰살뜰TIP": "tip"
+    };
+    const engineCategories = document.querySelectorAll("[data-engine-category]");
+    const engineTitle = document.querySelector("[data-engine-title]");
+    const engineTabs = document.querySelectorAll("[data-engine-tab]");
+    const engineRuleGrid = document.querySelector("[data-engine-rule-grid]");
+    const engineTabContent = document.querySelector("[data-engine-tab-content]");
+    const engineMeta = document.querySelector("[data-engine-meta]");
+    const commonSummary = document.querySelector("[data-common-summary]");
+    let activeEngineCategory = "여행";
+
+    function escapeEngineHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function valueList(value) {
+      if (Array.isArray(value)) return value.flat(Infinity).filter(Boolean).map(String);
+      if (value === undefined || value === null || value === "") return [];
+      if (typeof value === "object") return [JSON.stringify(value)];
+      return [String(value)];
+    }
+
+    function getSection(engine, keys) {
+      for (const key of keys) {
+        const value = engine?.sections?.[key] ?? engine?.[key];
+        if (value !== undefined && value !== null && value !== "") return value;
+      }
+      return undefined;
+    }
+
+    function mergeValues(...values) {
+      return values.flatMap(valueList);
+    }
+
+    function renderList(value, className) {
+      const items = valueList(value);
+      if (!items.length) return '<p class="engine-empty">아직 등록된 규칙이 없습니다.</p>';
+      return `<ul class="${className}">${items.map((item) => `<li>${escapeEngineHtml(item)}</li>`).join("")}</ul>`;
+    }
+
+    function renderSummaryList(value) {
+      const items = valueList(value).slice(0, 3);
+      if (!items.length) return '<p class="engine-empty">아직 등록된 규칙이 없습니다.</p>';
+      return `<ul class="engine-rule-list">${items.map((item) => `<li>${escapeEngineHtml(item)}</li>`).join("")}</ul>`;
+    }
+
+    function renderEngineMeta(engine, engineKey) {
+      const rows = [
+        ["현재 선택 엔진", engine.label || "Category Engine"],
+        ["카테고리", activeEngineCategory],
+        ["엔진 키", engineKey],
+        ["버전", `v${engine.version || "1.0"}`],
+        ["타입", engine.type || "Section-based"]
+      ];
+      engineMeta.innerHTML = rows.map(([label, value]) => `<div class="engine-meta-item"><span>${escapeEngineHtml(label)}</span><strong>${escapeEngineHtml(value)}</strong></div>`).join("");
+    }
+
+    function getCardRules(engine, commonEngine) {
+      return [
+        ["글 구조", mergeValues(getSection(engine, ["objective"]), getSection(engine, ["writingMode", "writingStyle"]), getSection(engine, ["outputRules", "structure"]))],
+        ["사진 순서", getSection(engine, ["photoFlowRules", "photoFlow"])],
+        ["SEO", getSection(engine, ["seoRules", "seo"])],
+        ["말투", getSection(engine, ["toneRules", "tone", "writingStyle"])],
+        ["이모지", commonEngine?.sections?.emojiRules],
+        ["마무리", getSection(engine, ["closingRules", "closing"])],
+        ["추천 태그", getSection(engine, ["tagRules", "seoTagRules"])]
+      ];
+    }
+
+    function getTabGroups(engine, commonEngine, tabName) {
+      const categorySeo = getSection(engine, ["seoRules", "seo"]);
+      const groups = {
+        "글 구조": [
+          ["Objective", getSection(engine, ["objective"])],
+          ["Writing Mode", getSection(engine, ["writingMode", "writingStyle"])],
+          ["Output Rules", getSection(engine, ["outputRules", "structure"])]
+        ],
+        "문체": [["Tone", getSection(engine, ["toneRules", "tone", "writingStyle"]) || commonEngine?.sections?.toneVoice]],
+        "SEO": [["SEO Rules", categorySeo]],
+        "사진 흐름": [["Photo Flow", getSection(engine, ["photoFlowRules", "photoFlow"]) || commonEngine?.sections?.photoWritingRules]],
+        "질문 템플릿": [["Question Template", "추후 질문 템플릿 규칙을 연결할 예정입니다."]],
+        "키워드": [["Common Keywords", commonEngine?.sections?.keywordRules], ["Category Keywords", categorySeo]],
+        "태그": [["Tag Rules", getSection(engine, ["tagRules", "seoTagRules"])]],
+        "금지 표현": [["Category Prohibited Rules", getSection(engine, ["prohibitedRules"])], ["Common Prohibited Expressions", commonEngine?.sections?.prohibitedExpressions]],
+        "마무리": [["Closing Rules", getSection(engine, ["closingRules", "closing"]) || commonEngine?.sections?.closingRules]]
+      };
+      return groups[tabName] || [];
+    }
+
+    function renderEngineTab(engine, commonEngine, tabName) {
+      const groups = getTabGroups(engine, commonEngine, tabName);
+      engineTabContent.innerHTML = `<h3>${escapeEngineHtml(tabName)}</h3>${groups.map(([label, content]) => `<div class="engine-detail-group"><strong>${escapeEngineHtml(label)}</strong>${renderList(content, "engine-detail-list")}</div>`).join("")}`;
+    }
+
+    function renderCommonEngine() {
+      const commonEngine = window.LIRI_ENGINE?.getCommonEngine?.();
+      if (!commonEngine) {
+        commonSummary.innerHTML = '<p class="engine-empty">Common Engine을 불러오지 못했습니다.</p>';
+        return;
+      }
+      const sections = window.LIRI_ENGINE.getOrderedCommonSections?.() || Object.entries(commonEngine.sections || {}).map(([key, content]) => ({ key, title: key, content }));
+      commonSummary.innerHTML = sections.map((section) => `<article class="common-summary-card"><h3>${escapeEngineHtml(section.title)}</h3>${renderList(section.content, "engine-detail-list")}</article>`).join("");
+    }
+
+    function renderEngineRules(category) {
+      const engineKey = categoryEngineMap[category] || "travel";
+      const engine = window.LIRI_ENGINE?.engines?.[engineKey] || window.LIRI_ENGINE?.getEngine?.(engineKey);
+      const commonEngine = window.LIRI_ENGINE?.getCommonEngine?.();
+      if (!engine) {
+        engineRuleGrid.innerHTML = '<p class="engine-empty">선택한 엔진을 불러오지 못했습니다.</p>';
+        return;
+      }
+      activeEngineCategory = category;
+      engineTitle.textContent = `${engine.label || category} 작성 규칙`;
+      renderEngineMeta(engine, engineKey);
+      engineRuleGrid.innerHTML = getCardRules(engine, commonEngine).map(([title, content]) => `<article class="engine-rule-card"><h3>${escapeEngineHtml(title)}</h3>${renderSummaryList(content)}</article>`).join("");
+      const activeTab = document.querySelector(".engine-tab.is-selected")?.dataset.engineTab || "글 구조";
+      renderEngineTab(engine, commonEngine, activeTab);
+    }
+
+    engineCategories.forEach((category) => {
+      category.addEventListener("click", () => {
+        engineCategories.forEach((item) => item.classList.remove("is-selected"));
+        category.classList.add("is-selected");
+        renderEngineRules(category.dataset.engineCategory);
+      });
+    });
+
+    engineTabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        engineTabs.forEach((item) => item.classList.remove("is-selected"));
+        tab.classList.add("is-selected");
+        const engineKey = categoryEngineMap[activeEngineCategory] || "travel";
+        const engine = window.LIRI_ENGINE?.engines?.[engineKey] || window.LIRI_ENGINE?.getEngine?.(engineKey);
+        renderEngineTab(engine, window.LIRI_ENGINE?.getCommonEngine?.(), tab.dataset.engineTab);
+      });
+    });
+
+    renderCommonEngine();
+    renderEngineRules("여행");
+
+    /* =========================================================
+       Lightweight Selection UI
+       ========================================================= */
+    document.querySelectorAll(".chip, .memo-item").forEach((item) => {
+      item.addEventListener("click", () => {
+        const group = item.classList.contains("chip") ? ".chip" : ".memo-item";
+        item.closest(".step-panel").querySelectorAll(group).forEach((sibling) => sibling.classList.remove("is-selected"));
+        item.classList.add("is-selected");
+      });
+    });
+  
+    })();
+  };
+})();
+
+/* =========================================================
+   LEGACY SIDEJOB TABS
+   기존 부업 > 블로그/마케팅 탭
+   현재 화면에서는 사용하지 않음
+========================================================= */
 function switchSidejob(tab, el){
   document.querySelectorAll('.sidejob-tab').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.sidejob-panel').forEach(p=>p.classList.remove('active'));
@@ -9758,6 +11344,12 @@ function switchSidejob(tab, el){
   if(panel) panel.classList.add('active');
 }
 
+/* =========================================================
+   LEGACY BLOG GENERATOR
+   기존 부업 > 블로그 생성기
+   현재 화면에서는 사용하지 않음
+   LIRI AI Studio 안정화 후 삭제 예정
+========================================================= */
 const BLOG_CATEGORIES = {
   travel:{label:"✈ 여행",badge:"badge-travel",emoji:"✈️",types:{
     place:{label:"여행 장소",hint:"위치·요금·운영시간 등 내가 아는 것만 적어주세요.",placeholder:"예) 장소: 도쿄 시부야 스카이\n- 229m 전망대, 노을 명당\n- 입장료: (적어주세요)\n- 예약 권장, 일몰 30분 전 추천"},
